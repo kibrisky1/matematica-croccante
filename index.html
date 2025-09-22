@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutor Matematico - Esercizi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            color: #374151;
+            overflow-x: hidden; /* Previene lo scroll orizzontale */
+        }
+        .container { max-width: 900px; }
+        .nav-button.active {
+            background-color: #60a5fa;
+            color: white;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .section-container { display: none; }
+        .section-container.active { display: block; }
+        #background-canvas {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: -1; opacity: 0.2;
+        }
+        input[type="text"], input[type="number"] {
+            border: 2px solid #cbd5e1;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            width: 100%;
+            transition: border-color 0.2s;
+        }
+        input[type="text"]:focus, input[type="number"]:focus {
+            outline: none; border-color: #60a5fa;
+        }
+        .feedback-correct { background-color: #d1fae5; color: #065f46; animation: fadein 0.5s ease-out; }
+        .feedback-incorrect { background-color: #fee2e2; color: #991b1b; animation: fadein 0.5s ease-out; }
+        @keyframes fadein { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="p-4 sm:p-8">
+    <canvas id="background-canvas"></canvas>
+    <div class="container mx-auto bg-white rounded-3xl shadow-xl p-6 sm:p-10 min-h-[calc(100vh-64px)] flex flex-col relative z-10">
+        <header class="text-center mb-10">
+            <h1 class="text-4xl sm:text-5xl font-bold text-blue-600 mb-2">Tutor Matematico</h1>
+            <p class="text-xl text-gray-600">Impara divertendoti!</p>
+        </header>
+        <nav class="flex flex-wrap justify-center gap-2 sm:gap-4 mb-10">
+            <button id="nav-home" class="nav-button px-4 py-2 rounded-full font-medium transition-all duration-200 text-gray-700 hover:bg-gray-200 active">Home</button>
+            <button id="nav-esercizi" class="nav-button px-4 py-2 rounded-full font-medium transition-all duration-200 text-gray-700 hover:bg-gray-200">Aritmetica</button>
+            <button id="nav-espressioni" class="nav-button px-4 py-2 rounded-full font-medium transition-all duration-200 text-gray-700 hover:bg-gray-200">Espressioni</button>
+            <button id="nav-proporzioni" class="nav-button px-4 py-2 rounded-full font-medium transition-all duration-200 text-gray-700 hover:bg-gray-200">Proporzioni</button>
+            <button id="nav-geometria" class="nav-button px-4 py-2 rounded-full font-medium transition-all duration-200 text-gray-700 hover:bg-gray-200">Geometria</button>
+            <button id="nav-sistemi" class="nav-button px-4 py-2 rounded-full font-medium transition-all duration-200 text-gray-700 hover:bg-gray-200">Sistemi</button>
+        </nav>
+        <main class="flex-grow">
+            <!-- Home -->
+            <div id="section-home" class="section-container active">
+                <div class="text-center">
+                    <svg class="mx-auto mb-6 text-blue-500 w-48 h-48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                        <path d="M2 17l10 5 10-5"></path>
+                        <path d="M2 12l10 5 10-5"></path>
+                    </svg>
+                    <p class="text-lg text-gray-700 mb-4">Benvenuto nel tuo tutor matematico personale! Qui puoi allenarti con esercizi generati casualmente e imparare nuovi concetti.</p>
+                    <p class="text-md text-gray-500">Seleziona una categoria qui sopra per iniziare. Se ti senti avventuroso, clicca su "Casuale" per un esercizio a sorpresa!</p>
+                </div>
+            </div>
+
+            <!-- Esercizi di Aritmetica -->
+            <div id="section-esercizi" class="section-container">
+                <h2 class="text-2xl sm:text-3xl font-bold mb-4 text-center text-blue-600">Esercizi di Aritmetica</h2>
+                <div class="bg-gray-100 rounded-xl p-4 sm:p-6 shadow-inner max-w-xl mx-auto">
+                    <div class="text-center text-xl font-bold mb-4 text-gray-800">Esercizio: <span id="arithmetic-exercise" class="text-3xl sm:text-4xl text-blue-600"></span></div>
+                    <div class="flex flex-col sm:flex-row items-center gap-4 mb-4">
+                        <input type="number" id="arithmetic-answer" placeholder="Inserisci la tua risposta" class="flex-grow text-center text-lg">
+                        <button id="check-arithmetic" class="w-full sm:w-auto bg-green-500 text-white font-bold py-3 px-6 rounded-xl hover:bg-green-600 transition-colors duration-200 transform hover:scale-105">Verifica</button>
+                    </div>
+                    <div class="flex flex-col sm:flex-row justify-center gap-2 mb-4">
+                        <button id="new-arithmetic" class="w-full sm:w-auto bg-gray-300 text-gray-700 font-medium py-2 px-4 rounded-full hover:bg-gray-400 transition-colors duration-200">Nuovo Esercizio</button>
+                        <button id="hint-arithmetic" class="w-full sm:w-auto bg-yellow-400 text-white font-medium py-2 px-4 rounded-full hover:bg-yellow-500 transition-colors duration-200">Suggerimento</button>
+                    </div>
+                    <div id="arithmetic-result" class="mt-4 p-4 rounded-lg text-center font-bold"></div>
+                    <div id="arithmetic-hint-box" class="mt-4 p-4 rounded-lg bg-yellow-100 border border-yellow-300 text-gray-700 hidden"></div>
+                </div>
+            </div>
+
+            <!-- Espressioni -->
+            <div id="section-espressioni" class="section-container">
+                <h2 class="text-2xl sm:text-3xl font-bold mb-4 text-center text-blue-600">Espressioni Semplici</h2>
+                <div class="bg-gray-100 rounded-xl p-4 sm:p-6 shadow-inner max-w-xl mx-auto">
+                    <div class="text-center text-xl font-bold mb-4 text-gray-800">Risolvi: <span id="expression-exercise" class="text-3xl sm:text-4xl text-blue-600"></span></div>
+                    <div class="flex flex-col sm:flex-row items-center gap-4 mb-4">
+                        <input type="number" id="expression-answer" placeholder="Inserisci la tua risposta" class="flex-grow text-center text-lg">
+                        <button id="check-expression" class="w-full sm:w-auto bg-green-500 text-white font-bold py-3 px-6 rounded-xl hover:bg-green-600 transition-colors duration-200 transform hover:scale-105">Verifica</button>
+                    </div>
+                    <div class="flex flex-col sm:flex-row justify-center gap-2 mb-4">
+                        <button id="new-expression" class="w-full sm:w-auto bg-gray-300 text-gray-700 font-medium py-2 px-4 rounded-full hover:bg-gray-400 transition-colors duration-200">Nuova Espressione</button>
+                        <button id="hint-expression" class="w-full sm:w-auto bg-yellow-400 text-white font-medium py-2 px-4 rounded-full hover:bg-yellow-500 transition-colors duration-200">Suggerimento</button>
+                    </div>
+                    <div id="expression-result" class="mt-4 p-4 rounded-lg text-center font-bold"></div>
+                    <div id="expression-hint-box" class="mt-4 p-4 rounded-lg bg-yellow-100 border border-yellow-300 text-gray-700 hidden"></div>
+                </div>
+            </div>
+
+            <!-- Proporzioni -->
+            <div id="section-proporzioni" class="section-container">
+                <h2 class="text-2xl sm:text-3xl font-bold mb-4 text-center text-blue-600">Proporzioni</h2>
+                <div class="bg-gray-100 rounded-xl p-4 sm:p-6 shadow-inner max-w-xl mx-auto">
+                    <div class="text-center text-xl font-bold mb-4 text-gray-800">Risolvi la proporzione: <span id="proportion-exercise" class="text-3xl sm:text-4xl text-blue-600"></span></div>
+                    <div class="flex flex-col sm:flex-row items-center gap-4 mb-4">
+                        <input type="number" id="proportion-answer" placeholder="Inserisci la tua risposta (x)" class="flex-grow text-center text-lg">
+                        <button id="check-proportion" class="w-full sm:w-auto bg-green-500 text-white font-bold py-3 px-6 rounded-xl hover:bg-green-600 transition-colors duration-200 transform hover:scale-105">Verifica</button>
+                    </div>
+                    <div class="flex flex-col sm:flex-row justify-center gap-2 mb-4">
+                        <button id="new-proportion" class="w-full sm:w-auto bg-gray-300 text-gray-700 font-medium py-2 px-4 rounded-full hover:bg-gray-400 transition-colors duration-200">Nuova Proporzione</button>
+                        <button id="hint-proportion" class="w-full sm:w-auto bg-yellow-400 text-white font-medium py-2 px-4 rounded-full hover:bg-yellow-500 transition-colors duration-200">Suggerimento</button>
+                    </div>
+                    <div id="proportion-result" class="mt-4 p-4 rounded-lg text-center font-bold"></div>
+                    <div id="proportion-hint-box" class="mt-4 p-4 rounded-lg bg-yellow-100 border border-yellow-300 text-gray-700 hidden"></div>
+                </div>
+            </div>
+
+            <!-- Geometria -->
+            <div id="section-geometria" class="section-container">
+                <h2 class="text-2xl sm:text-3xl font-bold mb-4 text-center text-blue-600">Geometria</h2>
+                <div class="bg-gray-100 rounded-xl p-4 sm:p-6 shadow-inner max-w-xl mx-auto">
+                    <div class="text-center mb-4">
+                        <div id="geometric-image-container" class="mx-auto max-w-[200px] sm:max-w-xs mb-4"></div>
+                        <div class="text-xl font-bold mb-2 text-gray-800" id="geometric-exercise-type"></div>
+                        <div class="text-2xl sm:text-3xl font-bold text-blue-600" id="geometric-exercise-text"></div>
+                    </div>
+                    <div class="flex flex-col sm:flex-row items-center gap-4 mb-4">
+                        <input type="number" id="geometric-answer" placeholder="Inserisci la tua risposta" class="flex-grow text-center text-lg">
+                        <button id="check-geometric" class="w-full sm:w-auto bg-green-500 text-white font-bold py-3 px-6 rounded-xl hover:bg-green-600 transition-colors duration-200 transform hover:scale-105">Verifica</button>
+                    </div>
+                    <div class="flex flex-col sm:flex-row justify-center gap-2 mb-4">
+                        <button id="new-geometric" class="w-full sm:w-auto bg-gray-300 text-gray-700 font-medium py-2 px-4 rounded-full hover:bg-gray-400 transition-colors duration-200">Nuovo Esercizio</button>
+                        <button id="hint-geometric" class="w-full sm:w-auto bg-yellow-400 text-white font-medium py-2 px-4 rounded-full hover:bg-yellow-500 transition-colors duration-200">Suggerimento</button>
+                    </div>
+                    <div id="geometric-result" class="mt-4 p-4 rounded-lg text-center font-bold"></div>
+                    <div id="geometric-hint-box" class="mt-4 p-4 rounded-lg bg-yellow-100 border border-yellow-300 text-gray-700 hidden"></div>
+                </div>
+            </div>
+
+            <!-- Sistemi di Equazioni -->
+            <div id="section-sistemi" class="section-container">
+                <h2 class="text-2xl sm:text-3xl font-bold mb-4 text-center text-blue-600">Sistemi di Equazioni</h2>
+                <div class="bg-gray-100 rounded-xl p-4 sm:p-6 shadow-inner max-w-xl mx-auto">
+                    <div class="text-center text-xl font-bold mb-4 text-gray-800">
+                        Risolvi il sistema:
+                        <div id="system-exercise" class="text-2xl sm:text-3xl font-mono text-blue-600 mt-2"></div>
+                    </div>
+                    <div class="flex flex-col sm:flex-row items-center gap-4 mb-4">
+                        <input type="number" id="system-answer-x" placeholder="Valore di x" class="flex-grow text-center text-lg">
+                        <input type="number" id="system-answer-y" placeholder="Valore di y" class="flex-grow text-center text-lg">
+                        <button id="check-system" class="w-full sm:w-auto bg-green-500 text-white font-bold py-3 px-6 rounded-xl hover:bg-green-600 transition-colors duration-200 transform hover:scale-105">Verifica</button>
+                    </div>
+                    <div class="flex flex-col sm:flex-row justify-center gap-2 mb-4">
+                        <button id="new-system" class="w-full sm:w-auto bg-gray-300 text-gray-700 font-medium py-2 px-4 rounded-full hover:bg-gray-400 transition-colors duration-200">Nuovo Sistema</button>
+                        <button id="hint-system" class="w-full sm:w-auto bg-yellow-400 text-white font-medium py-2 px-4 rounded-full hover:bg-yellow-500 transition-colors duration-200">Suggerimento</button>
+                    </div>
+                    <div id="system-result" class="mt-4 p-4 rounded-lg text-center font-bold"></div>
+                    <div id="system-hint-box" class="mt-4 p-4 rounded-lg bg-yellow-100 border border-yellow-300 text-gray-700 hidden"></div>
+                </div>
+            </div>
+        </main>
+
+        <div class="flex justify-center mt-8">
+            <button id="random-exercise-btn" class="bg-blue-600 text-white font-bold py-4 px-8 rounded-full shadow-lg hover:bg-blue-700 transition-all duration-200 transform hover:scale-105">Esercizio Casuale!</button>
+        </div>
+
+        <footer class="mt-10 text-center text-gray-400 text-sm">Creato da David Miron.</footer>
+    </div>
+
+    <script>
+        // Animazione del canvas
+        const canvas = document.getElementById('background-canvas');
+        const ctx = canvas.getContext('2d');
+        let mouseX = 0, mouseY = 0;
+        let particles = [];
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 5 + 1;
+                this.speedX = Math.random() * 3 - 1.5;
+                this.speedY = Math.random() * 3 - 1.5;
+                this.color = `hsl(${Math.random() * 360}, 50%, 50%)`;
+            }
+            update() {
+                const dx = mouseX - this.x;
+                const dy = mouseY - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 150) { this.x -= dx / 100; this.y -= dy / 100; }
+                this.x += this.speedX; this.y += this.speedY;
+                if (this.x > canvas.width || this.x < 0) this.speedX = -this.speedX;
+                if (this.y > canvas.height || this.y < 0) this.speedY = -this.speedY;
+            }
+            draw() { ctx.fillStyle = this.color; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); }
+        }
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            particles = []; for (let i = 0; i < 50; i++) { particles.push(new Particle()); }
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        document.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
+        function animate() { ctx.clearRect(0, 0, canvas.width, canvas.height); for (let i = 0; i < particles.length; i++) { particles[i].update(); particles[i].draw(); } requestAnimationFrame(animate); }
+        window.onload = function() { animate(); };
+
+        // Funzionalità di navigazione
+        function showSection(sectionId) {
+            document.querySelectorAll('.section-container').forEach(section => section.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+            document.querySelectorAll('.nav-button').forEach(button => button.classList.remove('active'));
+            const navButton = document.getElementById('nav-' + sectionId.replace('section-', ''));
+            if (navButton) navButton.classList.add('active');
+
+            // Genera un nuovo esercizio quando la sezione diventa attiva
+            switch(sectionId) {
+                case 'section-esercizi': generateArithmeticExercise(); break;
+                case 'section-espressioni': generateExpressionExercise(); break;
+                case 'section-proporzioni': generateProportionExercise(); break;
+                case 'section-geometria': generateGeometricExercise(); break;
+                case 'section-sistemi': generateSystemExercise(); break;
+            }
+        }
+
+        document.getElementById('nav-home').addEventListener('click', () => showSection('section-home'));
+        document.getElementById('nav-esercizi').addEventListener('click', () => showSection('section-esercizi'));
+        document.getElementById('nav-espressioni').addEventListener('click', () => showSection('section-espressioni'));
+        document.getElementById('nav-proporzioni').addEventListener('click', () => showSection('section-proporzioni'));
+        document.getElementById('nav-geometria').addEventListener('click', () => showSection('section-geometria'));
+        document.getElementById('nav-sistemi').addEventListener('click', () => showSection('section-sistemi'));
+
+        document.getElementById('random-exercise-btn').addEventListener('click', () => {
+            const sections = ['section-esercizi', 'section-espressioni', 'section-proporzioni', 'section-geometria', 'section-sistemi'];
+            const randomSection = sections[Math.floor(Math.random() * sections.length)];
+            showSection(randomSection);
+        });
+
+        // Esercizi di Aritmetica
+        const arithmeticExercise = document.getElementById('arithmetic-exercise');
+        const arithmeticAnswer = document.getElementById('arithmetic-answer');
+        const arithmeticResult = document.getElementById('arithmetic-result');
+        const arithmeticHintBox = document.getElementById('arithmetic-hint-box');
+        let currentArithmeticSolution = null;
+
+        function generateArithmeticExercise() {
+            const operators = ['+', '-', 'x', ':'];
+            const op = operators[Math.floor(Math.random() * operators.length)];
+            let num1, num2, solution;
+            if (op === ':') {
+                num2 = Math.floor(Math.random() * 10) + 1;
+                solution = Math.floor(Math.random() * 10) + 1;
+                num1 = num2 * solution;
+            } else {
+                num1 = Math.floor(Math.random() * 20) + 1;
+                num2 = Math.floor(Math.random() * 20) + 1;
+                if (op === '+') solution = num1 + num2;
+                if (op === '-') solution = num1 - num2;
+                if (op === 'x') solution = num1 * num2;
+            }
+            arithmeticExercise.textContent = `${num1} ${op} ${num2}`;
+            currentArithmeticSolution = solution;
+            arithmeticAnswer.value = '';
+            arithmeticResult.textContent = '';
+            arithmeticResult.className = 'mt-4 p-4 rounded-lg text-center font-bold';
+            arithmeticHintBox.classList.add('hidden');
+        }
+
+        document.getElementById('new-arithmetic').addEventListener('click', generateArithmeticExercise);
+        document.getElementById('check-arithmetic').addEventListener('click', () => {
+            const userAnswer = parseFloat(arithmeticAnswer.value);
+            if (!isNaN(userAnswer) && userAnswer === currentArithmeticSolution) {
+                arithmeticResult.innerHTML = 'Corretto! Ben fatto! &#x2713;';
+                arithmeticResult.className = 'mt-4 p-4 rounded-lg text-center font-bold feedback-correct';
+            } else {
+                arithmeticResult.innerHTML = 'Sbagliato. Riprova! &#x2717;';
+                arithmeticResult.className = 'mt-4 p-4 rounded-lg text-center font-bold feedback-incorrect';
+            }
+        });
+
+        document.getElementById('hint-arithmetic').addEventListener('click', () => {
+            arithmeticHintBox.classList.toggle('hidden');
+            const exercise = arithmeticExercise.textContent;
+            const op = exercise.includes('x') ? 'moltiplicazione' : exercise.includes(':') ? 'divisione' : exercise.includes('+') ? 'addizione' : 'sottrazione';
+            arithmeticHintBox.innerHTML = `Per risolvere "${exercise}", devi eseguire l'operazione di ${op}.`;
+        });
+
+        // --- Sezione Espressioni ---
+        const expressionExercise = document.getElementById('expression-exercise');
+        const expressionAnswer = document.getElementById('expression-answer');
+        const expressionResult = document.getElementById('expression-result');
+        const expressionHintBox = document.getElementById('expression-hint-box');
+        let currentExpressionSolution = null;
+        let currentExpressionString = '';
+
+        function generateExpressionExercise() {
+            const num1 = Math.floor(Math.random() * 10) + 1;
+            const num2 = Math.floor(Math.random() * 10) + 1;
+            const num3 = Math.floor(Math.random() * 10) + 1;
+            const op1 = Math.random() < 0.5 ? '+' : '-';
+            const op2 = Math.random() < 0.5 ? 'x' : '+';
+            
+            currentExpressionString = `${num1} ${op1} ${num2} ${op2} ${num3}`;
+            expressionExercise.textContent = currentExpressionString;
+
+            let solution;
+            if (op2 === 'x') {
+                solution = eval(`${num1} ${op1} ${num2 * num3}`);
+            } else {
+                solution = eval(`${num1} ${op1} ${num2} + ${num3}`);
+            }
+            
+            currentExpressionSolution = solution;
+            expressionAnswer.value = '';
+            expressionResult.textContent = '';
+            expressionResult.className = 'mt-4 p-4 rounded-lg text-center font-bold';
+            expressionHintBox.classList.add('hidden');
+        }
+
+        document.getElementById('new-expression').addEventListener('click', generateExpressionExercise);
+        document.getElementById('check-expression').addEventListener('click', () => {
+            const userAnswer = parseFloat(expressionAnswer.value);
+            if (!isNaN(userAnswer) && userAnswer === currentExpressionSolution) {
+                expressionResult.innerHTML = 'Corretto! Ben fatto! &#x2713;';
+                expressionResult.className = 'mt-4 p-4 rounded-lg text-center font-bold feedback-correct';
+            } else {
+                expressionResult.innerHTML = 'Sbagliato. Riprova! &#x2717;';
+                expressionResult.className = 'mt-4 p-4 rounded-lg text-center font-bold feedback-incorrect';
+            }
+        });
+
+        document.getElementById('hint-expression').addEventListener('click', () => {
+            expressionHintBox.classList.toggle('hidden');
+            expressionHintBox.innerHTML = 'Ricorda l\'ordine delle operazioni: prima le moltiplicazioni e le divisioni, poi le addizioni e le sottrazioni.';
+        });
+
+        // --- Sezione Proporzioni ---
+        const proportionExercise = document.getElementById('proportion-exercise');
+        const proportionAnswer = document.getElementById('proportion-answer');
+        const proportionResult = document.getElementById('proportion-result');
+        const proportionHintBox = document.getElementById('proportion-hint-box');
+        let currentProportionSolution = null;
+
+        function generateProportionExercise() {
+            const a = Math.floor(Math.random() * 10) + 1;
+            const b = Math.floor(Math.random() * 10) + 1;
+            const c = Math.floor(Math.random() * 10) + 1;
+            
+            const solution = (b * c) / a;
+            
+            if (solution !== Math.floor(solution)) {
+                generateProportionExercise();
+                return;
+            }
+            
+            proportionExercise.textContent = `${a} : ${b} = ${c} : x`;
+            currentProportionSolution = solution;
+            proportionAnswer.value = '';
+            proportionResult.textContent = '';
+            proportionResult.className = 'mt-4 p-4 rounded-lg text-center font-bold';
+            proportionHintBox.classList.add('hidden');
+        }
+
+        document.getElementById('new-proportion').addEventListener('click', generateProportionExercise);
+        document.getElementById('check-proportion').addEventListener('click', () => {
+            const userAnswer = parseFloat(proportionAnswer.value);
+            if (!isNaN(userAnswer) && userAnswer === currentProportionSolution) {
+                proportionResult.innerHTML = 'Corretto! Ben fatto! &#x2713;';
+                proportionResult.className = 'mt-4 p-4 rounded-lg text-center font-bold feedback-correct';
+            } else {
+                proportionResult.innerHTML = 'Sbagliato. Riprova! &#x2717;';
+                proportionResult.className = 'mt-4 p-4 rounded-lg text-center font-bold feedback-incorrect';
+            }
+        });
+
+        document.getElementById('hint-proportion').addEventListener('click', () => {
+            proportionHintBox.classList.toggle('hidden');
+            const exercise = proportionExercise.textContent;
+            const [a, b, c] = exercise.match(/\d+/g).map(Number);
+            proportionHintBox.innerHTML = `Per trovare la "x" in una proporzione, usa la formula: x = (secondo termine * terzo termine) / primo termine. <br>In questo caso, x = (${b} * ${c}) / ${a}.`;
+        });
+        
+        // --- Sezione Geometria ---
+        const geometricExerciseType = document.getElementById('geometric-exercise-type');
+        const geometricExerciseText = document.getElementById('geometric-exercise-text');
+        const geometricAnswer = document.getElementById('geometric-answer');
+        const geometricResult = document.getElementById('geometric-result');
+        const geometricHintBox = document.getElementById('geometric-hint-box');
+        const geometricImageContainer = document.getElementById('geometric-image-container');
+        let currentGeometricSolution = null;
+        let currentGeometricType = null;
+        
+        // Funzione per creare un'immagine SVG di un rettangolo
+        function createRectangleSVG(base, altezza) {
+            const scale = 5;
+            const width = base * scale;
+            const height = altezza * scale;
+            const svgWidth = Math.max(width, 100) + 20;
+            const svgHeight = Math.max(height, 80) + 20;
+            return `
+                <svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg" class="mx-auto block">
+                    <rect x="10" y="10" width="${width}" height="${height}" fill="none" stroke="#2563eb" stroke-width="2" />
+                    <text x="${10 + width / 2}" y="${10 + height + 15}" font-size="12" text-anchor="middle" fill="#1f2937">${base} cm</text>
+                    <text x="${10 - 5}" y="${10 + height / 2}" font-size="12" text-anchor="end" dominant-baseline="middle" fill="#1f2937">${altezza} cm</text>
+                </svg>
+            `;
+        }
+
+        // Funzione per creare un'immagine SVG di un triangolo rettangolo
+        function createTriangleSVG(base, altezza) {
+            const scale = 5;
+            const width = base * scale;
+            const height = altezza * scale;
+            const svgWidth = Math.max(width, 100) + 20;
+            const svgHeight = Math.max(height, 80) + 20;
+            return `
+                <svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg" class="mx-auto block">
+                    <polygon points="10,${10 + height} ${10 + width},${10 + height} ${10},10" fill="none" stroke="#2563eb" stroke-width="2" />
+                    <text x="${10 + width / 2}" y="${10 + height + 15}" font-size="12" text-anchor="middle" fill="#1f2937">${base} cm</text>
+                    <text x="${10 - 5}" y="${10 + height / 2}" font-size="12" text-anchor="end" dominant-baseline="middle" fill="#1f2937">${altezza} cm</text>
+                </svg>
+            `;
+        }
+        
+        function generateGeometricExercise() {
+            const figures = ['rettangolo', 'triangolo'];
+            const figure = figures[Math.floor(Math.random() * figures.length)];
+            const calculationTypes = ['perimetro', 'area'];
+            const calculationType = calculationTypes[Math.floor(Math.random() * calculationTypes.length)];
+            
+            let base, altezza, solution, text, hintText;
+            
+            if (figure === 'rettangolo') {
+                base = Math.floor(Math.random() * 10) + 1;
+                altezza = Math.floor(Math.random() * 10) + 1;
+                
+                if (calculationType === 'perimetro') {
+                    solution = 2 * (base + altezza);
+                    text = `Un rettangolo ha base ${base} cm e altezza ${altezza} cm. Calcola il perimetro.`;
+                    hintText = 'Il perimetro di un rettangolo si calcola con la formula: 2 * (base + altezza).';
+                } else { // area
+                    solution = base * altezza;
+                    text = `Un rettangolo ha base ${base} cm e altezza ${altezza} cm. Calcola l'area.`;
+                    hintText = 'L\'area di un rettangolo si calcola con la formula: base * altezza.';
+                }
+                geometricImageContainer.innerHTML = createRectangleSVG(base, altezza);
+            
+            } else { // triangolo
+                base = Math.floor(Math.random() * 10) + 1;
+                altezza = Math.floor(Math.random() * 10) + 1;
+                
+                if (calculationType === 'perimetro') {
+                    const lato2 = Math.floor(Math.random() * 10) + 1;
+                    const lato3 = Math.floor(Math.random() * 10) + 1;
+                    solution = base + lato2 + lato3;
+                    text = `Un triangolo ha lati di ${base} cm, ${lato2} cm e ${lato3} cm. Calcola il perimetro.`;
+                    hintText = 'Il perimetro di un triangolo è la somma della lunghezza dei suoi tre lati.';
+                } else { // area
+                    solution = (base * altezza) / 2;
+                    text = `Un triangolo ha base ${base} cm e altezza ${altezza} cm. Calcola l'area.`;
+                    hintText = 'L\'area di un triangolo si calcola con la formula: (base * altezza) / 2.';
+                }
+                geometricImageContainer.innerHTML = createTriangleSVG(base, altezza);
+            }
+            
+            geometricExerciseType.textContent = figure.charAt(0).toUpperCase() + figure.slice(1);
+            geometricExerciseText.textContent = text;
+            currentGeometricSolution = solution;
+            currentGeometricType = calculationType;
+            geometricAnswer.value = '';
+            geometricResult.textContent = '';
+            geometricResult.className = 'mt-4 p-4 rounded-lg text-center font-bold';
+            geometricHintBox.classList.add('hidden');
+        }
+
+        document.getElementById('new-geometric').addEventListener('click', generateGeometricExercise);
+        document.getElementById('check-geometric').addEventListener('click', () => {
+            const userAnswer = parseFloat(geometricAnswer.value);
+            if (!isNaN(userAnswer) && userAnswer === currentGeometricSolution) {
+                geometricResult.innerHTML = 'Corretto! Ben fatto! &#x2713;';
+                geometricResult.className = 'mt-4 p-4 rounded-lg text-center font-bold feedback-correct';
+            } else {
+                geometricResult.innerHTML = 'Sbagliato. Riprova! &#x2717;';
+                geometricResult.className = 'mt-4 p-4 rounded-lg text-center font-bold feedback-incorrect';
+            }
+        });
+
+        document.getElementById('hint-geometric').addEventListener('click', () => {
+            geometricHintBox.classList.toggle('hidden');
+            const figure = geometricExerciseType.textContent.toLowerCase();
+            const calculationType = currentGeometricType;
+            let hintText = '';
+            if (figure === 'rettangolo') {
+                hintText = calculationType === 'perimetro' ? 'Il perimetro di un rettangolo si calcola con la formula: 2 * (base + altezza).' : 'L\'area di un rettangolo si calcola con la formula: base * altezza.';
+            } else {
+                hintText = calculationType === 'perimetro' ? 'Il perimetro di un triangolo è la somma dei tre lati.' : 'L\'area di un triangolo si calcola con la formula: (base * altezza) / 2.';
+            }
+            geometricHintBox.innerHTML = hintText;
+        });
+
+        // --- Sezione Sistemi di Equazioni ---
+        const systemExercise = document.getElementById('system-exercise');
+        const systemAnswerX = document.getElementById('system-answer-x');
+        const systemAnswerY = document.getElementById('system-answer-y');
+        const systemResult = document.getElementById('system-result');
+        const systemHintBox = document.getElementById('system-hint-box');
+        let currentSystemSolution = { x: null, y: null };
+        
+        function generateSystemExercise() {
+            // Genera soluzioni intere casuali
+            const solX = Math.floor(Math.random() * 10) - 5;
+            const solY = Math.floor(Math.random() * 10) - 5;
+            currentSystemSolution = { x: solX, y: solY };
+            
+            // Genera coefficienti casuali per creare un sistema
+            const a1 = Math.floor(Math.random() * 5) + 1;
+            const b1 = Math.floor(Math.random() * 5) + 1;
+            const c1 = a1 * solX + b1 * solY;
+            
+            const a2 = Math.floor(Math.random() * 5) + 1;
+            const b2 = Math.floor(Math.random() * 5) + 1;
+            const c2 = a2 * solX + b2 * solY;
+            
+            // Visualizza il sistema
+            const eq1 = `${a1}x ${b1 >= 0 ? '+' : ''} ${b1}y = ${c1}`;
+            const eq2 = `${a2}x ${b2 >= 0 ? '+' : ''} ${b2}y = ${c2}`;
+            systemExercise.innerHTML = `
+                <div class="flex items-center justify-center">
+                    <span class="text-3xl mr-2">{</span>
+                    <div class="flex flex-col text-left">
+                        <span>${eq1}</span>
+                        <span>${eq2}</span>
+                    </div>
+                </div>
+            `;
+            
+            systemAnswerX.value = '';
+            systemAnswerY.value = '';
+            systemResult.textContent = '';
+            systemResult.className = 'mt-4 p-4 rounded-lg text-center font-bold';
+            systemHintBox.classList.add('hidden');
+        }
+
+        document.getElementById('new-system').addEventListener('click', generateSystemExercise);
+        document.getElementById('check-system').addEventListener('click', () => {
+            const userAnswerX = parseFloat(systemAnswerX.value);
+            const userAnswerY = parseFloat(systemAnswerY.value);
+            
+            if (!isNaN(userAnswerX) && !isNaN(userAnswerY) && userAnswerX === currentSystemSolution.x && userAnswerY === currentSystemSolution.y) {
+                systemResult.innerHTML = 'Corretto! Ottimo lavoro! &#x2713;';
+                systemResult.className = 'mt-4 p-4 rounded-lg text-center font-bold feedback-correct';
+            } else {
+                systemResult.innerHTML = 'Sbagliato. Riprova! &#x2717;';
+                systemResult.className = 'mt-4 p-4 rounded-lg text-center font-bold feedback-incorrect';
+            }
+        });
+        
+        document.getElementById('hint-system').addEventListener('click', () => {
+            systemHintBox.classList.toggle('hidden');
+            systemHintBox.innerHTML = `Per risolvere un sistema di equazioni, puoi usare vari metodi come la **sostituzione** o la **somma (o riduzione)**. Se hai due equazioni con due incognite, il tuo obiettivo è trovare i valori di x e y che soddisfano entrambe le equazioni contemporaneamente.`;
+        });
+        
+        // Avvia l'app sulla home page
+        showSection('section-home');
+    </script>
+</body>
+</html>
