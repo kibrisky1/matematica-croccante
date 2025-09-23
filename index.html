@@ -132,13 +132,13 @@
             height: 24px;
             stroke-width: 2px;
             transition: all 0.3s ease;
-             color: var(--text-secondary);
+            color: var(--text-secondary);
         }
         .nav-button:hover .nav-icon {
-             color: var(--text-primary);
+            color: var(--text-primary);
         }
         .nav-button.active .nav-icon {
-             color: white;
+            color: white;
         }
 
         @keyframes correct-pulse {
@@ -196,23 +196,8 @@
 <body class="min-h-screen p-4">
     <canvas id="background-canvas"></canvas>
 
-    <!-- UI di Autenticazione -->
-    <div id="auth-ui" class="flex items-center justify-center min-h-screen">
-        <div class="glass-card rounded-2xl p-6 sm:p-10 w-full max-w-lg text-center">
-            <h1 class="text-3xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-emerald-500" data-i18n="auth_title">Benvenuto!</h1>
-            <p class="text-slate-400 mb-6" data-i18n="auth_subtitle">Accedi per iniziare.</p>
-
-            <button id="google-login-btn" class="w-full flex items-center justify-center gap-2 bg-slate-800 text-slate-200 font-bold py-3 px-6 rounded-xl shadow-md hover:bg-slate-700 transition-all duration-300 transform hover:scale-105 mb-4 border border-slate-700">
-                <svg class="w-6 h-6" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C12.955 4 4 12.955 4 24s8.955 20 20 20s20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"></path><path fill="#FF3D00" d="m6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C16.318 4 9.656 8.337 6.306 14.691z"></path><path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.222 0-9.618-3.226-11.283-7.581l-6.522 5.025C9.505 39.556 16.227 44 24 44z"></path><path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-.792 2.237-2.231 4.166-4.087 5.571l6.19 5.238C42.012 36.417 44 30.638 44 24c0-1.341-.138-2.65-.389-3.917z"></path></svg>
-                Accedi con Google
-            </button>
-
-            <button id="guest-btn" class="w-full bg-gradient-to-r from-primary-start to-primary-end text-white font-bold py-3 px-6 rounded-xl shadow-lg hover:from-primary-hover-start hover:to-primary-hover-end transition-all duration-300 transform hover:scale-105" data-i18n="button_guest">Continua come Ospite</button>
-        </div>
-    </div>
-
     <!-- UI principale del sito -->
-    <div id="main-ui" class="hidden flex flex-col lg:flex-row h-[calc(100vh-2rem)] gap-4">
+    <div id="main-ui" class="flex flex-col lg:flex-row h-[calc(100vh-2rem)] gap-4">
         <!-- Sidebar di Navigazione -->
         <aside class="w-full lg:w-72 glass-card rounded-2xl p-6 flex flex-col flex-shrink-0">
             <div class="text-center lg:text-left mb-8">
@@ -261,10 +246,6 @@
                 </div>
             </div>
             
-            <button id="go-to-login-btn" class="hidden w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-bold py-3 px-6 rounded-xl shadow-lg hover:from-blue-600 hover:to-indigo-600 transition-all duration-300 transform hover:scale-105 mb-4" data-i18n="button_go_to_login">Vai al Login</button>
-            <button id="sign-out-btn" class="hidden w-full bg-red-600 text-white font-bold py-3 px-6 rounded-xl shadow-lg hover:bg-red-700 transition-all duration-300 transform hover:scale-105" data-i18n="button_sign_out">Esci</button>
-
-
             <div class="mt-auto">
                 <div class="mb-4">
                     <label for="language-selector" class="block text-sm font-medium text-slate-400 mb-1" data-i18n="language_label">Lingua</label>
@@ -347,20 +328,6 @@
     <div id="modal-overlay" class="modal-overlay"></div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // Variabili globali per l'ambiente Canvas
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-        let app;
-        let db;
-        let auth;
-        let unsubscribe;
-
         // --- Funzioni di utilità ---
         const randomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
         const shuffle = (array) => array.sort(() => Math.random() - 0.5);
@@ -457,7 +424,7 @@
                 planes.forEach((plane, i) => {
                     plane.position.x += 0.05 * Math.cos(plane.rotation.z);
                     plane.position.y += 0.05 * Math.sin(plane.rotation.z);
-                     if (Math.abs(plane.position.x) > 20 || Math.abs(plane.position.y) > 20) {
+                    if (Math.abs(plane.position.x) > 20 || Math.abs(plane.position.y) > 20) {
                         plane.position.x = (Math.random() - 0.5) * 10;
                         plane.position.y = randomInt(5, 10);
                     }
@@ -493,19 +460,11 @@
                 totalScore: 0,
                 exercisesDone: 0,
                 correctAnswers: 0
-            },
-            username: 'Ospite'
+            }
         };
 
         const elements = {
-            authUI: document.getElementById('auth-ui'),
             mainUI: document.getElementById('main-ui'),
-            guestBtn: document.getElementById('guest-btn'),
-            googleLoginBtn: document.getElementById('google-login-btn'),
-            goToLoginBtn: document.getElementById('go-to-login-btn'),
-            signOutBtn: document.getElementById('sign-out-btn'),
-            userIdDisplay: document.getElementById('user-id-display'),
-            userStatusDisplay: document.getElementById('user-status'),
             navButtons: document.querySelectorAll('.nav-button'),
             difficultyButtons: document.querySelectorAll('.difficulty-button'),
             languageSelector: document.getElementById('language-selector'),
@@ -565,436 +524,401 @@
                 systems_exercise_label: 'Solve the system:',
                 button_check: 'Check', button_new: 'New Exercise', button_hint: 'Explanation', footer_credits: 'Created by David Miron.',
                 feedback_correct: 'Correct! Great job! 🎉', feedback_incorrect: (solution) => `Incorrect. The correct answer is ${solution}.`, feedback_warning_empty: 'Please enter an answer.',
-                guest_mode: 'Guest Mode', stats_total_score: 'Total Score:', stats_exercises_done: 'Exercises done:', stats_correct_percentage: 'Correctness:',
-                convert_account: 'Want to save your progress? Sign in with Google!',
-                arithmetic_hint: (op) => `To solve this exercise, you must perform the operation of ${op}.`,
+                guest_mode: 'Guest Mode', stats_total_score: 'Total score:', stats_exercises_done: 'Exercises done:', stats_correct_percentage: 'Correctness:',
+                convert_account: 'Do you want to save your progress? Sign in with Google!',
+                arithmetic_hint: (op) => `To solve this exercise, you must perform the ${op} operation.`,
                 expressions_hint: (problem, result) => `Follow the order of operations (PEMDAS/BODMAS): first parentheses, then exponents, multiplication/division, and finally addition/subtraction.\nProblem: ${problem}\nThe correct answer is ${result}.`,
                 proportions_hint: (problem, result) => `Use the fundamental property: the product of the means equals the product of the extremes.\nProblem: ${problem}\nSteps: ${problem.split(':')[1]} * ${problem.split(':')[2].split('=')[0]} = ${problem.split(':')[0]} * x\nSolve the equation for x.\nThe correct answer is ${result}.`,
                 systems_hint: (problem, result) => `Try the substitution method.\nProblem:\n${problem}\nSteps:\n1. Isolate one variable in one of the equations.\n2. Substitute the expression into the other equation.\n3. Solve to find one variable, then the other.\nThe correct answer is x=${result.x}, y=${result.y}.`,
             }
         };
 
-        const updateUI = () => {
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                if (translations[state.language] && translations[state.language][key]) {
-                    el.innerHTML = translations[state.language][key];
+        const updateTranslations = () => {
+            const lang = state.language;
+            const elementsToTranslate = document.querySelectorAll('[data-i18n]');
+            elementsToTranslate.forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (translations[lang] && translations[lang][key]) {
+                    element.innerText = translations[lang][key];
                 }
             });
+            // Aggiorna anche i placeholder
+            document.querySelector('#section-esercizi .exercise-inputs input')?.setAttribute('placeholder', translations[lang].arithmetic_answer_placeholder);
+            document.querySelector('#section-espressioni .exercise-inputs input')?.setAttribute('placeholder', translations[lang].expressions_answer_placeholder);
+            document.querySelector('#section-proporzioni .exercise-inputs input')?.setAttribute('placeholder', translations[lang].proportions_answer_placeholder);
+            document.querySelector('#section-sistemi .exercise-inputs input[name="x_answer"]')?.setAttribute('placeholder', translations[lang].systems_answer_x_placeholder);
+            document.querySelector('#section-sistemi .exercise-inputs input[name="y_answer"]')?.setAttribute('placeholder', translations[lang].systems_answer_y_placeholder);
 
+            // Aggiorna il titolo del documento
+            document.title = translations[lang].title;
+        };
+
+        const updateStats = () => {
+            elements.statsScore.innerText = state.stats.totalScore;
+            elements.statsDone.innerText = state.stats.exercisesDone;
+            const percentage = state.stats.exercisesDone > 0
+                ? Math.round((state.stats.correctAnswers / state.stats.exercisesDone) * 100)
+                : 0;
+            elements.statsPercentage.innerText = `${percentage}%`;
+        };
+
+        const switchSection = (sectionId) => {
+            // Rimuovi la classe 'active' da tutti i pulsanti e le sezioni
+            document.querySelectorAll('.nav-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.section-container').forEach(sec => sec.classList.remove('active'));
+            elements.pageHeader.classList.add('hidden');
+
+            // Aggiungi la classe 'active' al pulsante e alla sezione corretti
+            document.getElementById(`nav-${sectionId}`).classList.add('active');
+            document.getElementById(`section-${sectionId}`).classList.add('active');
+
+            if (sectionId !== 'home') {
+                elements.pageHeader.classList.remove('hidden');
+                elements.pageTitle.innerText = translations[state.language][`${sectionId}_title`];
+                elements.pageSubtitle.innerText = translations[state.language][`${sectionId}_subtitle`];
+                startExercise(sectionId);
+            }
+        };
+
+        const setDifficulty = (difficulty) => {
+            state.difficulty = difficulty;
+            localStorage.setItem('difficulty', difficulty);
             elements.difficultyButtons.forEach(btn => {
-                if (btn.dataset.difficulty === state.difficulty) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
+                btn.classList.toggle('active', btn.dataset.difficulty === difficulty);
             });
-
-            elements.languageSelector.value = state.language;
-            lucide.createIcons();
-        };
-
-        const updateStatsUI = () => {
-            elements.statsScore.textContent = state.stats.totalScore;
-            elements.statsDone.textContent = state.stats.exercisesDone;
-            const percentage = state.stats.exercisesDone > 0 ? ((state.stats.correctAnswers / state.stats.exercisesDone) * 100).toFixed(0) : 0;
-            elements.statsPercentage.textContent = `${percentage}%`;
-        };
-
-        const saveStats = async (userId) => {
-            if (!db) return;
-            const userDocRef = doc(db, `artifacts/${appId}/users/${userId}/data/stats`);
-            try {
-                await setDoc(userDocRef, state.stats, { merge: true });
-            } catch (e) {
-                console.error("Error saving stats: ", e);
+            // Resetta l'esercizio corrente per generare un nuovo problema
+            state.currentExercise = null;
+            if (document.querySelector('.section-container.active').id !== 'section-home') {
+                const currentSection = document.querySelector('.section-container.active').id.replace('section-', '');
+                startExercise(currentSection);
             }
         };
 
-        const loadStats = (userId) => {
-            if (!db || !userId) {
-                state.stats = { totalScore: 0, exercisesDone: 0, correctAnswers: 0 };
-                updateStatsUI();
-                return;
+        const getDifficultyRange = () => {
+            switch (state.difficulty) {
+                case 'facile': return { min: 1, max: 10, ops: ['+', '-'] };
+                case 'medio': return { min: 5, max: 20, ops: ['+', '-', '*', '/'] };
+                case 'difficile': return { min: 10, max: 50, ops: ['+', '-', '*', '/'], hasDecimals: true };
             }
-
-            const docRef = doc(db, `artifacts/${appId}/users/${userId}/data/stats`);
-            unsubscribe = onSnapshot(docRef, (docSnap) => {
-                if (docSnap.exists()) {
-                    state.stats = docSnap.data();
-                } else {
-                    state.stats = { totalScore: 0, exercisesDone: 0, correctAnswers: 0 };
-                }
-                updateStatsUI();
-            }, (error) => {
-                console.error("Error fetching stats:", error);
-                state.stats = { totalScore: 0, exercisesDone: 0, correctAnswers: 0 };
-                updateStatsUI();
-            });
         };
 
-        const setupAuth = async () => {
-            if (!firebaseConfig) {
-                console.error("Firebase config not found.");
-                return;
+        // --- Generazione e logica degli esercizi ---
+        const generateArithmeticProblem = () => {
+            const { min, max, ops } = getDifficultyRange();
+            const operator = ops[randomInt(0, ops.length - 1)];
+            let num1 = randomInt(min, max);
+            let num2 = randomInt(min, max);
+
+            // Aggiustamenti per evitare numeri negativi e decimali non voluti
+            if (operator === '-') {
+                [num1, num2] = [Math.max(num1, num2), Math.min(num1, num2)];
             }
+            if (operator === '/') {
+                num1 = num1 * num2; // Assicura una divisione esatta
+            }
+            
+            let problem, solution;
+            switch (operator) {
+                case '+':
+                    problem = `${num1} + ${num2}`;
+                    solution = num1 + num2;
+                    break;
+                case '-':
+                    problem = `${num1} - ${num2}`;
+                    solution = num1 - num2;
+                    break;
+                case '*':
+                    problem = `${num1} \\times ${num2}`;
+                    solution = num1 * num2;
+                    break;
+                case '/':
+                    problem = `${num1} \\div ${num2}`;
+                    solution = num1 / num2;
+                    break;
+            }
+            return { problem, solution, op: operator };
+        };
 
-            try {
-                app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-                db = getFirestore(app);
+        const generateExpressionsProblem = () => {
+            const { min, max, ops, hasDecimals } = getDifficultyRange();
+            let expression = '';
+            let solution = 0;
+            const numOps = state.difficulty === 'difficile' ? randomInt(2, 4) : randomInt(2, 3);
+            let numbers = Array.from({ length: numOps + 1 }, () => randomInt(min, max));
+            let operators = Array.from({ length: numOps }, () => ops[randomInt(0, ops.length - 1)]);
 
-                onAuthStateChanged(auth, async (user) => {
-                    if (unsubscribe) {
-                        unsubscribe();
+            // Logica per le parentesi in difficoltà media/difficile
+            if (state.difficulty !== 'facile' && Math.random() > 0.5) {
+                const parenStart = randomInt(0, numOps - 1);
+                const parenEnd = randomInt(parenStart + 1, numOps);
+                expression += '(';
+                for (let i = 0; i < numbers.length; i++) {
+                    expression += numbers[i];
+                    if (i < operators.length) {
+                        expression += ` ${operators[i]} `;
                     }
-                    if (user) {
-                        // User is signed in.
-                        elements.authUI.classList.add('hidden');
-                        elements.mainUI.classList.remove('hidden');
-                        elements.userStatusDisplay.textContent = user.isAnonymous ? translations[state.language].guest_mode : user.email || translations[state.language].username_default;
-                        elements.userIdDisplay.textContent = `ID: ${user.uid}`;
-                        elements.userIdDisplay.classList.remove('hidden');
-                        elements.signOutBtn.classList.remove('hidden');
-                        elements.goToLoginBtn.classList.add('hidden');
-                        loadStats(user.uid);
-                    } else {
-                        // User is signed out.
-                        elements.authUI.classList.remove('hidden');
-                        elements.mainUI.classList.add('hidden');
-                        elements.userStatusDisplay.textContent = translations[state.language].guest_mode;
-                        elements.userIdDisplay.classList.add('hidden');
-                        elements.signOutBtn.classList.add('hidden');
-                        elements.goToLoginBtn.classList.remove('hidden');
-                        loadStats(null);
+                    if (i === parenEnd - 1) {
+                        expression += ')';
                     }
-                });
-
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(auth);
                 }
-
-            } catch (e) {
-                console.error("Error setting up Firebase: ", e);
-                showMessageBox("Errore di inizializzazione: " + e.message);
+            } else {
+                for (let i = 0; i < numbers.length; i++) {
+                    expression += numbers[i];
+                    if (i < operators.length) {
+                        expression += ` ${operators[i]} `;
+                    }
+                }
             }
-        };
-        
-        // --- Event Listeners ---
-        window.addEventListener('load', () => {
-            updateUI();
-            setupAuth();
-        });
 
-        elements.guestBtn.addEventListener('click', () => {
-             elements.authUI.classList.add('hidden');
-             elements.mainUI.classList.remove('hidden');
-        });
-
-        elements.googleLoginBtn.addEventListener('click', async () => {
-            const provider = new GoogleAuthProvider();
             try {
-                await signInWithPopup(auth, provider);
-            } catch (error) {
-                console.error("Google login failed: ", error);
-                showMessageBox("Accesso con Google fallito: " + error.message);
-            }
-        });
-
-        elements.goToLoginBtn.addEventListener('click', async () => {
-            if (auth.currentUser && auth.currentUser.isAnonymous) {
-                await signOut(auth);
-            }
-            elements.authUI.classList.remove('hidden');
-            elements.mainUI.classList.add('hidden');
-        });
-
-        elements.signOutBtn.addEventListener('click', async () => {
-            try {
-                await signOut(auth);
-            } catch (error) {
-                console.error("Sign out failed: ", error);
-                showMessageBox("Logout fallito: " + error.message);
-            }
-        });
-
-        elements.navButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const sectionId = button.id.replace('nav-', 'section-');
-                const targetSection = document.getElementById(sectionId);
-
-                if (!targetSection) return;
-
-                document.querySelectorAll('.section-container').forEach(s => s.classList.add('hidden'));
-                targetSection.classList.remove('hidden');
+                // Sostituisci i simboli LaTeX per la valutazione
+                const evalExpression = expression.replace(/\\times/g, '*').replace(/\\div/g, '/');
+                solution = eval(evalExpression);
+                if (hasDecimals) {
+                     solution = parseFloat(solution.toFixed(2));
+                }
                 
-                elements.navButtons.forEach(btn => btn.classList.remove('active'));
-                button.classList.add('active');
+            } catch (e) {
+                // Se la valutazione fallisce, riprova
+                return generateExpressionsProblem();
+            }
 
-                if (button.id !== 'nav-home') {
-                    elements.pageHeader.classList.remove('hidden');
-                    elements.pageTitle.textContent = translations[state.language][`${button.id.replace('nav-', '')}_title`];
-                    elements.pageSubtitle.textContent = translations[state.language][`${button.id.replace('nav-', '')}_subtitle`];
-                    generateExercise(button.id.replace('nav-', ''));
-                } else {
-                    elements.pageHeader.classList.add('hidden');
-                }
-            });
-        });
+            return { problem: expression, solution, op: 'espressione' };
+        };
 
-        elements.difficultyButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                state.difficulty = button.dataset.difficulty;
-                localStorage.setItem('difficulty', state.difficulty);
-                elements.difficultyButtons.forEach(btn => btn.classList.remove('active'));
-                button.classList.add('active');
-                if (state.currentExercise) {
-                    const currentSection = elements.mainContent.querySelector('.section-container:not(.hidden)').id.replace('section-', '');
-                    generateExercise(currentSection);
-                }
-            });
-        });
+        const generateProportionsProblem = () => {
+            const { min, max } = getDifficultyRange();
+            const a = randomInt(min, max);
+            const b = randomInt(min, max);
+            const c = randomInt(min, max);
+            const d = randomInt(min, max);
 
-        elements.languageSelector.addEventListener('change', (e) => {
-            state.language = e.target.value;
-            localStorage.setItem('language', state.language);
-            updateUI();
-        });
+            const terms = shuffle([a, b, c, d]);
+            const xPos = randomInt(0, 3);
+            const problemTerms = [...terms];
+            problemTerms[xPos] = 'x';
 
-        // --- Generazione e Logica degli Esercizi ---
-        const generateExercise = (type) => {
-            const container = document.getElementById(`section-${type}`);
-            container.innerHTML = elements.exerciseTemplate.innerHTML;
-            const checkButton = container.querySelector('.check-button');
-            const newButton = container.querySelector('.new-button');
-            const hintButton = container.querySelector('.hint-button');
-            const resultBox = container.querySelector('.result-box');
-            const explanationBox = container.querySelector('.explanation-box');
-            const problemEl = container.querySelector('.exercise-problem');
-            const inputsEl = container.querySelector('.exercise-inputs');
+            const problem = `${problemTerms[0]} : ${problemTerms[1]} = ${problemTerms[2]} : ${problemTerms[3]}`;
+            
+            // Trova la soluzione in base alla posizione di x
+            let solution;
+            if (xPos === 0) { // x : b = c : d -> x = (b*c)/d
+                solution = (terms[1] * terms[2]) / terms[3];
+            } else if (xPos === 1) { // a : x = c : d -> x = (a*d)/c
+                solution = (terms[0] * terms[3]) / terms[2];
+            } else if (xPos === 2) { // a : b = x : d -> x = (a*d)/b
+                solution = (terms[0] * terms[3]) / terms[1];
+            } else { // a : b = c : x -> x = (b*c)/a
+                solution = (terms[1] * terms[2]) / terms[0];
+            }
 
-            switch (type) {
+            return { problem, solution, op: 'proporzione' };
+        };
+
+        const generateSystemsProblem = () => {
+            const { min, max } = getDifficultyRange();
+            // Genera soluzioni intere
+            const solX = randomInt(min, max) * (Math.random() > 0.5 ? 1 : -1);
+            const solY = randomInt(min, max) * (Math.random() > 0.5 ? 1 : -1);
+
+            // Crea i coefficienti
+            const a1 = randomInt(1, 5) * (Math.random() > 0.5 ? 1 : -1);
+            const b1 = randomInt(1, 5) * (Math.random() > 0.5 ? 1 : -1);
+            const c1 = (a1 * solX) + (b1 * solY);
+
+            const a2 = randomInt(1, 5) * (Math.random() > 0.5 ? 1 : -1);
+            const b2 = randomInt(1, 5) * (Math.random() > 0.5 ? 1 : -1);
+            const c2 = (a2 * solX) + (b2 * solY);
+
+            const eq1 = `${a1}x ${b1 < 0 ? '-' : '+'} ${Math.abs(b1)}y = ${c1}`;
+            const eq2 = `${a2}x ${b2 < 0 ? '-' : '+'} ${Math.abs(b2)}y = ${c2}`;
+            const problem = `
+                $$\\begin{cases} ${eq1} \\\\ ${eq2} \\end{cases}$$
+            `;
+
+            return { problem, solution: { x: solX, y: solY }, op: 'sistemi' };
+        };
+
+        const startExercise = (sectionId) => {
+            const container = document.getElementById(`section-${sectionId}`);
+            container.innerHTML = '';
+            const newExercise = elements.exerciseTemplate.cloneNode(true);
+            newExercise.id = `exercise-instance-${sectionId}`;
+            newExercise.classList.remove('hidden');
+            
+            const problemDiv = newExercise.querySelector('.exercise-problem');
+            const inputsDiv = newExercise.querySelector('.exercise-inputs');
+            const checkButton = newExercise.querySelector('.check-button');
+            const newButton = newExercise.querySelector('.new-button');
+            const hintButton = newExercise.querySelector('.hint-button');
+            const resultBox = newExercise.querySelector('.result-box');
+            const explanationBox = newExercise.querySelector('.explanation-box');
+            const exerciseLabel = newExercise.querySelector('.exercise-label');
+
+            let problemData;
+            switch (sectionId) {
                 case 'esercizi':
-                    state.currentExercise = generateArithmeticProblem(state.difficulty);
-                    inputsEl.innerHTML = `<input type="number" class="custom-input w-full sm:flex-1 py-3 px-4 rounded-xl text-center" placeholder="${translations[state.language].arithmetic_answer_placeholder}">`;
+                    problemData = generateArithmeticProblem();
+                    exerciseLabel.innerText = translations[state.language].arithmetic_exercise_label;
+                    inputsDiv.innerHTML = `<input type="number" class="custom-input flex-1 w-full sm:w-auto text-center py-2 px-4 rounded-lg placeholder-slate-400" placeholder="${translations[state.language].arithmetic_answer_placeholder}">`;
                     break;
                 case 'espressioni':
-                    state.currentExercise = generateExpression(state.difficulty);
-                    inputsEl.innerHTML = `<input type="number" class="custom-input w-full sm:flex-1 py-3 px-4 rounded-xl text-center" placeholder="${translations[state.language].expressions_answer_placeholder}">`;
+                    problemData = generateExpressionsProblem();
+                    exerciseLabel.innerText = translations[state.language].expressions_exercise_label;
+                    inputsDiv.innerHTML = `<input type="number" class="custom-input flex-1 w-full sm:w-auto text-center py-2 px-4 rounded-lg placeholder-slate-400" placeholder="${translations[state.language].expressions_answer_placeholder}">`;
                     break;
                 case 'proporzioni':
-                    state.currentExercise = generateProportion(state.difficulty);
-                    inputsEl.innerHTML = `<input type="number" class="custom-input w-full sm:flex-1 py-3 px-4 rounded-xl text-center" placeholder="${translations[state.language].proportions_answer_placeholder}">`;
+                    problemData = generateProportionsProblem();
+                    exerciseLabel.innerText = translations[state.language].proportions_exercise_label;
+                    inputsDiv.innerHTML = `<input type="number" class="custom-input flex-1 w-full sm:w-auto text-center py-2 px-4 rounded-lg placeholder-slate-400" placeholder="${translations[state.language].proportions_answer_placeholder}">`;
                     break;
                 case 'sistemi':
-                    state.currentExercise = generateSystem(state.difficulty);
-                    inputsEl.innerHTML = `
-                        <input type="number" class="custom-input w-full sm:flex-1 py-3 px-4 rounded-xl text-center" placeholder="${translations[state.language].systems_answer_x_placeholder}" data-variable="x">
-                        <input type="number" class="custom-input w-full sm:flex-1 py-3 px-4 rounded-xl text-center" placeholder="${translations[state.language].systems_answer_y_placeholder}" data-variable="y">
+                    problemData = generateSystemsProblem();
+                    exerciseLabel.innerText = translations[state.language].systems_exercise_label;
+                    inputsDiv.innerHTML = `
+                        <div class="flex flex-col sm:flex-row gap-2 w-full">
+                            <label class="w-full">
+                                <span class="text-sm text-slate-400">x:</span>
+                                <input type="number" name="x_answer" class="custom-input w-full text-center py-2 px-4 rounded-lg placeholder-slate-400" placeholder="${translations[state.language].systems_answer_x_placeholder}">
+                            </label>
+                            <label class="w-full">
+                                <span class="text-sm text-slate-400">y:</span>
+                                <input type="number" name="y_answer" class="custom-input w-full text-center py-2 px-4 rounded-lg placeholder-slate-400" placeholder="${translations[state.language].systems_answer_y_placeholder}">
+                            </label>
+                        </div>
                     `;
                     break;
             }
-            problemEl.innerHTML = formatLatex(state.currentExercise.problem);
-            
-            checkButton.onclick = () => checkAnswer(type, container);
-            newButton.onclick = () => generateExercise(type);
-            hintButton.onclick = () => showHint(type, explanationBox);
-        };
 
-        const generateArithmeticProblem = (difficulty) => {
-            let num1, num2, op, result;
-            const ops = ['+', '-', '*', '/'];
-            if (difficulty === 'facile') {
-                op = shuffle(['+', '-'])[0];
-                num1 = randomInt(1, 20);
-                num2 = randomInt(1, 20);
-                if (op === '-') num1 += num2;
-                result = op === '+' ? num1 + num2 : num1 - num2;
-            } else if (difficulty === 'medio') {
-                op = shuffle(ops)[0];
-                num1 = randomInt(1, 50);
-                num2 = randomInt(1, 50);
-                if (op === '-') num1 += num2;
-                if (op === '/') {
-                    num1 = num2 * randomInt(1, 10);
-                }
-                result = op === '+' ? num1 + num2 : op === '-' ? num1 - num2 : op === '*' ? num1 * num2 : num1 / num2;
-            } else {
-                op = shuffle(ops)[0];
-                num1 = randomInt(10, 100);
-                num2 = randomInt(10, 100);
-                if (op === '-') num1 += num2;
-                if (op === '/') {
-                    num1 = num2 * randomInt(10, 20);
-                }
-                result = op === '+' ? num1 + num2 : op === '-' ? num1 - num2 : op === '*' ? num1 * num2 : num1 / num2;
-            }
-            return {
-                problem: `${num1} ${op} ${num2} = ?`,
-                solution: result,
-                type: 'single',
-                op: op
+            state.currentExercise = {
+                section: sectionId,
+                problem: problemData.problem,
+                solution: problemData.solution,
+                op: problemData.op
             };
+
+            problemDiv.innerHTML = formatLatex(problemData.problem);
+            container.appendChild(newExercise);
+
+            checkButton.onclick = () => checkAnswer(newExercise);
+            newButton.onclick = () => startExercise(sectionId);
+            hintButton.onclick = () => showHint(newExercise);
+
+            // Listener per il tasto "Invio" sull'input
+            const inputs = newExercise.querySelectorAll('.exercise-inputs input');
+            inputs.forEach(input => {
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        checkAnswer(newExercise);
+                    }
+                });
+            });
         };
 
-        const generateExpression = (difficulty) => {
-            let problem, result;
-            const ops = ['+', '-', '*', '/'];
-            if (difficulty === 'facile') {
-                const a = randomInt(1, 10), b = randomInt(1, 10), c = randomInt(1, 10);
-                const op1 = shuffle(ops.slice(0, 2))[0], op2 = shuffle(ops.slice(0, 2))[0];
-                problem = `${a} ${op1} (${b} ${op2} ${c})`;
-                result = eval(problem);
-            } else if (difficulty === 'medio') {
-                const a = randomInt(1, 10), b = randomInt(1, 10), c = randomInt(1, 10), d = randomInt(1, 10);
-                const op1 = shuffle(ops)[0], op2 = shuffle(ops)[0], op3 = shuffle(ops)[0];
-                problem = `${a} ${op1} ${b} ${op2} (${c} ${op3} ${d})`;
-                result = eval(problem);
-            } else {
-                const a = randomInt(1, 20), b = randomInt(1, 20), c = randomInt(1, 20), d = randomInt(1, 20), e = randomInt(1, 20);
-                const op1 = shuffle(ops)[0], op2 = shuffle(ops)[0], op3 = shuffle(ops)[0], op4 = shuffle(ops)[0];
-                problem = `(${a} ${op1} ${b}) ${op2} ${c} ${op3} (${d} ${op4} ${e})`;
-                result = eval(problem);
-            }
-            return { problem: problem, solution: result, type: 'single' };
-        };
+        const checkAnswer = (exerciseElement) => {
+            if (!state.currentExercise) return;
 
-        const generateProportion = (difficulty) => {
-            let a, b, c, x;
-            if (difficulty === 'facile') {
-                a = randomInt(1, 10);
-                b = randomInt(1, 10);
-                c = randomInt(1, 10);
-                x = (b * c) / a;
-            } else if (difficulty === 'medio') {
-                a = randomInt(1, 20);
-                b = randomInt(1, 20);
-                c = randomInt(1, 20);
-                x = (b * c) / a;
-            } else {
-                a = randomInt(1, 50);
-                b = randomInt(1, 50);
-                c = randomInt(1, 50);
-                x = (b * c) / a;
-            }
-            return {
-                problem: `${a} : ${b} = ${c} : x`,
-                solution: x,
-                type: 'single'
-            };
-        };
-        
-        const generateSystem = (difficulty) => {
-            let x, y, a1, b1, c1, a2, b2, c2;
-            if (difficulty === 'facile') {
-                x = randomInt(1, 5);
-                y = randomInt(1, 5);
-            } else if (difficulty === 'medio') {
-                x = randomInt(1, 10);
-                y = randomInt(1, 10);
-            } else {
-                x = randomInt(1, 20);
-                y = randomInt(1, 20);
-            }
-
-            a1 = randomInt(1, 5);
-            b1 = randomInt(1, 5);
-            c1 = a1 * x + b1 * y;
-
-            a2 = randomInt(1, 5);
-            b2 = randomInt(1, 5);
-            c2 = a2 * x + b2 * y;
-
-            // Evita equazioni identiche o dipendenti linearmente
-            if ((a1 * b2) === (a2 * b1)) {
-                return generateSystem(difficulty);
-            }
-
-            const eq1 = `${a1}x + ${b1}y = ${c1}`;
-            const eq2 = `${a2}x + ${b2}y = ${c2}`;
-
-            return {
-                problem: `\\begin{cases} ${eq1} \\\\ ${eq2} \\end{cases}`,
-                solution: { x: x, y: y },
-                type: 'multiple'
-            };
-        };
-
-        const checkAnswer = async (type, container) => {
-            const inputs = container.querySelectorAll('.custom-input');
-            const resultBox = container.querySelector('.result-box');
+            const inputs = exerciseElement.querySelectorAll('.exercise-inputs input');
+            const resultBox = exerciseElement.querySelector('.result-box');
             let isCorrect = false;
+            let userAnswer;
 
-            if (inputs.length === 1) {
-                const answer = parseFloat(inputs[0].value);
-                if (isNaN(answer)) {
-                    showFeedback(resultBox, translations[state.language].feedback_warning_empty, 'warning');
-                    return;
-                }
-                isCorrect = answer === state.currentExercise.solution;
-            } else if (inputs.length === 2) {
-                const answerX = parseFloat(inputs[0].value);
-                const answerY = parseFloat(inputs[1].value);
-                if (isNaN(answerX) || isNaN(answerY)) {
-                    showFeedback(resultBox, translations[state.language].feedback_warning_empty, 'warning');
-                    return;
-                }
-                isCorrect = answerX === state.currentExercise.solution.x && answerY === state.currentExercise.solution.y;
+            if (state.currentExercise.section === 'sistemi') {
+                const userX = parseFloat(inputs[0].value);
+                const userY = parseFloat(inputs[1].value);
+                userAnswer = { x: userX, y: userY };
+                isCorrect = (userX === state.currentExercise.solution.x && userY === state.currentExercise.solution.y);
+            } else {
+                userAnswer = parseFloat(inputs[0].value);
+                isCorrect = userAnswer === state.currentExercise.solution;
+            }
+            
+            if (isNaN(userAnswer) || (state.currentExercise.section === 'sistemi' && (isNaN(userAnswer.x) || isNaN(userAnswer.y)))) {
+                resultBox.classList.remove('feedback-correct', 'feedback-incorrect', 'correct-animation', 'incorrect-animation');
+                resultBox.classList.add('feedback-warning', 'scale-100', 'opacity-100');
+                resultBox.innerText = translations[state.language].feedback_warning_empty;
+                return;
             }
 
             state.stats.exercisesDone++;
             if (isCorrect) {
                 state.stats.correctAnswers++;
                 state.stats.totalScore += 10;
-                showFeedback(resultBox, translations[state.language].feedback_correct, 'correct');
-                container.querySelector('.exercise-problem').classList.add('correct-animation');
+                resultBox.classList.remove('feedback-incorrect', 'incorrect-animation');
+                resultBox.classList.add('feedback-correct', 'correct-animation', 'scale-100', 'opacity-100');
+                resultBox.innerText = translations[state.language].feedback_correct;
             } else {
-                let solutionString;
-                if (state.currentExercise.type === 'single') {
-                    solutionString = state.currentExercise.solution;
-                } else {
-                    solutionString = `x=${state.currentExercise.solution.x}, y=${state.currentExercise.solution.y}`;
-                }
                 state.stats.totalScore = Math.max(0, state.stats.totalScore - 5);
-                showFeedback(resultBox, translations[state.language].feedback_incorrect(solutionString), 'incorrect');
-                container.querySelector('.exercise-problem').classList.add('incorrect-animation');
+                resultBox.classList.remove('feedback-correct', 'correct-animation');
+                resultBox.classList.add('feedback-incorrect', 'incorrect-animation', 'scale-100', 'opacity-100');
+                let solutionString = state.currentExercise.section === 'sistemi' ? `x=${state.currentExercise.solution.x}, y=${state.currentExercise.solution.y}` : state.currentExercise.solution;
+                resultBox.innerText = translations[state.language].feedback_incorrect(solutionString);
             }
+            updateStats();
+        };
 
-            updateStatsUI();
-            await saveStats(auth.currentUser.uid);
+        const showHint = (exerciseElement) => {
+            const explanationBox = exerciseElement.querySelector('.explanation-box');
+            if (!explanationBox) return;
             
-            setTimeout(() => {
-                container.querySelector('.exercise-problem').classList.remove('correct-animation', 'incorrect-animation');
-            }, 500);
-        };
+            const problem = state.currentExercise.problem;
+            const solution = state.currentExercise.solution;
+            let hintText = '';
 
-        const showFeedback = (element, message, type) => {
-            element.classList.remove('feedback-correct', 'feedback-incorrect', 'feedback-warning', 'scale-95', 'opacity-0');
-            element.textContent = message;
-            element.classList.add(`feedback-${type}`, 'scale-100', 'opacity-100');
-        };
-
-        const showHint = (type, explanationBox) => {
-            let hint;
-            const prob = state.currentExercise.problem;
-            const sol = state.currentExercise.solution;
-
-            if (type === 'esercizi') {
-                let op = state.currentExercise.op;
-                op = op === '+' ? 'addizione' : op === '-' ? 'sottrazione' : op === '*' ? 'moltiplicazione' : 'divisione';
-                hint = translations[state.language].arithmetic_hint(op);
-            } else if (type === 'espressioni') {
-                hint = translations[state.language].expressions_hint(prob, sol);
-            } else if (type === 'proporzioni') {
-                hint = translations[state.language].proportions_hint(prob, sol);
-            } else if (type === 'sistemi') {
-                hint = translations[state.language].systems_hint(prob, sol);
+            switch(state.currentExercise.section) {
+                case 'esercizi':
+                    hintText = translations[state.language].arithmetic_hint(state.currentExercise.op);
+                    break;
+                case 'espressioni':
+                    hintText = translations[state.language].expressions_hint(problem, solution);
+                    break;
+                case 'proporzioni':
+                    hintText = translations[state.language].proportions_hint(problem, solution);
+                    break;
+                case 'sistemi':
+                    hintText = translations[state.language].systems_hint(problem, solution);
+                    break;
             }
-            explanationBox.innerHTML = hint;
-            explanationBox.classList.remove('hidden');
+            
+            explanationBox.innerHTML = hintText;
+            explanationBox.classList.toggle('hidden', explanationBox.innerHTML === '');
         };
+
+        // --- Event Listeners ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Nasconde l'interfaccia di autenticazione e mostra la principale
+            elements.mainUI.classList.remove('hidden');
+
+            elements.navButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const sectionId = button.id.replace('nav-', '');
+                    switchSection(sectionId);
+                });
+            });
+
+            elements.difficultyButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    setDifficulty(button.dataset.difficulty);
+                });
+            });
+
+            elements.languageSelector.addEventListener('change', (e) => {
+                state.language = e.target.value;
+                localStorage.setItem('language', state.language);
+                updateTranslations();
+                // Rigenera l'esercizio corrente per mostrare la nuova lingua
+                const currentSection = document.querySelector('.section-container.active').id.replace('section-', '');
+                if (currentSection !== 'home') {
+                    startExercise(currentSection);
+                }
+            });
+
+            // Stato iniziale
+            updateTranslations();
+            setDifficulty(state.difficulty);
+            updateStats();
+        });
+
     </script>
 </body>
 </html>
