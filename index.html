@@ -3,573 +3,645 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tutor Matematico - Esercizi</title>
+    <title data-i18n="title">Tutor Matematico - Esercizi</title>
+    
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+        :root {
+            --bg-color: #f0f4f8;
+            --card-bg-color: #ffffff;
+            --primary-color: #4f46e5;
+            --primary-hover-color: #4338ca;
+            --text-color: #334155;
+            --text-light-color: #64748b;
+            --border-color: #e2e8f0;
+            --correct-color: #10b981;
+            --incorrect-color: #ef4444;
+            --warning-color: #f59e0b;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
-            color: #374151;
-            overflow-x: hidden; /* Previene lo scroll orizzontale */
+            background-color: var(--bg-color);
+            color: var(--text-color);
         }
-        .container { max-width: 900px; }
-        .nav-button.active {
-            background-color: #60a5fa;
-            color: white;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-        }
-        .section-container { display: none; }
-        .section-container.active { display: block; }
+
         #background-canvas {
-            position: fixed; top: 0; left: 0;
-            width: 100%; height: 100%;
-            z-index: -1; opacity: 0.2;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1; opacity: 0.05;
         }
-        input[type="text"], input[type="number"] {
-            border: 2px solid #cbd5e1;
-            padding: 0.75rem;
-            border-radius: 0.5rem;
-            width: 100%;
-            transition: border-color 0.2s;
+
+        .nav-button {
+            transition: all 0.2s ease-in-out;
         }
-        input[type="text"]:focus, input[type="number"]:focus {
-            outline: none; border-color: #60a5fa;
+        .nav-button.active {
+            background-color: var(--primary-color); color: white;
+            box-shadow: 0 4px 14px -3px rgba(79, 70, 229, 0.4);
+            transform: translateY(-2px);
         }
-        .feedback-correct { background-color: #d1fae5; color: #065f46; animation: fadein 0.5s ease-out; }
-        .feedback-incorrect { background-color: #fee2e2; color: #991b1b; animation: fadein 0.5s ease-out; }
-        @keyframes fadein { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .nav-button:not(.active):hover {
+            background-color: #eef2ff; color: var(--primary-color);
+        }
+
+        .section-container {
+            display: none;
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        .section-container.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .custom-input {
+            border: 2px solid var(--border-color);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .custom-input:focus {
+            outline: none; border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+        }
+
+        .feedback-correct { background-color: #d1fae5; color: #065f46; }
+        .feedback-incorrect { background-color: #fee2e2; color: #991b1b; }
+        .feedback-warning { background-color: #fef9e7; color: #b45309; }
+
+        .difficulty-button.active {
+            background-color: var(--primary-color) !important;
+            color: white !important;
+            box-shadow: 0 2px 8px -2px rgba(79, 70, 229, 0.5);
+        }
     </style>
 </head>
-<body class="p-4 sm:p-8">
+<body class="min-h-screen flex flex-col lg:flex-row p-4 gap-4">
     <canvas id="background-canvas"></canvas>
-    <div class="container mx-auto bg-white rounded-3xl shadow-xl p-6 sm:p-10 min-h-[calc(100vh-64px)] flex flex-col relative z-10">
-        <header class="text-center mb-10">
-            <h1 class="text-4xl sm:text-5xl font-bold text-blue-600 mb-2">Tutor Matematico</h1>
-            <p class="text-xl text-gray-600">Impara divertendoti!</p>
-        </header>
-        <nav class="flex flex-wrap justify-center gap-2 sm:gap-4 mb-10">
-            <button id="nav-home" class="nav-button px-4 py-2 rounded-full font-medium transition-all duration-200 text-gray-700 hover:bg-gray-200 active">Home</button>
-            <button id="nav-esercizi" class="nav-button px-4 py-2 rounded-full font-medium transition-all duration-200 text-gray-700 hover:bg-gray-200">Aritmetica</button>
-            <button id="nav-espressioni" class="nav-button px-4 py-2 rounded-full font-medium transition-all duration-200 text-gray-700 hover:bg-gray-200">Espressioni</button>
-            <button id="nav-proporzioni" class="nav-button px-4 py-2 rounded-full font-medium transition-all duration-200 text-gray-700 hover:bg-gray-200">Proporzioni</button>
-            <button id="nav-geometria" class="nav-button px-4 py-2 rounded-full font-medium transition-all duration-200 text-gray-700 hover:bg-gray-200">Geometria</button>
-            <button id="nav-sistemi" class="nav-button px-4 py-2 rounded-full font-medium transition-all duration-200 text-gray-700 hover:bg-gray-200">Sistemi</button>
-        </nav>
-        <main class="flex-grow">
-            <!-- Home -->
-            <div id="section-home" class="section-container active">
-                <div class="text-center">
-                    <svg class="mx-auto mb-6 text-blue-500 w-48 h-48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
-                        <path d="M2 17l10 5 10-5"></path>
-                        <path d="M2 12l10 5 10-5"></path>
-                    </svg>
-                    <p class="text-lg text-gray-700 mb-4">Benvenuto nel tuo tutor matematico personale! Qui puoi allenarti con esercizi generati casualmente e imparare nuovi concetti.</p>
-                    <p class="text-md text-gray-500">Seleziona una categoria qui sopra per iniziare. Se ti senti avventuroso, clicca su "Casuale" per un esercizio a sorpresa!</p>
-                </div>
-            </div>
 
-            <!-- Esercizi di Aritmetica -->
-            <div id="section-esercizi" class="section-container">
-                <h2 class="text-2xl sm:text-3xl font-bold mb-4 text-center text-blue-600">Esercizi di Aritmetica</h2>
-                <div class="bg-gray-100 rounded-xl p-4 sm:p-6 shadow-inner max-w-xl mx-auto">
-                    <div class="text-center text-xl font-bold mb-4 text-gray-800">Esercizio: <span id="arithmetic-exercise" class="text-3xl sm:text-4xl text-blue-600"></span></div>
-                    <div class="flex flex-col sm:flex-row items-center gap-4 mb-4">
-                        <input type="number" id="arithmetic-answer" placeholder="Inserisci la tua risposta" class="flex-grow text-center text-lg">
-                        <button id="check-arithmetic" class="w-full sm:w-auto bg-green-500 text-white font-bold py-3 px-6 rounded-xl hover:bg-green-600 transition-colors duration-200 transform hover:scale-105">Verifica</button>
-                    </div>
-                    <div class="flex flex-col sm:flex-row justify-center gap-2 mb-4">
-                        <button id="new-arithmetic" class="w-full sm:w-auto bg-gray-300 text-gray-700 font-medium py-2 px-4 rounded-full hover:bg-gray-400 transition-colors duration-200">Nuovo Esercizio</button>
-                        <button id="hint-arithmetic" class="w-full sm:w-auto bg-yellow-400 text-white font-medium py-2 px-4 rounded-full hover:bg-yellow-500 transition-colors duration-200">Suggerimento</button>
-                    </div>
-                    <div id="arithmetic-result" class="mt-4 p-4 rounded-lg text-center font-bold"></div>
-                    <div id="arithmetic-hint-box" class="mt-4 p-4 rounded-lg bg-yellow-100 border border-yellow-300 text-gray-700 hidden"></div>
-                </div>
-            </div>
-
-            <!-- Espressioni -->
-            <div id="section-espressioni" class="section-container">
-                <h2 class="text-2xl sm:text-3xl font-bold mb-4 text-center text-blue-600">Espressioni Semplici</h2>
-                <div class="bg-gray-100 rounded-xl p-4 sm:p-6 shadow-inner max-w-xl mx-auto">
-                    <div class="text-center text-xl font-bold mb-4 text-gray-800">Risolvi: <span id="expression-exercise" class="text-3xl sm:text-4xl text-blue-600"></span></div>
-                    <div class="flex flex-col sm:flex-row items-center gap-4 mb-4">
-                        <input type="number" id="expression-answer" placeholder="Inserisci la tua risposta" class="flex-grow text-center text-lg">
-                        <button id="check-expression" class="w-full sm:w-auto bg-green-500 text-white font-bold py-3 px-6 rounded-xl hover:bg-green-600 transition-colors duration-200 transform hover:scale-105">Verifica</button>
-                    </div>
-                    <div class="flex flex-col sm:flex-row justify-center gap-2 mb-4">
-                        <button id="new-expression" class="w-full sm:w-auto bg-gray-300 text-gray-700 font-medium py-2 px-4 rounded-full hover:bg-gray-400 transition-colors duration-200">Nuova Espressione</button>
-                        <button id="hint-expression" class="w-full sm:w-auto bg-yellow-400 text-white font-medium py-2 px-4 rounded-full hover:bg-yellow-500 transition-colors duration-200">Suggerimento</button>
-                    </div>
-                    <div id="expression-result" class="mt-4 p-4 rounded-lg text-center font-bold"></div>
-                    <div id="expression-hint-box" class="mt-4 p-4 rounded-lg bg-yellow-100 border border-yellow-300 text-gray-700 hidden"></div>
-                </div>
-            </div>
-
-            <!-- Proporzioni -->
-            <div id="section-proporzioni" class="section-container">
-                <h2 class="text-2xl sm:text-3xl font-bold mb-4 text-center text-blue-600">Proporzioni</h2>
-                <div class="bg-gray-100 rounded-xl p-4 sm:p-6 shadow-inner max-w-xl mx-auto">
-                    <div class="text-center text-xl font-bold mb-4 text-gray-800">Risolvi la proporzione: <span id="proportion-exercise" class="text-3xl sm:text-4xl text-blue-600"></span></div>
-                    <div class="flex flex-col sm:flex-row items-center gap-4 mb-4">
-                        <input type="number" id="proportion-answer" placeholder="Inserisci la tua risposta (x)" class="flex-grow text-center text-lg">
-                        <button id="check-proportion" class="w-full sm:w-auto bg-green-500 text-white font-bold py-3 px-6 rounded-xl hover:bg-green-600 transition-colors duration-200 transform hover:scale-105">Verifica</button>
-                    </div>
-                    <div class="flex flex-col sm:flex-row justify-center gap-2 mb-4">
-                        <button id="new-proportion" class="w-full sm:w-auto bg-gray-300 text-gray-700 font-medium py-2 px-4 rounded-full hover:bg-gray-400 transition-colors duration-200">Nuova Proporzione</button>
-                        <button id="hint-proportion" class="w-full sm:w-auto bg-yellow-400 text-white font-medium py-2 px-4 rounded-full hover:bg-yellow-500 transition-colors duration-200">Suggerimento</button>
-                    </div>
-                    <div id="proportion-result" class="mt-4 p-4 rounded-lg text-center font-bold"></div>
-                    <div id="proportion-hint-box" class="mt-4 p-4 rounded-lg bg-yellow-100 border border-yellow-300 text-gray-700 hidden"></div>
-                </div>
-            </div>
-
-            <!-- Geometria -->
-            <div id="section-geometria" class="section-container">
-                <h2 class="text-2xl sm:text-3xl font-bold mb-4 text-center text-blue-600">Geometria</h2>
-                <div class="bg-gray-100 rounded-xl p-4 sm:p-6 shadow-inner max-w-xl mx-auto">
-                    <div class="text-center mb-4">
-                        <div id="geometric-image-container" class="mx-auto max-w-[200px] sm:max-w-xs mb-4"></div>
-                        <div class="text-xl font-bold mb-2 text-gray-800" id="geometric-exercise-type"></div>
-                        <div class="text-2xl sm:text-3xl font-bold text-blue-600" id="geometric-exercise-text"></div>
-                    </div>
-                    <div class="flex flex-col sm:flex-row items-center gap-4 mb-4">
-                        <input type="number" id="geometric-answer" placeholder="Inserisci la tua risposta" class="flex-grow text-center text-lg">
-                        <button id="check-geometric" class="w-full sm:w-auto bg-green-500 text-white font-bold py-3 px-6 rounded-xl hover:bg-green-600 transition-colors duration-200 transform hover:scale-105">Verifica</button>
-                    </div>
-                    <div class="flex flex-col sm:flex-row justify-center gap-2 mb-4">
-                        <button id="new-geometric" class="w-full sm:w-auto bg-gray-300 text-gray-700 font-medium py-2 px-4 rounded-full hover:bg-gray-400 transition-colors duration-200">Nuovo Esercizio</button>
-                        <button id="hint-geometric" class="w-full sm:w-auto bg-yellow-400 text-white font-medium py-2 px-4 rounded-full hover:bg-yellow-500 transition-colors duration-200">Suggerimento</button>
-                    </div>
-                    <div id="geometric-result" class="mt-4 p-4 rounded-lg text-center font-bold"></div>
-                    <div id="geometric-hint-box" class="mt-4 p-4 rounded-lg bg-yellow-100 border border-yellow-300 text-gray-700 hidden"></div>
-                </div>
-            </div>
-
-            <!-- Sistemi di Equazioni -->
-            <div id="section-sistemi" class="section-container">
-                <h2 class="text-2xl sm:text-3xl font-bold mb-4 text-center text-blue-600">Sistemi di Equazioni</h2>
-                <div class="bg-gray-100 rounded-xl p-4 sm:p-6 shadow-inner max-w-xl mx-auto">
-                    <div class="text-center text-xl font-bold mb-4 text-gray-800">
-                        Risolvi il sistema:
-                        <div id="system-exercise" class="text-2xl sm:text-3xl font-mono text-blue-600 mt-2"></div>
-                    </div>
-                    <div class="flex flex-col sm:flex-row items-center gap-4 mb-4">
-                        <input type="number" id="system-answer-x" placeholder="Valore di x" class="flex-grow text-center text-lg">
-                        <input type="number" id="system-answer-y" placeholder="Valore di y" class="flex-grow text-center text-lg">
-                        <button id="check-system" class="w-full sm:w-auto bg-green-500 text-white font-bold py-3 px-6 rounded-xl hover:bg-green-600 transition-colors duration-200 transform hover:scale-105">Verifica</button>
-                    </div>
-                    <div class="flex flex-col sm:flex-row justify-center gap-2 mb-4">
-                        <button id="new-system" class="w-full sm:w-auto bg-gray-300 text-gray-700 font-medium py-2 px-4 rounded-full hover:bg-gray-400 transition-colors duration-200">Nuovo Sistema</button>
-                        <button id="hint-system" class="w-full sm:w-auto bg-yellow-400 text-white font-medium py-2 px-4 rounded-full hover:bg-yellow-500 transition-colors duration-200">Suggerimento</button>
-                    </div>
-                    <div id="system-result" class="mt-4 p-4 rounded-lg text-center font-bold"></div>
-                    <div id="system-hint-box" class="mt-4 p-4 rounded-lg bg-yellow-100 border border-yellow-300 text-gray-700 hidden"></div>
-                </div>
-            </div>
-        </main>
-
-        <div class="flex justify-center mt-8">
-            <button id="random-exercise-btn" class="bg-blue-600 text-white font-bold py-4 px-8 rounded-full shadow-lg hover:bg-blue-700 transition-all duration-200 transform hover:scale-105">Esercizio Casuale!</button>
+    <!-- Sidebar di Navigazione -->
+    <aside class="w-full lg:w-72 bg-white rounded-2xl shadow-lg p-6 flex flex-col flex-shrink-0">
+        <div class="text-center lg:text-left mb-8">
+            <h1 class="text-2xl font-bold text-indigo-600" data-i18n="header_title">Tutor Matematico</h1>
+            <p class="text-sm text-slate-500" data-i18n="header_subtitle">Impara divertendoti!</p>
         </div>
 
-        <footer class="mt-10 text-center text-gray-400 text-sm">Creato da David Miron.</footer>
-    </div>
+        <nav class="flex flex-row lg:flex-col justify-around lg:justify-start gap-2 mb-8">
+            <button id="nav-home" class="nav-button active flex items-center gap-3 p-3 rounded-lg font-semibold text-slate-700">
+                <i data-lucide="home"></i> <span class="hidden lg:inline" data-i18n="nav_home">Home</span>
+            </button>
+            <button id="nav-esercizi" class="nav-button flex items-center gap-3 p-3 rounded-lg font-semibold text-slate-700">
+                <i data-lucide="calculator"></i> <span class="hidden lg:inline" data-i18n="nav_arithmetic">Aritmetica</span>
+            </button>
+            <button id="nav-espressioni" class="nav-button flex items-center gap-3 p-3 rounded-lg font-semibold text-slate-700">
+                <i data-lucide="parentheses"></i> <span class="hidden lg:inline" data-i18n="nav_expressions">Espressioni</span>
+            </button>
+             <button id="nav-proporzioni" class="nav-button flex items-center gap-3 p-3 rounded-lg font-semibold text-slate-700">
+                <i data-lucide="ratio"></i> <span class="hidden lg:inline" data-i18n="nav_proportions">Proporzioni</span>
+            </button>
+            <button id="nav-geometria" class="nav-button flex items-center gap-3 p-3 rounded-lg font-semibold text-slate-700">
+                <i data-lucide="square-ruler"></i> <span class="hidden lg:inline" data-i18n="nav_geometry">Geometria</span>
+            </button>
+            <button id="nav-sistemi" class="nav-button flex items-center gap-3 p-3 rounded-lg font-semibold text-slate-700">
+                <i data-lucide="braces"></i> <span class="hidden lg:inline" data-i18n="nav_systems">Sistemi</span>
+            </button>
+        </nav>
+        
+        <div class="mt-auto">
+             <div class="mb-4">
+                <label for="language-selector" class="block text-sm font-medium text-slate-600 mb-1" data-i18n="language_label">Lingua</label>
+                <select id="language-selector" class="w-full rounded-lg px-3 py-2 bg-slate-100 border-2 border-transparent focus:outline-none focus:border-indigo-500 transition">
+                    <option value="it">Italiano</option>
+                    <option value="en">English</option>
+                    <option value="es">Español</option>
+                    <option value="zh">中文</option>
+                    <option value="ar">العربية</option>
+                </select>
+            </div>
+            <p class="text-xs text-center text-slate-400" data-i18n="footer_credits">Creato da David Miron.</p>
+        </div>
+    </aside>
+
+    <!-- Contenuto Principale -->
+    <main class="flex-grow bg-white rounded-2xl shadow-lg p-6 sm:p-10 relative overflow-hidden flex flex-col">
+        
+        <!-- Intestazione Pagina (per sezioni di esercizi) -->
+        <div id="page-header" class="hidden mb-8">
+            <h2 id="page-title" class="text-4xl font-bold text-slate-800"></h2>
+            <p id="page-subtitle" class="text-slate-500 mt-1"></p>
+        </div>
+
+        <!-- Sezione Home -->
+        <div id="section-home" class="section-container active h-full flex flex-col justify-center items-center text-center">
+            <div class="max-w-2xl">
+                <i data-lucide="graduation-cap" class="mx-auto mb-6 text-indigo-500" size="80"></i>
+                <h2 class="text-4xl font-bold text-slate-800 mb-4" data-i18n="home_welcome">Benvenuto!</h2>
+                <p class="text-lg text-slate-600 mb-8" data-i18n="home_intro">
+                    Migliora le tue competenze matematiche in modo interattivo. Scegli un argomento dalla navigazione e imposta la difficoltà per iniziare.
+                </p>
+                <div class="bg-slate-100 p-6 rounded-xl">
+                    <p class="text-md font-semibold text-slate-700 mb-3" data-i18n="home_difficulty_label">Seleziona il tuo livello:</p>
+                    <div id="difficulty-selector" class="flex justify-center gap-2 p-1 bg-slate-200 rounded-full">
+                        <button class="difficulty-button flex-1 px-4 py-2 rounded-full font-medium transition-all duration-200 bg-white text-slate-700 active" data-difficulty="facile" data-i18n="difficulty_easy">Facile</button>
+                        <button class="difficulty-button flex-1 px-4 py-2 rounded-full font-medium transition-all duration-200 bg-white text-slate-700" data-difficulty="medio" data-i18n="difficulty_medium">Medio</button>
+                        <button class="difficulty-button flex-1 px-4 py-2 rounded-full font-medium transition-all duration-200 bg-white text-slate-700" data-difficulty="difficile" data-i18n="difficulty_hard">Difficile</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Template per Sezioni di Esercizi (sarà clonato) -->
+        <div id="exercise-template" class="hidden">
+             <div class="bg-slate-50 rounded-xl p-6 shadow-inner max-w-2xl mx-auto">
+                <div class="text-center mb-5">
+                    <p class="exercise-label text-lg font-medium text-slate-600 mb-2"></p>
+                    <div class="exercise-problem text-4xl font-bold text-indigo-500 p-4 bg-white rounded-lg shadow-sm"></div>
+                </div>
+
+                <div class="exercise-inputs flex flex-col sm:flex-row items-center gap-4 mb-4">
+                    <!-- Gli input verranno inseriti qui dinamicamente -->
+                </div>
+                <button class="check-button w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold py-3 px-6 rounded-xl shadow-lg hover:from-green-600 hover:to-emerald-600 transition-all duration-200 transform hover:scale-105" data-i18n="button_check">Verifica</button>
+                
+                <div class="flex justify-center gap-4 mt-4">
+                    <button class="new-button w-auto bg-slate-200 text-slate-700 font-medium py-2 px-5 rounded-full hover:bg-slate-300 transition-colors duration-200" data-i18n="button_new">Nuovo</button>
+                    <button class="hint-button w-auto bg-amber-400 text-white font-medium py-2 px-5 rounded-full hover:bg-amber-500 transition-colors duration-200" data-i18n="button_hint">Aiuto</button>
+                </div>
+
+                <div class="result-box mt-5 p-4 rounded-lg text-center font-bold text-base transition-all duration-300 scale-95 opacity-0"></div>
+                <div class="hint-box mt-4 p-4 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 hidden"></div>
+             </div>
+        </div>
+
+        <!-- Contenitori per le sezioni -->
+        <div id="section-esercizi" class="section-container"></div>
+        <div id="section-espressioni" class="section-container"></div>
+        <div id="section-proporzioni" class="section-container"></div>
+        <div id="section-geometria" class="section-container"></div>
+        <div id="section-sistemi" class="section-container"></div>
+
+    </main>
 
     <script>
-        // Animazione del canvas
-        const canvas = document.getElementById('background-canvas');
-        const ctx = canvas.getContext('2d');
-        let mouseX = 0, mouseY = 0;
-        let particles = [];
-        class Particle {
-            constructor() {
-                this.x = Math.random() * canvas.width;
-                this.y = Math.random() * canvas.height;
-                this.size = Math.random() * 5 + 1;
-                this.speedX = Math.random() * 3 - 1.5;
-                this.speedY = Math.random() * 3 - 1.5;
-                this.color = `hsl(${Math.random() * 360}, 50%, 50%)`;
-            }
-            update() {
-                const dx = mouseX - this.x;
-                const dy = mouseY - this.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                if (distance < 150) { this.x -= dx / 100; this.y -= dy / 100; }
-                this.x += this.speedX; this.y += this.speedY;
-                if (this.x > canvas.width || this.x < 0) this.speedX = -this.speedX;
-                if (this.y > canvas.height || this.y < 0) this.speedY = -this.speedY;
-            }
-            draw() { ctx.fillStyle = this.color; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); }
-        }
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            particles = []; for (let i = 0; i < 50; i++) { particles.push(new Particle()); }
-        }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-        document.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
-        function animate() { ctx.clearRect(0, 0, canvas.width, canvas.height); for (let i = 0; i < particles.length; i++) { particles[i].update(); particles[i].draw(); } requestAnimationFrame(animate); }
-        window.onload = function() { animate(); };
+    document.addEventListener('DOMContentLoaded', () => {
 
-        // Funzionalità di navigazione
-        function showSection(sectionId) {
-            document.querySelectorAll('.section-container').forEach(section => section.classList.remove('active'));
-            document.getElementById(sectionId).classList.add('active');
-            document.querySelectorAll('.nav-button').forEach(button => button.classList.remove('active'));
-            const navButton = document.getElementById('nav-' + sectionId.replace('section-', ''));
-            if (navButton) navButton.classList.add('active');
+        lucide.createIcons();
+        
+        const sections = ['home', 'esercizi', 'espressioni', 'proporzioni', 'geometria', 'sistemi'];
+        const state = {
+            difficulty: 'facile',
+            language: 'it',
+            currentExercise: {}
+        };
+        const elements = {
+            navButtons: document.querySelectorAll('.nav-button'),
+            difficultyButtons: document.querySelectorAll('.difficulty-button'),
+            languageSelector: document.getElementById('language-selector'),
+            exerciseTemplate: document.getElementById('exercise-template'),
+            pageHeader: document.getElementById('page-header'),
+            pageTitle: document.getElementById('page-title'),
+            pageSubtitle: document.getElementById('page-subtitle'),
+        };
 
-            // Genera un nuovo esercizio quando la sezione diventa attiva
-            switch(sectionId) {
-                case 'section-esercizi': generateArithmeticExercise(); break;
-                case 'section-espressioni': generateExpressionExercise(); break;
-                case 'section-proporzioni': generateProportionExercise(); break;
-                case 'section-geometria': generateGeometricExercise(); break;
-                case 'section-sistemi': generateSystemExercise(); break;
-            }
-        }
+        const translations = {
+            'it': {
+                title: 'Tutor Matematico', header_title: 'Tutor Matematico', header_subtitle: 'Impara divertendoti!',
+                nav_home: 'Home', nav_arithmetic: 'Aritmetica', nav_expressions: 'Espressioni', nav_proportions: 'Proporzioni', nav_geometry: 'Geometria', nav_systems: 'Sistemi',
+                home_welcome: 'Benvenuto!', home_intro: 'Migliora le tue competenze matematiche in modo interattivo. Scegli un argomento e una difficoltà per iniziare.',
+                home_difficulty_label: 'Seleziona il tuo livello:', language_label: 'Lingua',
+                difficulty_easy: 'Facile', difficulty_medium: 'Medio', difficulty_hard: 'Difficile',
+                arithmetic_title: 'Aritmetica', arithmetic_subtitle: 'Metti alla prova le tue abilità di calcolo.',
+                expressions_title: 'Espressioni', expressions_subtitle: 'Risolvi calcoli con più operazioni.',
+                proportions_title: 'Proporzioni', proportions_subtitle: 'Trova il termine incognito.',
+                geometry_title: 'Geometria', geometry_subtitle: 'Calcola aree e perimetri delle figure piane.',
+                systems_title: 'Sistemi di Equazioni', systems_subtitle: 'Trova le soluzioni che soddisfano più equazioni.',
+                arithmetic_exercise_label: 'Calcola il risultato:', arithmetic_answer_placeholder: 'La tua risposta',
+                expressions_exercise_label: 'Risolvi l\'espressione:', expressions_answer_placeholder: 'La tua risposta',
+                proportions_exercise_label: 'Trova il valore di x:', proportions_answer_placeholder: 'Valore di x',
+                geometry_answer_placeholder: 'La tua risposta',
+                systems_exercise_label: 'Risolvi il sistema:', systems_answer_x_placeholder: 'Valore di x', systems_answer_y_placeholder: 'Valore di y',
+                button_check: 'Verifica', button_new: 'Nuovo Esercizio', button_hint: 'Suggerimento', footer_credits: 'Creato da David Miron.',
+                feedback_correct: 'Corretto! Ottimo lavoro! 🎉', feedback_incorrect: 'Sbagliato. Riprova! 🧐', feedback_warning_empty: 'Per favore, inserisci una risposta.',
+                arithmetic_hint: (op) => `Per risolvere questo esercizio, devi eseguire l'operazione di ${op}.`,
+                expressions_hint: 'Ricorda l\'ordine delle operazioni: prima le parentesi, poi moltiplicazioni/divisioni, infine addizioni/sottrazioni.',
+                proportions_hint: 'Usa la proprietà fondamentale: il prodotto dei medi è uguale al prodotto degli estremi.',
+                geometry_hint_area: (f) => `La formula per l'area di un ${f} è base × altezza. Per un triangolo, dividi per 2.`,
+                geometry_hint_perimeter: (f) => `Il perimetro di un ${f} è la somma di tutti i suoi lati.`,
+                systems_hint: 'Puoi usare il metodo di sostituzione: isola una variabile in un\'equazione e sostituiscila nell\'altra.',
+                figure_rectangle: 'rettangolo', figure_triangle: 'triangolo',
+                geometry_rectangle_area: (b, h) => `Calcola l'area di un rettangolo con base ${b} e altezza ${h}.`,
+                geometry_rectangle_perimeter: (b, h) => `Calcola il perimetro di un rettangolo con base ${b} e altezza ${h}.`,
+                geometry_triangle_area: (b, h) => `Calcola l'area di un triangolo con base ${b} e altezza ${h}.`,
+                geometry_triangle_perimeter: (s1, s2, s3) => `Calcola il perimetro di un triangolo con lati ${s1}, ${s2} e ${s3}.`,
+            },
+            'en': {
+                title: 'Math Tutor', header_title: 'Math Tutor', header_subtitle: 'Learn while having fun!',
+                nav_home: 'Home', nav_arithmetic: 'Arithmetic', nav_expressions: 'Expressions', nav_proportions: 'Proportions', nav_geometry: 'Geometry', nav_systems: 'Systems',
+                home_welcome: 'Welcome!', home_intro: 'Improve your math skills interactively. Choose a topic and difficulty to start.',
+                home_difficulty_label: 'Select your level:', language_label: 'Language',
+                difficulty_easy: 'Easy', difficulty_medium: 'Medium', difficulty_hard: 'Hard',
+                arithmetic_title: 'Arithmetic', arithmetic_subtitle: 'Test your calculation skills.',
+                expressions_title: 'Expressions', expressions_subtitle: 'Solve calculations with multiple operations.',
+                proportions_title: 'Proportions', proportions_subtitle: 'Find the unknown term.',
+                geometry_title: 'Geometry', geometry_subtitle: 'Calculate areas and perimeters of plane figures.',
+                systems_title: 'Systems of Equations', systems_subtitle: 'Find solutions that satisfy multiple equations.',
+                arithmetic_exercise_label: 'Calculate the result:', arithmetic_answer_placeholder: 'Your answer',
+                expressions_exercise_label: 'Solve the expression:', expressions_answer_placeholder: 'Your answer',
+                proportions_exercise_label: 'Find the value of x:', proportions_answer_placeholder: 'Value of x',
+                geometry_answer_placeholder: 'Your answer',
+                systems_exercise_label: 'Solve the system:', systems_answer_x_placeholder: 'Value of x', systems_answer_y_placeholder: 'Value of y',
+                button_check: 'Check', button_new: 'New Exercise', button_hint: 'Hint', footer_credits: 'Created by David Miron.',
+                feedback_correct: 'Correct! Great job! 🎉', feedback_incorrect: 'Incorrect. Try again! 🧐', feedback_warning_empty: 'Please enter an answer.',
+                arithmetic_hint: (op) => `To solve this exercise, you need to perform the ${op} operation.`,
+                expressions_hint: 'Remember the order of operations: parentheses first, then multiplications/divisions, and finally additions/subtractions.',
+                proportions_hint: 'Use the fundamental property: the product of the means equals the product of the extremes.',
+                geometry_hint_area: (f) => `The formula for the area of a ${f} is base × height. For a triangle, divide by 2.`,
+                geometry_hint_perimeter: (f) => `The perimeter of a ${f} is the sum of all its sides.`,
+                systems_hint: 'You can use the substitution method: isolate a variable in one equation and substitute it into the other.',
+                figure_rectangle: 'rectangle', figure_triangle: 'triangle',
+                geometry_rectangle_area: (b, h) => `Calculate the area of a rectangle with base ${b} and height ${h}.`,
+                geometry_rectangle_perimeter: (b, h) => `Calculate the perimeter of a rectangle with base ${b} and height ${h}.`,
+                geometry_triangle_area: (b, h) => `Calculate the area of a triangle with base ${b} and height ${h}.`,
+                geometry_triangle_perimeter: (s1, s2, s3) => `Calculate the perimeter of a triangle with sides ${s1}, ${s2}, and ${s3}.`,
+            },
+            'es': {
+                title: 'Tutor de Matemáticas', header_title: 'Tutor de Matemáticas', header_subtitle: '¡Aprende divirtiéndote!',
+                nav_home: 'Inicio', nav_arithmetic: 'Aritmética', nav_expressions: 'Expresiones', nav_proportions: 'Proporciones', nav_geometry: 'Geometría', nav_systems: 'Sistemas',
+                home_welcome: '¡Bienvenido!', home_intro: 'Mejora tus habilidades matemáticas de forma interactiva. Elige un tema y una dificultad para empezar.',
+                home_difficulty_label: 'Selecciona tu nivel:', language_label: 'Idioma',
+                difficulty_easy: 'Fácil', difficulty_medium: 'Medio', difficulty_hard: 'Difícil',
+                arithmetic_title: 'Aritmética', arithmetic_subtitle: 'Pon a prueba tus habilidades de cálculo.',
+                expressions_title: 'Expresiones', expressions_subtitle: 'Resuelve cálculos con múltiples operaciones.',
+                proportions_title: 'Proporciones', proportions_subtitle: 'Encuentra el término desconocido.',
+                geometry_title: 'Geometría', geometry_subtitle: 'Calcula áreas y perímetros de figuras planas.',
+                systems_title: 'Sistemas de Ecuaciones', systems_subtitle: 'Encuentra soluciones que satisfagan múltiples ecuaciones.',
+                arithmetic_exercise_label: 'Calcula el resultado:', arithmetic_answer_placeholder: 'Tu respuesta',
+                expressions_exercise_label: 'Resuelve la expresión:', expressions_answer_placeholder: 'Tu respuesta',
+                proportions_exercise_label: 'Encuentra el valor de x:', proportions_answer_placeholder: 'Valor de x',
+                geometry_answer_placeholder: 'Tu respuesta',
+                systems_exercise_label: 'Resuelve el sistema:', systems_answer_x_placeholder: 'Valor de x', systems_answer_y_placeholder: 'Valor de y',
+                button_check: 'Verificar', button_new: 'Nuevo Ejercicio', button_hint: 'Sugerencia', footer_credits: 'Creado por David Miron.',
+                feedback_correct: '¡Correcto! ¡Gran trabajo! 🎉', feedback_incorrect: 'Incorrecto. ¡Inténtalo de nuevo! 🧐', feedback_warning_empty: 'Por favor, introduce una respuesta.',
+                arithmetic_hint: (op) => `Para resolver este ejercicio, necesitas realizar la operación de ${op}.`,
+                expressions_hint: 'Recuerda el orden de las operaciones: primero paréntesis, luego multiplicaciones/divisiones, y finalmente sumas/restas.',
+                proportions_hint: 'Usa la propiedad fundamental: el producto de los medios es igual al producto de los extremos.',
+                geometry_hint_area: (f) => `La fórmula para el área de un ${f} es base × altura. Para un triángulo, divide por 2.`,
+                geometry_hint_perimeter: (f) => `El perímetro de un ${f} es la suma de todos sus lados.`,
+                systems_hint: 'Puedes usar el método de sustitución: aísla una variable en una ecuación y sustitúyela en la otra.',
+                figure_rectangle: 'rectángulo', figure_triangle: 'triángulo',
+                geometry_rectangle_area: (b, h) => `Calcula el área de un rectángulo con base ${b} y altura ${h}.`,
+                geometry_rectangle_perimeter: (b, h) => `Calcula el perímetro de un rectángulo con base ${b} y altura ${h}.`,
+                geometry_triangle_area: (b, h) => `Calcula el área de un triángulo con base ${b} y altura ${h}.`,
+                geometry_triangle_perimeter: (s1, s2, s3) => `Calcula el perímetro de un triángulo con lados ${s1}, ${s2} y ${s3}.`,
+            },
+            'zh': {
+                title: '数学导师', header_title: '数学导师', header_subtitle: '寓教于乐！',
+                nav_home: '主页', nav_arithmetic: '算术', nav_expressions: '表达式', nav_proportions: '比例', nav_geometry: '几何', nav_systems: '方程组',
+                home_welcome: '欢迎！', home_intro: '以互动方式提高您的数学技能。选择一个主题和难度即可开始。',
+                home_difficulty_label: '选择您的级别：', language_label: '语言',
+                difficulty_easy: '简单', difficulty_medium: '中等', difficulty_hard: '困难',
+                arithmetic_title: '算术', arithmetic_subtitle: '测试您的计算能力。',
+                expressions_title: '表达式', expressions_subtitle: '解决多重运算的计算。',
+                proportions_title: '比例', proportions_subtitle: '求未知项。',
+                geometry_title: '几何', geometry_subtitle: '计算平面图形的面积和周长。',
+                systems_title: '方程组', systems_subtitle: '找到满足多个方程的解。',
+                arithmetic_exercise_label: '计算结果：', arithmetic_answer_placeholder: '你的答案',
+                expressions_exercise_label: '解表达式：', expressions_answer_placeholder: '你的答案',
+                proportions_exercise_label: '求 x 的值：', proportions_answer_placeholder: 'x 的值',
+                geometry_answer_placeholder: '你的答案',
+                systems_exercise_label: '解方程组：', systems_answer_x_placeholder: 'x 的值', systems_answer_y_placeholder: 'y 的值',
+                button_check: '检查', button_new: '新练习', button_hint: '提示', footer_credits: '由 David Miron 创建。',
+                feedback_correct: '正确！干得好！ 🎉', feedback_incorrect: '不正确。再试一次！ 🧐', feedback_warning_empty: '请输入答案。',
+                arithmetic_hint: (op) => `要解决这个练习，你需要执行 ${op} 运算。`,
+                expressions_hint: '记住运算顺序：先括号，然后乘除，最后加减。',
+                proportions_hint: '使用基本性质：内项积等于外项积。',
+                geometry_hint_area: (f) => `一个 ${f} 的面积公式是底 × 高。对于三角形，再除以 2。`,
+                geometry_hint_perimeter: (f) => `一个 ${f} 的周长是所有边的总和。`,
+                systems_hint: '你可以使用代入法：在一个方程中分离一个变量，然后将其代入另一个方程。',
+                figure_rectangle: '长方形', figure_triangle: '三角形',
+                geometry_rectangle_area: (b, h) => `计算一个底为 ${b}，高为 ${h} 的长方形的面积。`,
+                geometry_rectangle_perimeter: (b, h) => `计算一个底为 ${b}，高为 ${h} 的长方形的周长。`,
+                geometry_triangle_area: (b, h) => `计算一个底为 ${b}，高为 ${h} 的三角形的面积。`,
+                geometry_triangle_perimeter: (s1, s2, s3) => `计算一个边长分别为 ${s1}, ${s2}, ${s3} 的三角形的周长。`,
+            },
+            'ar': {
+                title: 'مدرس الرياضيات', header_title: 'مدرس الرياضيات', header_subtitle: 'تعلم واستمتع!',
+                nav_home: 'الرئيسية', nav_arithmetic: 'الحساب', nav_expressions: 'التعبيرات', nav_proportions: 'النسب', nav_geometry: 'الهندسة', nav_systems: 'الأنظمة',
+                home_welcome: 'أهلاً بك!', home_intro: 'حسّن مهاراتك في الرياضيات بشكل تفاعلي. اختر موضوعًا وصعوبة للبدء.',
+                home_difficulty_label: 'اختر مستواك:', language_label: 'اللغة',
+                difficulty_easy: 'سهل', difficulty_medium: 'متوسط', difficulty_hard: 'صعب',
+                arithmetic_title: 'الحساب', arithmetic_subtitle: 'اختبر مهاراتك في الحساب.',
+                expressions_title: 'التعبيرات', expressions_subtitle: 'حل العمليات الحسابية المتعددة.',
+                proportions_title: 'النسب', proportions_subtitle: 'أوجد الحد المجهول.',
+                geometry_title: 'الهندسة', geometry_subtitle: 'احسب مساحات ومحيطات الأشكال المستوية.',
+                systems_title: 'أنظمة المعادلات', systems_subtitle: 'أوجد الحلول التي تحقق عدة معادلات.',
+                arithmetic_exercise_label: 'احسب النتيجة:', arithmetic_answer_placeholder: 'إجابتك',
+                expressions_exercise_label: 'حل التعبير:', expressions_answer_placeholder: 'إجابتك',
+                proportions_exercise_label: 'أوجد قيمة س:', proportions_answer_placeholder: 'قيمة س',
+                geometry_answer_placeholder: 'إجابتك',
+                systems_exercise_label: 'حل النظام:', systems_answer_x_placeholder: 'قيمة س', systems_answer_y_placeholder: 'قيمة ص',
+                button_check: 'تحقق', button_new: 'تمرين جديد', button_hint: 'تلميح', footer_credits: 'أنشأه ديفيد ميرون.',
+                feedback_correct: 'صحيح! عمل رائع! 🎉', feedback_incorrect: 'خطأ. حاول مرة أخرى! 🧐', feedback_warning_empty: 'الرجاء إدخال إجابة.',
+                arithmetic_hint: (op) => `لحل هذا التمرين، تحتاج إلى إجراء عملية ${op}.`,
+                expressions_hint: 'تذكر ترتيب العمليات: الأقواس أولاً، ثم الضرب والقسمة، وأخيراً الجمع والطرح.',
+                proportions_hint: 'استخدم الخاصية الأساسية: حاصل ضرب الطرفين يساوي حاصل ضرب الوسطين.',
+                geometry_hint_area: (f) => `صيغة مساحة ${f} هي القاعدة × الارتفاع. بالنسبة للمثلث، اقسم على 2.`,
+                geometry_hint_perimeter: (f) => `محيط ${f} هو مجموع كل أضلاعه.`,
+                systems_hint: 'يمكنك استخدام طريقة التعويض: اعزل متغيرًا في معادلة واحدة وعوضه في الأخرى.',
+                figure_rectangle: 'مستطيل', figure_triangle: 'مثلث',
+                geometry_rectangle_area: (b, h) => `احسب مساحة مستطيل قاعدته ${b} وارتفاعه ${h}.`,
+                geometry_rectangle_perimeter: (b, h) => `احسب محيط مستطيل قاعدته ${b} وارتفاعه ${h}.`,
+                geometry_triangle_area: (b, h) => `احسب مساحة مثلث قاعدته ${b} وارتفاعه ${h}.`,
+                geometry_triangle_perimeter: (s1, s2, s3) => `احسب محيط مثلث أضلاعه ${s1}، ${s2}، و ${s3}.`,
+            },
+        };
 
-        document.getElementById('nav-home').addEventListener('click', () => showSection('section-home'));
-        document.getElementById('nav-esercizi').addEventListener('click', () => showSection('section-esercizi'));
-        document.getElementById('nav-espressioni').addEventListener('click', () => showSection('section-espressioni'));
-        document.getElementById('nav-proporzioni').addEventListener('click', () => showSection('section-proporzioni'));
-        document.getElementById('nav-geometria').addEventListener('click', () => showSection('section-geometria'));
-        document.getElementById('nav-sistemi').addEventListener('click', () => showSection('section-sistemi'));
-
-        document.getElementById('random-exercise-btn').addEventListener('click', () => {
-            const sections = ['section-esercizi', 'section-espressioni', 'section-proporzioni', 'section-geometria', 'section-sistemi'];
-            const randomSection = sections[Math.floor(Math.random() * sections.length)];
-            showSection(randomSection);
-        });
-
-        // Esercizi di Aritmetica
-        const arithmeticExercise = document.getElementById('arithmetic-exercise');
-        const arithmeticAnswer = document.getElementById('arithmetic-answer');
-        const arithmeticResult = document.getElementById('arithmetic-result');
-        const arithmeticHintBox = document.getElementById('arithmetic-hint-box');
-        let currentArithmeticSolution = null;
-
-        function generateArithmeticExercise() {
-            const operators = ['+', '-', 'x', ':'];
-            const op = operators[Math.floor(Math.random() * operators.length)];
-            let num1, num2, solution;
-            if (op === ':') {
-                num2 = Math.floor(Math.random() * 10) + 1;
-                solution = Math.floor(Math.random() * 10) + 1;
-                num1 = num2 * solution;
-            } else {
-                num1 = Math.floor(Math.random() * 20) + 1;
-                num2 = Math.floor(Math.random() * 20) + 1;
-                if (op === '+') solution = num1 + num2;
-                if (op === '-') solution = num1 - num2;
-                if (op === 'x') solution = num1 * num2;
-            }
-            arithmeticExercise.textContent = `${num1} ${op} ${num2}`;
-            currentArithmeticSolution = solution;
-            arithmeticAnswer.value = '';
-            arithmeticResult.textContent = '';
-            arithmeticResult.className = 'mt-4 p-4 rounded-lg text-center font-bold';
-            arithmeticHintBox.classList.add('hidden');
-        }
-
-        document.getElementById('new-arithmetic').addEventListener('click', generateArithmeticExercise);
-        document.getElementById('check-arithmetic').addEventListener('click', () => {
-            const userAnswer = parseFloat(arithmeticAnswer.value);
-            if (!isNaN(userAnswer) && userAnswer === currentArithmeticSolution) {
-                arithmeticResult.innerHTML = 'Corretto! Ben fatto! &#x2713;';
-                arithmeticResult.className = 'mt-4 p-4 rounded-lg text-center font-bold feedback-correct';
-            } else {
-                arithmeticResult.innerHTML = 'Sbagliato. Riprova! &#x2717;';
-                arithmeticResult.className = 'mt-4 p-4 rounded-lg text-center font-bold feedback-incorrect';
-            }
-        });
-
-        document.getElementById('hint-arithmetic').addEventListener('click', () => {
-            arithmeticHintBox.classList.toggle('hidden');
-            const exercise = arithmeticExercise.textContent;
-            const op = exercise.includes('x') ? 'moltiplicazione' : exercise.includes(':') ? 'divisione' : exercise.includes('+') ? 'addizione' : 'sottrazione';
-            arithmeticHintBox.innerHTML = `Per risolvere "${exercise}", devi eseguire l'operazione di ${op}.`;
-        });
-
-        // --- Sezione Espressioni ---
-        const expressionExercise = document.getElementById('expression-exercise');
-        const expressionAnswer = document.getElementById('expression-answer');
-        const expressionResult = document.getElementById('expression-result');
-        const expressionHintBox = document.getElementById('expression-hint-box');
-        let currentExpressionSolution = null;
-        let currentExpressionString = '';
-
-        function generateExpressionExercise() {
-            const num1 = Math.floor(Math.random() * 10) + 1;
-            const num2 = Math.floor(Math.random() * 10) + 1;
-            const num3 = Math.floor(Math.random() * 10) + 1;
-            const op1 = Math.random() < 0.5 ? '+' : '-';
-            const op2 = Math.random() < 0.5 ? 'x' : '+';
+        const switchSection = (sectionId) => {
+            sections.forEach(id => {
+                const sectionEl = document.getElementById(`section-${id}`);
+                const navEl = document.getElementById(`nav-${id}`);
+                const isActive = id === sectionId;
+                sectionEl.classList.toggle('active', isActive);
+                navEl?.classList.toggle('active', isActive);
+            });
             
-            currentExpressionString = `${num1} ${op1} ${num2} ${op2} ${num3}`;
-            expressionExercise.textContent = currentExpressionString;
-
-            let solution;
-            if (op2 === 'x') {
-                solution = eval(`${num1} ${op1} ${num2 * num3}`);
+            if (sectionId === 'home') {
+                elements.pageHeader.classList.add('hidden');
             } else {
-                solution = eval(`${num1} ${op1} ${num2} + ${num3}`);
+                elements.pageHeader.classList.remove('hidden');
+                elements.pageTitle.setAttribute('data-i18n', `${sectionId}_title`);
+                elements.pageSubtitle.setAttribute('data-i18n', `${sectionId}_subtitle`);
+                
+                const currentTranslations = translations[state.language];
+                elements.pageTitle.innerText = currentTranslations[`${sectionId}_title`] || '';
+                elements.pageSubtitle.innerText = currentTranslations[`${sectionId}_subtitle`] || '';
+
+                setupExerciseSection(sectionId);
             }
+        };
+
+        const updateLanguage = (lang, forceRerender = false) => {
+            state.language = lang;
+            document.documentElement.lang = lang;
+            document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
             
-            currentExpressionSolution = solution;
-            expressionAnswer.value = '';
-            expressionResult.textContent = '';
-            expressionResult.className = 'mt-4 p-4 rounded-lg text-center font-bold';
-            expressionHintBox.classList.add('hidden');
-        }
+            const currentTranslations = translations[lang];
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (currentTranslations[key] && typeof currentTranslations[key] === 'string') {
+                    el.innerHTML = currentTranslations[key];
+                }
+            });
+             document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                if (currentTranslations[key]) {
+                    el.placeholder = currentTranslations[key];
+                }
+            });
 
-        document.getElementById('new-expression').addEventListener('click', generateExpressionExercise);
-        document.getElementById('check-expression').addEventListener('click', () => {
-            const userAnswer = parseFloat(expressionAnswer.value);
-            if (!isNaN(userAnswer) && userAnswer === currentExpressionSolution) {
-                expressionResult.innerHTML = 'Corretto! Ben fatto! &#x2713;';
-                expressionResult.className = 'mt-4 p-4 rounded-lg text-center font-bold feedback-correct';
-            } else {
-                expressionResult.innerHTML = 'Sbagliato. Riprova! &#x2717;';
-                expressionResult.className = 'mt-4 p-4 rounded-lg text-center font-bold feedback-incorrect';
+            const activeSection = sections.find(id => id !== 'home' && document.getElementById(`section-${id}`).classList.contains('active'));
+            if(activeSection) {
+                 setupExerciseSection(activeSection, false);
             }
+        };
+        
+        elements.navButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const sectionId = button.id.replace('nav-', '');
+                switchSection(sectionId);
+            });
         });
 
-        document.getElementById('hint-expression').addEventListener('click', () => {
-            expressionHintBox.classList.toggle('hidden');
-            expressionHintBox.innerHTML = 'Ricorda l\'ordine delle operazioni: prima le moltiplicazioni e le divisioni, poi le addizioni e le sottrazioni.';
+        elements.difficultyButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                elements.difficultyButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                state.difficulty = button.dataset.difficulty;
+            });
         });
 
-        // --- Sezione Proporzioni ---
-        const proportionExercise = document.getElementById('proportion-exercise');
-        const proportionAnswer = document.getElementById('proportion-answer');
-        const proportionResult = document.getElementById('proportion-result');
-        const proportionHintBox = document.getElementById('proportion-hint-box');
-        let currentProportionSolution = null;
+        elements.languageSelector.addEventListener('change', (e) => {
+            updateLanguage(e.target.value, true);
+        });
+        
+        const getRandom = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+        
+        const exerciseModules = {
+            'esercizi': {
+                generate: function() {
+                    const ops = ['+', '-', '*', '/']; const op = ops[getRandom(0, 3)];
+                    let n1, n2, answer;
+                    const diffRanges = { facile: 10, medio: 50, difficile: 100 };
+                    const range = diffRanges[state.difficulty];
+                    if (op === '+') { n1 = getRandom(1, range); n2 = getRandom(1, range); answer = n1 + n2; }
+                    if (op === '-') { n1 = getRandom(range / 2, range); n2 = getRandom(1, n1); answer = n1 - n2; }
+                    if (op === '*') { n1 = getRandom(2, Math.max(2, range / 5)); n2 = getRandom(2, Math.max(2,range / 5)); answer = n1 * n2; }
+                    if (op === '/') { n2 = getRandom(2, Math.max(2,range / 5)); answer = getRandom(2, Math.max(2, range / 5)); n1 = n2 * answer; }
+                    return { text: `${n1} ${op.replace('*', '×').replace('/', '÷')} ${n2}`, answer: answer, hintData: {op: op === '*' ? 'moltiplicazione' : op === '/' ? 'divisione' : op === '+' ? 'addizione' : 'sottrazione'} };
+                },
+                getHint: (data) => translations[state.language].arithmetic_hint(data.op),
+                setupInputs: (container) => { container.innerHTML = `<input type="number" class="answer-input custom-input w-full p-3 rounded-lg text-center text-lg" data-i18n-placeholder="arithmetic_answer_placeholder">`; },
+                getAnswer: (container) => [container.querySelector('.answer-input').value],
+                checkAnswer: (userAnswers, correctAnswer) => parseFloat(userAnswers[0]) === correctAnswer,
+            },
+            'espressioni': {
+                 generate: function() {
+                    let n1, n2, n3, text, answer;
+                    const diffRanges = { facile: [1,10], medio: [5,20], difficile: [10, 50] };
+                    const [min, max] = diffRanges[state.difficulty];
+                    n1 = getRandom(min, max); n2 = getRandom(min, max); n3 = getRandom(2, 5);
+                    const type = getRandom(1, 3);
+                    if (state.difficulty === 'facile' || type === 1) { text = `${n1} + ${n2} × ${n3}`; answer = n1 + n2 * n3; } 
+                    else if (state.difficulty === 'medio' || type === 2) { text = `(${n1} + ${n2}) × ${n3}`; answer = (n1 + n2) * n3; } 
+                    else { n1 = n2 * n3; text = `${n1} ÷ ${n2} + ${getRandom(min, max)}`; answer = eval(text.replace('÷', '/')); }
+                    return { text, answer: parseFloat(answer.toFixed(2)), hintData: {} };
+                },
+                getHint: () => translations[state.language].expressions_hint,
+                setupInputs: (container) => { container.innerHTML = `<input type="number" class="answer-input custom-input w-full p-3 rounded-lg text-center text-lg" data-i18n-placeholder="expressions_answer_placeholder">`; },
+                getAnswer: (container) => [container.querySelector('.answer-input').value],
+                checkAnswer: (userAnswers, correctAnswer) => parseFloat(userAnswers[0]) === correctAnswer,
+            },
+            'proporzioni': {
+                generate: function() {
+                    const diffRanges = { facile: 10, medio: 25, difficile: 50 };
+                    const range = diffRanges[state.difficulty];
+                    let a, b, c;
+                    const x_val = getRandom(2, range/2);
+                    c = getRandom(2, range/2);
+                    a = getRandom(2, range);
+                    b = (a * x_val) / c;
+                    if (!Number.isInteger(b) || b === 0) return exerciseModules.proporzioni.generate();
+                    return { text: `${a} : ${b} = ${c} : x`, answer: x_val, hintData: {} };
+                },
+                getHint: () => translations[state.language].proportions_hint,
+                 setupInputs: (container) => { container.innerHTML = `<input type="number" class="answer-input custom-input w-full p-3 rounded-lg text-center text-lg" data-i18n-placeholder="proportions_answer_placeholder">`; },
+                getAnswer: (container) => [container.querySelector('.answer-input').value],
+                checkAnswer: (userAnswers, correctAnswer) => Math.abs(parseFloat(userAnswers[0]) - correctAnswer) < 0.01
+            },
+            'geometria': {
+                generate: function() {
+                    const figures = ['rectangle', 'triangle']; const figure = figures[getRandom(0, 1)];
+                    const types = ['area', 'perimeter']; const type = types[getRandom(0, 1)];
+                    const diffRanges = { facile: [2,10], medio: [5,25], difficile: [10,50] };
+                    const [min, max] = diffRanges[state.difficulty];
+                    let text, answer, figureName;
+                    const lang = state.language;
+                    if(figure === 'rectangle') {
+                        const b = getRandom(min, max); const h = getRandom(min, max);
+                        figureName = translations[lang].figure_rectangle;
+                        text = (type === 'area') ? translations[lang].geometry_rectangle_area(b, h) : translations[lang].geometry_rectangle_perimeter(b, h);
+                        answer = (type === 'area') ? b * h : 2 * (b + h);
+                    } else { // triangle
+                        figureName = translations[lang].figure_triangle;
+                        if(type === 'area') {
+                            const b = getRandom(min, max) * 2; const h = getRandom(min, max);
+                            text = translations[lang].geometry_triangle_area(b, h); answer = (b * h) / 2;
+                        } else {
+                            const s1 = getRandom(min, max); const s2 = getRandom(min, max);
+                            const s3 = getRandom(Math.max(min, Math.abs(s1-s2)+1), s1+s2-1);
+                            text = translations[lang].geometry_triangle_perimeter(s1, s2, s3); answer = s1 + s2 + s3;
+                        }
+                    }
+                    return { text, answer, hintData: { type, figure: figureName } };
+                },
+                getHint: (data) => translations[state.language][`geometry_hint_${data.type}`](data.figure),
+                setupInputs: (container) => { container.innerHTML = `<input type="number" class="answer-input custom-input w-full p-3 rounded-lg text-center text-lg" data-i18n-placeholder="geometry_answer_placeholder">`; },
+                getAnswer: (container) => [container.querySelector('.answer-input').value],
+                checkAnswer: (userAnswers, correctAnswer) => parseFloat(userAnswers[0]) === correctAnswer,
+            },
+            'sistemi': {
+                generate: function() {
+                    const diffRanges = { facile: [-5,5], medio: [-10,10], difficile: [-15,15] };
+                    const [min, max] = diffRanges[state.difficulty];
+                    const x = getRandom(min, max); const y = getRandom(min, max);
+                    let a1 = getRandom(1, 5), b1 = getRandom(1, 5), a2 = getRandom(1, 5), b2 = getRandom(1, 5);
+                    if (a1 * b2 === a2 * b1) return exerciseModules.sistemi.generate();
+                    const c1 = a1 * x + b1 * y; const c2 = a2 * x + b2 * y;
+                    const eq1 = `${a1}x ${b1 > 0 ? '+' : '-'} ${Math.abs(b1)}y = ${c1}`;
+                    const eq2 = `${a2}x ${b2 > 0 ? '+' : '-'} ${Math.abs(b2)}y = ${c2}`;
+                    return { text: `<div class="font-mono text-3xl leading-tight">{ ${eq1}<br/>{ ${eq2}</div>`, answer: { x, y }, hintData: {} };
+                },
+                getHint: () => translations[state.language].systems_hint,
+                setupInputs: (container) => {
+                    container.innerHTML = `<input type="number" id="system-answer-x" class="custom-input w-full p-3 rounded-lg text-center text-lg" data-i18n-placeholder="systems_answer_x_placeholder"><input type="number" id="system-answer-y" class="custom-input w-full p-3 rounded-lg text-center text-lg" data-i18n-placeholder="systems_answer_y_placeholder">`;
+                },
+                getAnswer: (container) => [container.querySelector('#system-answer-x').value, container.querySelector('#system-answer-y').value],
+                checkAnswer: (userAnswers, correctAnswer) => parseFloat(userAnswers[0]) === correctAnswer.x && parseFloat(userAnswers[1]) === correctAnswer.y,
+            }
+        };
 
-        function generateProportionExercise() {
-            const a = Math.floor(Math.random() * 10) + 1;
-            const b = Math.floor(Math.random() * 10) + 1;
-            const c = Math.floor(Math.random() * 10) + 1;
+        const setupExerciseSection = (sectionId, generateNew = true) => {
+            const sectionContainer = document.getElementById(`section-${sectionId}`);
+            const module = exerciseModules[sectionId];
+            if (!module) return;
+
+            if (generateNew || !state.currentExercise[sectionId]) {
+                 state.currentExercise[sectionId] = module.generate();
+            }
+            const exercise = state.currentExercise[sectionId];
             
-            const solution = (b * c) / a;
+            sectionContainer.innerHTML = '';
+            const clone = elements.exerciseTemplate.cloneNode(true);
+            clone.removeAttribute('id');
+            clone.classList.remove('hidden');
+            sectionContainer.appendChild(clone);
             
-            if (solution !== Math.floor(solution)) {
-                generateProportionExercise();
+            clone.querySelector('.exercise-problem').innerHTML = exercise.text;
+            module.setupInputs(clone.querySelector('.exercise-inputs'));
+
+            clone.querySelector('.check-button').addEventListener('click', () => checkAnswer(sectionId));
+            clone.querySelector('.new-button').addEventListener('click', () => setupExerciseSection(sectionId));
+            clone.querySelector('.hint-button').addEventListener('click', () => showHint(sectionId));
+            
+            // Applica le traduzioni solo agli elementi appena creati per evitare loop
+            const currentTranslations = translations[state.language];
+            clone.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (currentTranslations[key]) el.innerHTML = currentTranslations[key];
+            });
+            clone.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                if (currentTranslations[key]) el.placeholder = currentTranslations[key];
+            });
+             clone.querySelector('.exercise-label').setAttribute('data-i18n', `${sectionId}_exercise_label`);
+             clone.querySelector('.exercise-label').innerText = currentTranslations[`${sectionId}_exercise_label`] || '';
+        };
+        
+        const showResult = (sectionId, isCorrect, messageKey) => {
+            const resultBox = document.querySelector(`#section-${sectionId} .result-box`);
+            resultBox.innerHTML = translations[state.language][messageKey];
+            resultBox.className = 'result-box mt-5 p-4 rounded-lg text-center font-bold text-base transition-all duration-300 scale-100 opacity-100';
+            if (isCorrect === true) resultBox.classList.add('feedback-correct');
+            else if (isCorrect === false) resultBox.classList.add('feedback-incorrect');
+            else resultBox.classList.add('feedback-warning');
+        };
+
+        const checkAnswer = (sectionId) => {
+            const module = exerciseModules[sectionId];
+            const container = document.getElementById(`section-${sectionId}`);
+            const userAnswers = module.getAnswer(container);
+
+            if (userAnswers.some(answer => answer === '')) {
+                showResult(sectionId, null, 'feedback_warning_empty');
                 return;
             }
             
-            proportionExercise.textContent = `${a} : ${b} = ${c} : x`;
-            currentProportionSolution = solution;
-            proportionAnswer.value = '';
-            proportionResult.textContent = '';
-            proportionResult.className = 'mt-4 p-4 rounded-lg text-center font-bold';
-            proportionHintBox.classList.add('hidden');
-        }
+            const isCorrect = module.checkAnswer(userAnswers, state.currentExercise[sectionId].answer);
+            showResult(sectionId, isCorrect, isCorrect ? 'feedback_correct' : 'feedback_incorrect');
+        };
 
-        document.getElementById('new-proportion').addEventListener('click', generateProportionExercise);
-        document.getElementById('check-proportion').addEventListener('click', () => {
-            const userAnswer = parseFloat(proportionAnswer.value);
-            if (!isNaN(userAnswer) && userAnswer === currentProportionSolution) {
-                proportionResult.innerHTML = 'Corretto! Ben fatto! &#x2713;';
-                proportionResult.className = 'mt-4 p-4 rounded-lg text-center font-bold feedback-correct';
-            } else {
-                proportionResult.innerHTML = 'Sbagliato. Riprova! &#x2717;';
-                proportionResult.className = 'mt-4 p-4 rounded-lg text-center font-bold feedback-incorrect';
+        const showHint = (sectionId) => {
+            const hintBox = document.querySelector(`#section-${sectionId} .hint-box`);
+            const exercise = state.currentExercise[sectionId];
+            hintBox.innerHTML = exerciseModules[sectionId].getHint(exercise.hintData);
+            hintBox.style.display = 'block';
+        };
+
+        const canvas = document.getElementById('background-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width; this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 1;
+                this.speedX = (Math.random() - 0.5) * 0.5; this.speedY = (Math.random() - 0.5) * 0.5;
+                this.color = `rgba(79, 70, 229, ${Math.random() * 0.5 + 0.2})`;
             }
-        });
-
-        document.getElementById('hint-proportion').addEventListener('click', () => {
-            proportionHintBox.classList.toggle('hidden');
-            const exercise = proportionExercise.textContent;
-            const [a, b, c] = exercise.match(/\d+/g).map(Number);
-            proportionHintBox.innerHTML = `Per trovare la "x" in una proporzione, usa la formula: x = (secondo termine * terzo termine) / primo termine. <br>In questo caso, x = (${b} * ${c}) / ${a}.`;
-        });
-        
-        // --- Sezione Geometria ---
-        const geometricExerciseType = document.getElementById('geometric-exercise-type');
-        const geometricExerciseText = document.getElementById('geometric-exercise-text');
-        const geometricAnswer = document.getElementById('geometric-answer');
-        const geometricResult = document.getElementById('geometric-result');
-        const geometricHintBox = document.getElementById('geometric-hint-box');
-        const geometricImageContainer = document.getElementById('geometric-image-container');
-        let currentGeometricSolution = null;
-        let currentGeometricType = null;
-        
-        // Funzione per creare un'immagine SVG di un rettangolo
-        function createRectangleSVG(base, altezza) {
-            const scale = 5;
-            const width = base * scale;
-            const height = altezza * scale;
-            const svgWidth = Math.max(width, 100) + 20;
-            const svgHeight = Math.max(height, 80) + 20;
-            return `
-                <svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg" class="mx-auto block">
-                    <rect x="10" y="10" width="${width}" height="${height}" fill="none" stroke="#2563eb" stroke-width="2" />
-                    <text x="${10 + width / 2}" y="${10 + height + 15}" font-size="12" text-anchor="middle" fill="#1f2937">${base} cm</text>
-                    <text x="${10 - 5}" y="${10 + height / 2}" font-size="12" text-anchor="end" dominant-baseline="middle" fill="#1f2937">${altezza} cm</text>
-                </svg>
-            `;
-        }
-
-        // Funzione per creare un'immagine SVG di un triangolo rettangolo
-        function createTriangleSVG(base, altezza) {
-            const scale = 5;
-            const width = base * scale;
-            const height = altezza * scale;
-            const svgWidth = Math.max(width, 100) + 20;
-            const svgHeight = Math.max(height, 80) + 20;
-            return `
-                <svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg" class="mx-auto block">
-                    <polygon points="10,${10 + height} ${10 + width},${10 + height} ${10},10" fill="none" stroke="#2563eb" stroke-width="2" />
-                    <text x="${10 + width / 2}" y="${10 + height + 15}" font-size="12" text-anchor="middle" fill="#1f2937">${base} cm</text>
-                    <text x="${10 - 5}" y="${10 + height / 2}" font-size="12" text-anchor="end" dominant-baseline="middle" fill="#1f2937">${altezza} cm</text>
-                </svg>
-            `;
-        }
-        
-        function generateGeometricExercise() {
-            const figures = ['rettangolo', 'triangolo'];
-            const figure = figures[Math.floor(Math.random() * figures.length)];
-            const calculationTypes = ['perimetro', 'area'];
-            const calculationType = calculationTypes[Math.floor(Math.random() * calculationTypes.length)];
-            
-            let base, altezza, solution, text, hintText;
-            
-            if (figure === 'rettangolo') {
-                base = Math.floor(Math.random() * 10) + 1;
-                altezza = Math.floor(Math.random() * 10) + 1;
-                
-                if (calculationType === 'perimetro') {
-                    solution = 2 * (base + altezza);
-                    text = `Un rettangolo ha base ${base} cm e altezza ${altezza} cm. Calcola il perimetro.`;
-                    hintText = 'Il perimetro di un rettangolo si calcola con la formula: 2 * (base + altezza).';
-                } else { // area
-                    solution = base * altezza;
-                    text = `Un rettangolo ha base ${base} cm e altezza ${altezza} cm. Calcola l'area.`;
-                    hintText = 'L\'area di un rettangolo si calcola con la formula: base * altezza.';
-                }
-                geometricImageContainer.innerHTML = createRectangleSVG(base, altezza);
-            
-            } else { // triangolo
-                base = Math.floor(Math.random() * 10) + 1;
-                altezza = Math.floor(Math.random() * 10) + 1;
-                
-                if (calculationType === 'perimetro') {
-                    const lato2 = Math.floor(Math.random() * 10) + 1;
-                    const lato3 = Math.floor(Math.random() * 10) + 1;
-                    solution = base + lato2 + lato3;
-                    text = `Un triangolo ha lati di ${base} cm, ${lato2} cm e ${lato3} cm. Calcola il perimetro.`;
-                    hintText = 'Il perimetro di un triangolo è la somma della lunghezza dei suoi tre lati.';
-                } else { // area
-                    solution = (base * altezza) / 2;
-                    text = `Un triangolo ha base ${base} cm e altezza ${altezza} cm. Calcola l'area.`;
-                    hintText = 'L\'area di un triangolo si calcola con la formula: (base * altezza) / 2.';
-                }
-                geometricImageContainer.innerHTML = createTriangleSVG(base, altezza);
+            update() {
+                this.x += this.speedX; this.y += this.speedY;
+                if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
             }
-            
-            geometricExerciseType.textContent = figure.charAt(0).toUpperCase() + figure.slice(1);
-            geometricExerciseText.textContent = text;
-            currentGeometricSolution = solution;
-            currentGeometricType = calculationType;
-            geometricAnswer.value = '';
-            geometricResult.textContent = '';
-            geometricResult.className = 'mt-4 p-4 rounded-lg text-center font-bold';
-            geometricHintBox.classList.add('hidden');
+            draw() {
+                ctx.fillStyle = this.color; ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill();
+            }
         }
-
-        document.getElementById('new-geometric').addEventListener('click', generateGeometricExercise);
-        document.getElementById('check-geometric').addEventListener('click', () => {
-            const userAnswer = parseFloat(geometricAnswer.value);
-            if (!isNaN(userAnswer) && userAnswer === currentGeometricSolution) {
-                geometricResult.innerHTML = 'Corretto! Ben fatto! &#x2713;';
-                geometricResult.className = 'mt-4 p-4 rounded-lg text-center font-bold feedback-correct';
-            } else {
-                geometricResult.innerHTML = 'Sbagliato. Riprova! &#x2717;';
-                geometricResult.className = 'mt-4 p-4 rounded-lg text-center font-bold feedback-incorrect';
-            }
-        });
-
-        document.getElementById('hint-geometric').addEventListener('click', () => {
-            geometricHintBox.classList.toggle('hidden');
-            const figure = geometricExerciseType.textContent.toLowerCase();
-            const calculationType = currentGeometricType;
-            let hintText = '';
-            if (figure === 'rettangolo') {
-                hintText = calculationType === 'perimetro' ? 'Il perimetro di un rettangolo si calcola con la formula: 2 * (base + altezza).' : 'L\'area di un rettangolo si calcola con la formula: base * altezza.';
-            } else {
-                hintText = calculationType === 'perimetro' ? 'Il perimetro di un triangolo è la somma dei tre lati.' : 'L\'area di un triangolo si calcola con la formula: (base * altezza) / 2.';
-            }
-            geometricHintBox.innerHTML = hintText;
-        });
-
-        // --- Sezione Sistemi di Equazioni ---
-        const systemExercise = document.getElementById('system-exercise');
-        const systemAnswerX = document.getElementById('system-answer-x');
-        const systemAnswerY = document.getElementById('system-answer-y');
-        const systemResult = document.getElementById('system-result');
-        const systemHintBox = document.getElementById('system-hint-box');
-        let currentSystemSolution = { x: null, y: null };
-        
-        function generateSystemExercise() {
-            // Genera soluzioni intere casuali
-            const solX = Math.floor(Math.random() * 10) - 5;
-            const solY = Math.floor(Math.random() * 10) - 5;
-            currentSystemSolution = { x: solX, y: solY };
-            
-            // Genera coefficienti casuali per creare un sistema
-            const a1 = Math.floor(Math.random() * 5) + 1;
-            const b1 = Math.floor(Math.random() * 5) + 1;
-            const c1 = a1 * solX + b1 * solY;
-            
-            const a2 = Math.floor(Math.random() * 5) + 1;
-            const b2 = Math.floor(Math.random() * 5) + 1;
-            const c2 = a2 * solX + b2 * solY;
-            
-            // Visualizza il sistema
-            const eq1 = `${a1}x ${b1 >= 0 ? '+' : ''} ${b1}y = ${c1}`;
-            const eq2 = `${a2}x ${b2 >= 0 ? '+' : ''} ${b2}y = ${c2}`;
-            systemExercise.innerHTML = `
-                <div class="flex items-center justify-center">
-                    <span class="text-3xl mr-2">{</span>
-                    <div class="flex flex-col text-left">
-                        <span>${eq1}</span>
-                        <span>${eq2}</span>
-                    </div>
-                </div>
-            `;
-            
-            systemAnswerX.value = '';
-            systemAnswerY.value = '';
-            systemResult.textContent = '';
-            systemResult.className = 'mt-4 p-4 rounded-lg text-center font-bold';
-            systemHintBox.classList.add('hidden');
+        function resizeCanvas() {
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+            particles = [];
+            let particleCount = window.innerWidth < 768 ? 25 : 50;
+            for (let i = 0; i < particleCount; i++) particles.push(new Particle());
         }
-
-        document.getElementById('new-system').addEventListener('click', generateSystemExercise);
-        document.getElementById('check-system').addEventListener('click', () => {
-            const userAnswerX = parseFloat(systemAnswerX.value);
-            const userAnswerY = parseFloat(systemAnswerY.value);
-            
-            if (!isNaN(userAnswerX) && !isNaN(userAnswerY) && userAnswerX === currentSystemSolution.x && userAnswerY === currentSystemSolution.y) {
-                systemResult.innerHTML = 'Corretto! Ottimo lavoro! &#x2713;';
-                systemResult.className = 'mt-4 p-4 rounded-lg text-center font-bold feedback-correct';
-            } else {
-                systemResult.innerHTML = 'Sbagliato. Riprova! &#x2717;';
-                systemResult.className = 'mt-4 p-4 rounded-lg text-center font-bold feedback-incorrect';
-            }
-        });
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animate);
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        animate();
         
-        document.getElementById('hint-system').addEventListener('click', () => {
-            systemHintBox.classList.toggle('hidden');
-            systemHintBox.innerHTML = `Per risolvere un sistema di equazioni, puoi usare vari metodi come la **sostituzione** o la **somma (o riduzione)**. Se hai due equazioni con due incognite, il tuo obiettivo è trovare i valori di x e y che soddisfano entrambe le equazioni contemporaneamente.`;
-        });
-        
-        // Avvia l'app sulla home page
-        showSection('section-home');
+        updateLanguage(state.language);
+        switchSection('home');
+    });
     </script>
 </body>
 </html>
+
