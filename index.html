@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title data-i18n="title">Tutor Matematico - Esercizi</title>
+    <title data-i18n="title">Tutor Matematico Avanzato</title>
     
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -11,185 +11,352 @@
     <!-- Google Fonts & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- MathJax per il rendering delle formule LaTeX -->
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <!-- Three.js for Dynamic Background -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
     <style>
         :root {
-            --bg-color: #f0f4f8;
-            --card-bg-color: #ffffff;
-            --primary-color: #4f46e5;
-            --primary-hover-color: #4338ca;
-            --text-color: #334155;
-            --text-light-color: #64748b;
-            --border-color: #e2e8f0;
+            --bg-start: #111827; /* Grigio scuro/blu */
+            --bg-end: #1e293b;   /* Blu ardesia */
+            --card-bg: rgba(30, 41, 59, 0.6); /* Sfondo card traslucido */
+            --primary-start: #4f46e5; /* Indaco */
+            --primary-end: #7c3aed; /* Viola */
+            --primary-hover-start: #6366f1;
+            --primary-hover-end: #8b5cf6;
+            --text-primary: #f8fafc; /* Bianco sporco */
+            --text-secondary: #cbd5e1; /* Grigio chiaro */
+            --border-color: rgba(148, 163, 184, 0.2);
             --correct-color: #10b981;
             --incorrect-color: #ef4444;
             --warning-color: #f59e0b;
+            --glass-border: rgba(255, 255, 255, 0.1);
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, var(--bg-start), var(--bg-end));
+            color: var(--text-primary);
+            overflow: hidden; /* Nasconde lo scroll per via del canvas a schermo intero */
         }
 
         #background-canvas {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: -1; opacity: 0.05;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        /* Stile per l'effetto vetro (Glassmorphism) */
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
 
         .nav-button {
-            transition: all 0.2s ease-in-out;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative;
+            overflow: hidden;
         }
+        .nav-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.4s;
+        }
+        .nav-button:hover::before {
+            left: 100%;
+        }
+
         .nav-button.active {
-            background-color: var(--primary-color); color: white;
-            box-shadow: 0 4px 14px -3px rgba(79, 70, 229, 0.4);
-            transform: translateY(-2px);
+            background: linear-gradient(90deg, var(--primary-start), var(--primary-end));
+            color: white;
+            box-shadow: 0 6px 20px -5px rgba(79, 70, 229, 0.5);
+            transform: translateY(-3px) scale(1.02);
         }
         .nav-button:not(.active):hover {
-            background-color: #eef2ff; color: var(--primary-color);
+            background-color: rgba(255, 255, 255, 0.05);
+            color: white;
         }
 
         .section-container {
             display: none;
-            animation: fadeIn 0.5s ease-out forwards;
+            animation: fadeIn 0.6s cubic-bezier(0.390, 0.575, 0.565, 1.000) forwards;
         }
         .section-container.active { display: block; }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(15px); }
+            from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
+        
         .custom-input {
+            background-color: rgba(15, 23, 42, 0.5);
             border: 2px solid var(--border-color);
-            transition: border-color 0.2s, box-shadow 0.2s;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            color: var(--text-primary);
         }
+        .custom-input::placeholder { color: var(--text-secondary); opacity: 0.6; }
         .custom-input:focus {
-            outline: none; border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+            outline: none;
+            border-color: var(--primary-start);
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.3);
         }
 
-        .feedback-correct { background-color: #d1fae5; color: #065f46; }
-        .feedback-incorrect { background-color: #fee2e2; color: #991b1b; }
-        .feedback-warning { background-color: #fef9e7; color: #b45309; }
-
+        .feedback-correct { background-color: rgba(16, 185, 129, 0.2); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.5); }
+        .feedback-incorrect { background-color: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.5); }
+        .feedback-warning { background-color: rgba(245, 158, 11, 0.2); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.5); }
+        
+        .difficulty-button {
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+        }
         .difficulty-button.active {
-            background-color: var(--primary-color) !important;
+            background: linear-gradient(90deg, var(--primary-start), var(--primary-end)) !important;
             color: white !important;
-            box-shadow: 0 2px 8px -2px rgba(79, 70, 229, 0.5);
+            box-shadow: 0 4px 12px -3px rgba(79, 70, 229, 0.6);
+            transform: scale(1.05);
         }
+
+        .math-problem {
+            font-size: 2rem;
+        }
+
+        /* Stili per le SVG di geometria */
+        .geometry-svg {
+            width: 150px;
+            height: auto;
+            stroke: #c4b5fd;
+            fill: #7c3aed;
+            stroke-width: 2px;
+            margin-bottom: 1rem;
+        }
+
+        /* Stili per le icone di navigazione */
+        .nav-icon {
+            width: 24px;
+            height: 24px;
+            stroke-width: 2px;
+            transition: all 0.3s ease;
+            color: #d1d5db; /* Grigio base */
+        }
+        .nav-button:hover .nav-icon, .nav-button.active .nav-icon {
+            color: white;
+        }
+
     </style>
 </head>
-<body class="min-h-screen flex flex-col lg:flex-row p-4 gap-4">
+<body class="min-h-screen p-4">
     <canvas id="background-canvas"></canvas>
 
-    <!-- Sidebar di Navigazione -->
-    <aside class="w-full lg:w-72 bg-white rounded-2xl shadow-lg p-6 flex flex-col flex-shrink-0">
-        <div class="text-center lg:text-left mb-8">
-            <h1 class="text-2xl font-bold text-indigo-600" data-i18n="header_title">Tutor Matematico</h1>
-            <p class="text-sm text-slate-500" data-i18n="header_subtitle">Impara divertendoti!</p>
-        </div>
-
-        <nav class="flex flex-row lg:flex-col justify-around lg:justify-start gap-2 mb-8">
-            <button id="nav-home" class="nav-button active flex items-center gap-3 p-3 rounded-lg font-semibold text-slate-700">
-                <i data-lucide="home"></i> <span class="hidden lg:inline" data-i18n="nav_home">Home</span>
-            </button>
-            <button id="nav-esercizi" class="nav-button flex items-center gap-3 p-3 rounded-lg font-semibold text-slate-700">
-                <i data-lucide="calculator"></i> <span class="hidden lg:inline" data-i18n="nav_arithmetic">Aritmetica</span>
-            </button>
-            <button id="nav-espressioni" class="nav-button flex items-center gap-3 p-3 rounded-lg font-semibold text-slate-700">
-                <i data-lucide="parentheses"></i> <span class="hidden lg:inline" data-i18n="nav_expressions">Espressioni</span>
-            </button>
-             <button id="nav-proporzioni" class="nav-button flex items-center gap-3 p-3 rounded-lg font-semibold text-slate-700">
-                <i data-lucide="ratio"></i> <span class="hidden lg:inline" data-i18n="nav_proportions">Proporzioni</span>
-            </button>
-            <button id="nav-geometria" class="nav-button flex items-center gap-3 p-3 rounded-lg font-semibold text-slate-700">
-                <i data-lucide="square-ruler"></i> <span class="hidden lg:inline" data-i18n="nav_geometry">Geometria</span>
-            </button>
-            <button id="nav-sistemi" class="nav-button flex items-center gap-3 p-3 rounded-lg font-semibold text-slate-700">
-                <i data-lucide="braces"></i> <span class="hidden lg:inline" data-i18n="nav_systems">Sistemi</span>
-            </button>
-        </nav>
-        
-        <div class="mt-auto">
-             <div class="mb-4">
-                <label for="language-selector" class="block text-sm font-medium text-slate-600 mb-1" data-i18n="language_label">Lingua</label>
-                <select id="language-selector" class="w-full rounded-lg px-3 py-2 bg-slate-100 border-2 border-transparent focus:outline-none focus:border-indigo-500 transition">
-                    <option value="it">Italiano</option>
-                    <option value="en">English</option>
-                    <option value="es">Español</option>
-                    <option value="zh">中文</option>
-                    <option value="ar">العربية</option>
-                </select>
+    <div class="flex flex-col lg:flex-row h-[calc(100vh-2rem)] gap-4">
+        <!-- Sidebar di Navigazione -->
+        <aside class="w-full lg:w-72 glass-card rounded-2xl p-6 flex flex-col flex-shrink-0">
+            <div class="text-center lg:text-left mb-8">
+                <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400" data-i18n="header_title">Tutor Matematico</h1>
+                <p class="text-sm text-slate-400" data-i18n="header_subtitle">Impara divertendoti!</p>
             </div>
-            <p class="text-xs text-center text-slate-400" data-i18n="footer_credits">Creato da David Miron.</p>
-        </div>
-    </aside>
 
-    <!-- Contenuto Principale -->
-    <main class="flex-grow bg-white rounded-2xl shadow-lg p-6 sm:p-10 relative overflow-hidden flex flex-col">
-        
-        <!-- Intestazione Pagina (per sezioni di esercizi) -->
-        <div id="page-header" class="hidden mb-8">
-            <h2 id="page-title" class="text-4xl font-bold text-slate-800"></h2>
-            <p id="page-subtitle" class="text-slate-500 mt-1"></p>
-        </div>
+            <nav class="flex flex-row lg:flex-col justify-around lg:justify-start gap-2 mb-8">
+                <button id="nav-home" class="nav-button active flex items-center justify-center lg:justify-start gap-3 p-3 rounded-lg font-semibold">
+                    <i data-lucide="home"></i> <span class="hidden lg:inline" data-i18n="nav_home">Home</span>
+                </button>
+                <button id="nav-esercizi" class="nav-button flex items-center justify-center lg:justify-start gap-3 p-3 rounded-lg font-semibold">
+                    <i data-lucide="calculator"></i> <span class="hidden lg:inline" data-i18n="nav_arithmetic">Aritmetica</span>
+                </button>
+                <button id="nav-espressioni" class="nav-button flex items-center justify-center lg:justify-start gap-3 p-3 rounded-lg font-semibold">
+                    <i data-lucide="parentheses"></i> <span class="hidden lg:inline" data-i18n="nav_expressions">Espressioni</span>
+                </button>
+                <button id="nav-proporzioni" class="nav-button flex items-center justify-center lg:justify-start gap-3 p-3 rounded-lg font-semibold">
+                    <i data-lucide="ratio"></i> <span class="hidden lg:inline" data-i18n="nav_proportions">Proporzioni</span>
+                </button>
+                <button id="nav-geometria" class="nav-button flex items-center justify-center lg:justify-start gap-3 p-3 rounded-lg font-semibold">
+                    <svg class="nav-icon" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="50,10 90,90 10,90" />
+                        <rect x="5" y="5" width="90" height="90" rx="10" ry="10" />
+                    </svg>
+                    <span class="hidden lg:inline" data-i18n="nav_geometry">Geometria</span>
+                </button>
+                <button id="nav-sistemi" class="nav-button flex items-center justify-center lg:justify-start gap-3 p-3 rounded-lg font-semibold">
+                    <i data-lucide="braces"></i> <span class="hidden lg:inline" data-i18n="nav_systems">Sistemi</span>
+                </button>
+            </nav>
+            
+            <div class="mt-auto">
+                <div class="mb-4">
+                    <label for="language-selector" class="block text-sm font-medium text-slate-400 mb-1" data-i18n="language_label">Lingua</label>
+                    <select id="language-selector" class="w-full rounded-lg px-3 py-2 bg-slate-800/50 border-2 border-slate-700/50 text-white focus:outline-none focus:border-indigo-500 transition">
+                        <option value="it">Italiano</option>
+                        <option value="en">English</option>
+                        <option value="es">Español</option>
+                        <option value="zh">中文</option>
+                        <option value="ar">العربية</option>
+                    </select>
+                </div>
+                <p class="text-xs text-center text-slate-500" data-i18n="footer_credits">Creato da David Miron.</p>
+            </div>
+        </aside>
 
-        <!-- Sezione Home -->
-        <div id="section-home" class="section-container active h-full flex flex-col justify-center items-center text-center">
-            <div class="max-w-2xl">
-                <i data-lucide="graduation-cap" class="mx-auto mb-6 text-indigo-500" size="80"></i>
-                <h2 class="text-4xl font-bold text-slate-800 mb-4" data-i18n="home_welcome">Benvenuto!</h2>
-                <p class="text-lg text-slate-600 mb-8" data-i18n="home_intro">
-                    Migliora le tue competenze matematiche in modo interattivo. Scegli un argomento dalla navigazione e imposta la difficoltà per iniziare.
-                </p>
-                <div class="bg-slate-100 p-6 rounded-xl">
-                    <p class="text-md font-semibold text-slate-700 mb-3" data-i18n="home_difficulty_label">Seleziona il tuo livello:</p>
-                    <div id="difficulty-selector" class="flex justify-center gap-2 p-1 bg-slate-200 rounded-full">
-                        <button class="difficulty-button flex-1 px-4 py-2 rounded-full font-medium transition-all duration-200 bg-white text-slate-700 active" data-difficulty="facile" data-i18n="difficulty_easy">Facile</button>
-                        <button class="difficulty-button flex-1 px-4 py-2 rounded-full font-medium transition-all duration-200 bg-white text-slate-700" data-difficulty="medio" data-i18n="difficulty_medium">Medio</button>
-                        <button class="difficulty-button flex-1 px-4 py-2 rounded-full font-medium transition-all duration-200 bg-white text-slate-700" data-difficulty="difficile" data-i18n="difficulty_hard">Difficile</button>
+        <!-- Contenuto Principale -->
+        <main class="flex-grow glass-card rounded-2xl p-6 sm:p-10 relative overflow-y-auto flex flex-col">
+            
+            <!-- Intestazione Pagina (per sezioni di esercizi) -->
+            <div id="page-header" class="hidden mb-8">
+                <h2 id="page-title" class="text-4xl font-bold"></h2>
+                <p id="page-subtitle" class="text-slate-400 mt-1"></p>
+            </div>
+
+            <!-- Sezione Home -->
+            <div id="section-home" class="section-container active h-full flex flex-col justify-center items-center text-center">
+                <div class="max-w-2xl">
+                    <i data-lucide="atom" class="mx-auto mb-6 text-indigo-400" size="80"></i>
+                    <h2 class="text-4xl font-bold mb-4" data-i18n="home_welcome">Benvenuto!</h2>
+                    <p class="text-lg text-slate-300 mb-8" data-i18n="home_intro">
+                        Migliora le tue competenze matematiche in modo interattivo. Scegli un argomento dalla navigazione e imposta la difficoltà per iniziare.
+                    </p>
+                    <div class="bg-slate-900/50 p-6 rounded-xl border border-slate-700/50">
+                        <p class="text-md font-semibold text-slate-300 mb-3" data-i18n="home_difficulty_label">Seleziona il tuo livello:</p>
+                        <div id="difficulty-selector" class="flex justify-center gap-2 p-1 bg-slate-800/70 rounded-full">
+                            <button class="difficulty-button flex-1 px-4 py-2 rounded-full font-medium transition-all duration-300 active" data-difficulty="facile" data-i18n="difficulty_easy">Facile</button>
+                            <button class="difficulty-button flex-1 px-4 py-2 rounded-full font-medium transition-all duration-300" data-difficulty="medio" data-i18n="difficulty_medium">Medio</button>
+                            <button class="difficulty-button flex-1 px-4 py-2 rounded-full font-medium transition-all duration-300" data-difficulty="difficile" data-i18n="difficulty_hard">Difficile</button>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Template per Sezioni di Esercizi (sarà clonato) -->
-        <div id="exercise-template" class="hidden">
-             <div class="bg-slate-50 rounded-xl p-6 shadow-inner max-w-2xl mx-auto">
-                <div class="text-center mb-5">
-                    <p class="exercise-label text-lg font-medium text-slate-600 mb-2"></p>
-                    <div class="exercise-problem text-4xl font-bold text-indigo-500 p-4 bg-white rounded-lg shadow-sm"></div>
-                </div>
+            <!-- Template per Sezioni di Esercizi (sarà clonato) -->
+            <div id="exercise-template" class="hidden">
+                 <div class="max-w-2xl mx-auto flex flex-col justify-center h-full">
+                     <div class="bg-slate-900/50 rounded-xl p-6 border border-slate-700/50">
+                         <div class="text-center mb-5">
+                             <p class="exercise-label text-lg font-medium text-slate-400 mb-2"></p>
+                             <div class="exercise-problem text-4xl font-bold text-indigo-300 p-4 bg-slate-800/50 rounded-lg shadow-sm flex flex-col justify-center items-center"></div>
+                         </div>
 
-                <div class="exercise-inputs flex flex-col sm:flex-row items-center gap-4 mb-4">
-                    <!-- Gli input verranno inseriti qui dinamicamente -->
-                </div>
-                <button class="check-button w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold py-3 px-6 rounded-xl shadow-lg hover:from-green-600 hover:to-emerald-600 transition-all duration-200 transform hover:scale-105" data-i18n="button_check">Verifica</button>
-                
-                <div class="flex justify-center gap-4 mt-4">
-                    <button class="new-button w-auto bg-slate-200 text-slate-700 font-medium py-2 px-5 rounded-full hover:bg-slate-300 transition-colors duration-200" data-i18n="button_new">Nuovo</button>
-                    <button class="hint-button w-auto bg-amber-400 text-white font-medium py-2 px-5 rounded-full hover:bg-amber-500 transition-colors duration-200" data-i18n="button_hint">Aiuto</button>
-                </div>
+                         <div class="exercise-inputs flex flex-col sm:flex-row items-center gap-4 mb-4">
+                             <!-- Gli input verranno inseriti qui dinamicamente -->
+                         </div>
+                         <button class="check-button w-full bg-gradient-to-r from-primary-start to-primary-end text-white font-bold py-3 px-6 rounded-xl shadow-lg hover:from-primary-hover-start hover:to-primary-hover-end transition-all duration-300 transform hover:scale-105" data-i18n="button_check">Verifica</button>
+                         
+                         <div class="flex justify-center gap-4 mt-4">
+                             <button class="new-button w-auto bg-slate-700 text-slate-300 font-medium py-2 px-5 rounded-full hover:bg-slate-600 transition-colors duration-200" data-i18n="button_new">Nuovo Esercizio</button>
+                             <button class="hint-button w-auto bg-amber-500/80 text-white font-medium py-2 px-5 rounded-full hover:bg-amber-500 transition-colors duration-200" data-i18n="button_hint">Suggerimento</button>
+                         </div>
 
-                <div class="result-box mt-5 p-4 rounded-lg text-center font-bold text-base transition-all duration-300 scale-95 opacity-0"></div>
-                <div class="hint-box mt-4 p-4 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 hidden"></div>
-             </div>
-        </div>
+                         <div class="result-box mt-5 p-4 rounded-lg text-center font-bold text-base transition-all duration-300 scale-95 opacity-0"></div>
+                         <div class="hint-box mt-4 p-4 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 hidden"></div>
+                     </div>
+                 </div>
+            </div>
 
-        <!-- Contenitori per le sezioni -->
-        <div id="section-esercizi" class="section-container"></div>
-        <div id="section-espressioni" class="section-container"></div>
-        <div id="section-proporzioni" class="section-container"></div>
-        <div id="section-geometria" class="section-container"></div>
-        <div id="section-sistemi" class="section-container"></div>
+            <!-- Contenitori per le sezioni -->
+            <div id="section-esercizi" class="section-container"></div>
+            <div id="section-espressioni" class="section-container"></div>
+            <div id="section-proporzioni" class="section-container"></div>
+            <div id="section-geometria" class="section-container"></div>
+            <div id="section-sistemi" class="section-container"></div>
 
-    </main>
+        </main>
+    </div>
 
     <script>
     document.addEventListener('DOMContentLoaded', () => {
+        
+        // --- INIZIO SCRIPT SFONDO DINAMICO ---
+        const canvas = document.getElementById('background-canvas');
+        if (canvas) {
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+            const shapes = [];
+            const shapeCount = 50;
+            const geometries = [
+                new THREE.IcosahedronGeometry(0.5, 0),
+                new THREE.TorusGeometry(0.3, 0.15, 16, 100),
+                new THREE.OctahedronGeometry(0.4, 0),
+            ];
+
+            const material = new THREE.MeshStandardMaterial({
+                color: 0x8b5cf6, // Viola
+                metalness: 0.6,
+                roughness: 0.2,
+            });
+
+            for (let i = 0; i < shapeCount; i++) {
+                const geometry = geometries[i % geometries.length];
+                const shape = new THREE.Mesh(geometry, material);
+                shape.position.set(
+                    (Math.random() - 0.5) * 20,
+                    (Math.random() - 0.5) * 20,
+                    (Math.random() - 0.5) * 20
+                );
+                shape.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+                shape.scale.setScalar(Math.random() * 0.5 + 0.5);
+                shapes.push(shape);
+                scene.add(shape);
+            }
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+            scene.add(ambientLight);
+
+            const pointLight = new THREE.PointLight(0x4f46e5, 1.5, 100); // Indaco
+            pointLight.position.set(5, 5, 5);
+            scene.add(pointLight);
+
+            camera.position.z = 8;
+            
+            const mouse = new THREE.Vector2();
+            window.addEventListener('mousemove', (event) => {
+                mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            });
+
+            const clock = new THREE.Clock();
+            function animate() {
+                const elapsedTime = clock.getElapsedTime();
+                shapes.forEach((shape, i) => {
+                    shape.rotation.x += 0.001 * (i % 5 + 1);
+                    shape.rotation.y += 0.002 * (i % 3 + 1);
+                });
+
+                pointLight.position.x = mouse.x * 10;
+                pointLight.position.y = mouse.y * 10;
+
+                camera.position.x += (mouse.x * 2 - camera.position.x) * 0.02;
+                camera.position.y += (-mouse.y * 2 - camera.position.y) * 0.02;
+                camera.lookAt(scene.position);
+
+                renderer.render(scene, camera);
+                requestAnimationFrame(animate);
+            }
+            window.onload = animate;
+
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            });
+        }
+        // --- FINE SCRIPT SFONDO DINAMICO ---
+
 
         lucide.createIcons();
         
@@ -225,7 +392,8 @@
                 expressions_exercise_label: 'Risolvi l\'espressione:', expressions_answer_placeholder: 'La tua risposta',
                 proportions_exercise_label: 'Trova il valore di x:', proportions_answer_placeholder: 'Valore di x',
                 geometry_answer_placeholder: 'La tua risposta',
-                systems_exercise_label: 'Risolvi il sistema:', systems_answer_x_placeholder: 'Valore di x', systems_answer_y_placeholder: 'Valore di y',
+                systems_answer_x_placeholder: 'Valore di x', systems_answer_y_placeholder: 'Valore di y',
+                systems_exercise_label: 'Risolvi il sistema:',
                 button_check: 'Verifica', button_new: 'Nuovo Esercizio', button_hint: 'Suggerimento', footer_credits: 'Creato da David Miron.',
                 feedback_correct: 'Corretto! Ottimo lavoro! 🎉', feedback_incorrect: 'Sbagliato. Riprova! 🧐', feedback_warning_empty: 'Per favore, inserisci una risposta.',
                 arithmetic_hint: (op) => `Per risolvere questo esercizio, devi eseguire l'operazione di ${op}.`,
@@ -345,303 +513,444 @@
                 expressions_exercise_label: 'حل التعبير:', expressions_answer_placeholder: 'إجابتك',
                 proportions_exercise_label: 'أوجد قيمة س:', proportions_answer_placeholder: 'قيمة س',
                 geometry_answer_placeholder: 'إجابتك',
-                systems_exercise_label: 'حل النظام:', systems_answer_x_placeholder: 'قيمة س', systems_answer_y_placeholder: 'قيمة ص',
-                button_check: 'تحقق', button_new: 'تمرين جديد', button_hint: 'تلميح', footer_credits: 'أنشأه ديفيد ميرون.',
-                feedback_correct: 'صحيح! عمل رائع! 🎉', feedback_incorrect: 'خطأ. حاول مرة أخرى! 🧐', feedback_warning_empty: 'الرجاء إدخال إجابة.',
-                arithmetic_hint: (op) => `لحل هذا التمرين، تحتاج إلى إجراء عملية ${op}.`,
-                expressions_hint: 'تذكر ترتيب العمليات: الأقواس أولاً، ثم الضرب والقسمة، وأخيراً الجمع والطرح.',
-                proportions_hint: 'استخدم الخاصية الأساسية: حاصل ضرب الطرفين يساوي حاصل ضرب الوسطين.',
-                geometry_hint_area: (f) => `صيغة مساحة ${f} هي القاعدة × الارتفاع. بالنسبة للمثلث، اقسم على 2.`,
+                systems_answer_x_placeholder: 'قيمة س', systems_answer_y_placeholder: 'قيمة ص',
+                systems_exercise_label: 'حل أنظمة المعادلات:',
+                button_check: 'تحقق', button_new: 'تمرين جديد', button_hint: 'تلميح', footer_credits: 'صنع بواسطة David Miron.',
+                feedback_correct: 'صحيح! عمل رائع! 🎉', feedback_incorrect: 'غير صحيح. حاول مرة أخرى! 🧐', feedback_warning_empty: 'الرجاء إدخال إجابتك.',
+                arithmetic_hint: (op) => `لحل هذا التمرين، عليك القيام بعملية ${op}.`,
+                expressions_hint: 'تذكر ترتيب العمليات: الأقواس أولاً، ثم الضرب/القسمة، وأخيراً الجمع/الطرح.',
+                proportions_hint: 'استخدم الخاصية الأساسية: حاصل ضرب الوسطين يساوي حاصل ضرب الطرفين.',
+                geometry_hint_area: (f) => `صيغة مساحة ${f} هي القاعدة × الارتفاع. للمثلث، اقسم على 2.`,
                 geometry_hint_perimeter: (f) => `محيط ${f} هو مجموع كل أضلاعه.`,
-                systems_hint: 'يمكنك استخدام طريقة التعويض: اعزل متغيرًا في معادلة واحدة وعوضه في الأخرى.',
+                systems_hint: 'يمكنك استخدام طريقة الاستبدال: اعزل متغيراً في معادلة واحدة واستبدله في الأخرى.',
                 figure_rectangle: 'مستطيل', figure_triangle: 'مثلث',
                 geometry_rectangle_area: (b, h) => `احسب مساحة مستطيل قاعدته ${b} وارتفاعه ${h}.`,
                 geometry_rectangle_perimeter: (b, h) => `احسب محيط مستطيل قاعدته ${b} وارتفاعه ${h}.`,
                 geometry_triangle_area: (b, h) => `احسب مساحة مثلث قاعدته ${b} وارتفاعه ${h}.`,
-                geometry_triangle_perimeter: (s1, s2, s3) => `احسب محيط مثلث أضلاعه ${s1}، ${s2}، و ${s3}.`,
+                geometry_triangle_perimeter: (s1, s2, s3) => `احسب محيط مثلث أضلاعه ${s1}, ${s2}, و ${s3}.`,
             },
         };
-
-        const switchSection = (sectionId) => {
-            sections.forEach(id => {
-                const sectionEl = document.getElementById(`section-${id}`);
-                const navEl = document.getElementById(`nav-${id}`);
-                const isActive = id === sectionId;
-                sectionEl.classList.toggle('active', isActive);
-                navEl?.classList.toggle('active', isActive);
-            });
-            
-            if (sectionId === 'home') {
-                elements.pageHeader.classList.add('hidden');
-            } else {
-                elements.pageHeader.classList.remove('hidden');
-                elements.pageTitle.setAttribute('data-i18n', `${sectionId}_title`);
-                elements.pageSubtitle.setAttribute('data-i18n', `${sectionId}_subtitle`);
-                
-                const currentTranslations = translations[state.language];
-                elements.pageTitle.innerText = currentTranslations[`${sectionId}_title`] || '';
-                elements.pageSubtitle.innerText = currentTranslations[`${sectionId}_subtitle`] || '';
-
-                setupExerciseSection(sectionId);
-            }
-        };
-
-        const updateLanguage = (lang, forceRerender = false) => {
-            state.language = lang;
-            document.documentElement.lang = lang;
-            document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
-            
-            const currentTranslations = translations[lang];
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                if (currentTranslations[key] && typeof currentTranslations[key] === 'string') {
-                    el.innerHTML = currentTranslations[key];
-                }
-            });
-             document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-                const key = el.getAttribute('data-i18n-placeholder');
-                if (currentTranslations[key]) {
-                    el.placeholder = currentTranslations[key];
-                }
-            });
-
-            const activeSection = sections.find(id => id !== 'home' && document.getElementById(`section-${id}`).classList.contains('active'));
-            if(activeSection) {
-                 setupExerciseSection(activeSection, false);
-            }
-        };
         
-        elements.navButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const sectionId = button.id.replace('nav-', '');
-                switchSection(sectionId);
-            });
-        });
-
-        elements.difficultyButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                elements.difficultyButtons.forEach(btn => btn.classList.remove('active'));
-                button.classList.add('active');
-                state.difficulty = button.dataset.difficulty;
-            });
-        });
-
-        elements.languageSelector.addEventListener('change', (e) => {
-            updateLanguage(e.target.value, true);
-        });
-        
-        const getRandom = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
-        
-        const exerciseModules = {
-            'esercizi': {
-                generate: function() {
-                    const ops = ['+', '-', '*', '/']; const op = ops[getRandom(0, 3)];
-                    let n1, n2, answer;
-                    const diffRanges = { facile: 10, medio: 50, difficile: 100 };
-                    const range = diffRanges[state.difficulty];
-                    if (op === '+') { n1 = getRandom(1, range); n2 = getRandom(1, range); answer = n1 + n2; }
-                    if (op === '-') { n1 = getRandom(range / 2, range); n2 = getRandom(1, n1); answer = n1 - n2; }
-                    if (op === '*') { n1 = getRandom(2, Math.max(2, range / 5)); n2 = getRandom(2, Math.max(2,range / 5)); answer = n1 * n2; }
-                    if (op === '/') { n2 = getRandom(2, Math.max(2,range / 5)); answer = getRandom(2, Math.max(2, range / 5)); n1 = n2 * answer; }
-                    return { text: `${n1} ${op.replace('*', '×').replace('/', '÷')} ${n2}`, answer: answer, hintData: {op: op === '*' ? 'moltiplicazione' : op === '/' ? 'divisione' : op === '+' ? 'addizione' : 'sottrazione'} };
-                },
-                getHint: (data) => translations[state.language].arithmetic_hint(data.op),
-                setupInputs: (container) => { container.innerHTML = `<input type="number" class="answer-input custom-input w-full p-3 rounded-lg text-center text-lg" data-i18n-placeholder="arithmetic_answer_placeholder">`; },
-                getAnswer: (container) => [container.querySelector('.answer-input').value],
-                checkAnswer: (userAnswers, correctAnswer) => parseFloat(userAnswers[0]) === correctAnswer,
-            },
-            'espressioni': {
-                 generate: function() {
-                    let n1, n2, n3, text, answer;
-                    const diffRanges = { facile: [1,10], medio: [5,20], difficile: [10, 50] };
-                    const [min, max] = diffRanges[state.difficulty];
-                    n1 = getRandom(min, max); n2 = getRandom(min, max); n3 = getRandom(2, 5);
-                    const type = getRandom(1, 3);
-                    if (state.difficulty === 'facile' || type === 1) { text = `${n1} + ${n2} × ${n3}`; answer = n1 + n2 * n3; } 
-                    else if (state.difficulty === 'medio' || type === 2) { text = `(${n1} + ${n2}) × ${n3}`; answer = (n1 + n2) * n3; } 
-                    else { n1 = n2 * n3; text = `${n1} ÷ ${n2} + ${getRandom(min, max)}`; answer = eval(text.replace('÷', '/')); }
-                    return { text, answer: parseFloat(answer.toFixed(2)), hintData: {} };
-                },
-                getHint: () => translations[state.language].expressions_hint,
-                setupInputs: (container) => { container.innerHTML = `<input type="number" class="answer-input custom-input w-full p-3 rounded-lg text-center text-lg" data-i18n-placeholder="expressions_answer_placeholder">`; },
-                getAnswer: (container) => [container.querySelector('.answer-input').value],
-                checkAnswer: (userAnswers, correctAnswer) => parseFloat(userAnswers[0]) === correctAnswer,
-            },
-            'proporzioni': {
-                generate: function() {
-                    const diffRanges = { facile: 10, medio: 25, difficile: 50 };
-                    const range = diffRanges[state.difficulty];
-                    let a, b, c;
-                    const x_val = getRandom(2, range/2);
-                    c = getRandom(2, range/2);
-                    a = getRandom(2, range);
-                    b = (a * x_val) / c;
-                    if (!Number.isInteger(b) || b === 0) return exerciseModules.proporzioni.generate();
-                    return { text: `${a} : ${b} = ${c} : x`, answer: x_val, hintData: {} };
-                },
-                getHint: () => translations[state.language].proportions_hint,
-                 setupInputs: (container) => { container.innerHTML = `<input type="number" class="answer-input custom-input w-full p-3 rounded-lg text-center text-lg" data-i18n-placeholder="proportions_answer_placeholder">`; },
-                getAnswer: (container) => [container.querySelector('.answer-input').value],
-                checkAnswer: (userAnswers, correctAnswer) => Math.abs(parseFloat(userAnswers[0]) - correctAnswer) < 0.01
-            },
-            'geometria': {
-                generate: function() {
-                    const figures = ['rectangle', 'triangle']; const figure = figures[getRandom(0, 1)];
-                    const types = ['area', 'perimeter']; const type = types[getRandom(0, 1)];
-                    const diffRanges = { facile: [2,10], medio: [5,25], difficile: [10,50] };
-                    const [min, max] = diffRanges[state.difficulty];
-                    let text, answer, figureName;
-                    const lang = state.language;
-                    if(figure === 'rectangle') {
-                        const b = getRandom(min, max); const h = getRandom(min, max);
-                        figureName = translations[lang].figure_rectangle;
-                        text = (type === 'area') ? translations[lang].geometry_rectangle_area(b, h) : translations[lang].geometry_rectangle_perimeter(b, h);
-                        answer = (type === 'area') ? b * h : 2 * (b + h);
-                    } else { // triangle
-                        figureName = translations[lang].figure_triangle;
-                        if(type === 'area') {
-                            const b = getRandom(min, max) * 2; const h = getRandom(min, max);
-                            text = translations[lang].geometry_triangle_area(b, h); answer = (b * h) / 2;
-                        } else {
-                            const s1 = getRandom(min, max); const s2 = getRandom(min, max);
-                            const s3 = getRandom(Math.max(min, Math.abs(s1-s2)+1), s1+s2-1);
-                            text = translations[lang].geometry_triangle_perimeter(s1, s2, s3); answer = s1 + s2 + s3;
-                        }
+        // Funzione per tradurre tutti gli elementi
+        function translatePage() {
+            const lang = state.language;
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (translations[lang] && translations[lang][key]) {
+                    if (element.tagName === 'TITLE') {
+                        document.title = translations[lang][key];
+                    } else {
+                        element.textContent = translations[lang][key];
                     }
-                    return { text, answer, hintData: { type, figure: figureName } };
-                },
-                getHint: (data) => translations[state.language][`geometry_hint_${data.type}`](data.figure),
-                setupInputs: (container) => { container.innerHTML = `<input type="number" class="answer-input custom-input w-full p-3 rounded-lg text-center text-lg" data-i18n-placeholder="geometry_answer_placeholder">`; },
-                getAnswer: (container) => [container.querySelector('.answer-input').value],
-                checkAnswer: (userAnswers, correctAnswer) => parseFloat(userAnswers[0]) === correctAnswer,
-            },
-            'sistemi': {
-                generate: function() {
-                    const diffRanges = { facile: [-5,5], medio: [-10,10], difficile: [-15,15] };
-                    const [min, max] = diffRanges[state.difficulty];
-                    const x = getRandom(min, max); const y = getRandom(min, max);
-                    let a1 = getRandom(1, 5), b1 = getRandom(1, 5), a2 = getRandom(1, 5), b2 = getRandom(1, 5);
-                    if (a1 * b2 === a2 * b1) return exerciseModules.sistemi.generate();
-                    const c1 = a1 * x + b1 * y; const c2 = a2 * x + b2 * y;
-                    const eq1 = `${a1}x ${b1 > 0 ? '+' : '-'} ${Math.abs(b1)}y = ${c1}`;
-                    const eq2 = `${a2}x ${b2 > 0 ? '+' : '-'} ${Math.abs(b2)}y = ${c2}`;
-                    return { text: `<div class="font-mono text-3xl leading-tight">{ ${eq1}<br/>{ ${eq2}</div>`, answer: { x, y }, hintData: {} };
-                },
-                getHint: () => translations[state.language].systems_hint,
-                setupInputs: (container) => {
-                    container.innerHTML = `<input type="number" id="system-answer-x" class="custom-input w-full p-3 rounded-lg text-center text-lg" data-i18n-placeholder="systems_answer_x_placeholder"><input type="number" id="system-answer-y" class="custom-input w-full p-3 rounded-lg text-center text-lg" data-i18n-placeholder="systems_answer_y_placeholder">`;
-                },
-                getAnswer: (container) => [container.querySelector('#system-answer-x').value, container.querySelector('#system-answer-y').value],
-                checkAnswer: (userAnswers, correctAnswer) => parseFloat(userAnswers[0]) === correctAnswer.x && parseFloat(userAnswers[1]) === correctAnswer.y,
-            }
-        };
-
-        const setupExerciseSection = (sectionId, generateNew = true) => {
-            const sectionContainer = document.getElementById(`section-${sectionId}`);
-            const module = exerciseModules[sectionId];
-            if (!module) return;
-
-            if (generateNew || !state.currentExercise[sectionId]) {
-                 state.currentExercise[sectionId] = module.generate();
-            }
-            const exercise = state.currentExercise[sectionId];
-            
-            sectionContainer.innerHTML = '';
-            const clone = elements.exerciseTemplate.cloneNode(true);
-            clone.removeAttribute('id');
-            clone.classList.remove('hidden');
-            sectionContainer.appendChild(clone);
-            
-            clone.querySelector('.exercise-problem').innerHTML = exercise.text;
-            module.setupInputs(clone.querySelector('.exercise-inputs'));
-
-            clone.querySelector('.check-button').addEventListener('click', () => checkAnswer(sectionId));
-            clone.querySelector('.new-button').addEventListener('click', () => setupExerciseSection(sectionId));
-            clone.querySelector('.hint-button').addEventListener('click', () => showHint(sectionId));
-            
-            // Applica le traduzioni solo agli elementi appena creati per evitare loop
-            const currentTranslations = translations[state.language];
-            clone.querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                if (currentTranslations[key]) el.innerHTML = currentTranslations[key];
+                }
             });
-            clone.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-                const key = el.getAttribute('data-i18n-placeholder');
-                if (currentTranslations[key]) el.placeholder = currentTranslations[key];
+        }
+
+        // Funzione per mostrare una sezione
+        function showSection(sectionId) {
+            document.querySelectorAll('.section-container').forEach(sec => sec.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+
+            elements.navButtons.forEach(btn => {
+                const navId = btn.id.split('-')[1];
+                if (sectionId.includes(navId)) {
+                    btn.classList.add('active');
+                    if (navId !== 'home') {
+                         elements.pageHeader.classList.remove('hidden');
+                         const titleKey = `${navId}_title`;
+                         const subtitleKey = `${navId}_subtitle`;
+                         elements.pageTitle.textContent = translations[state.language][titleKey] || '';
+                         elements.pageSubtitle.textContent = translations[state.language][subtitleKey] || '';
+                         generateExercise(navId);
+                    } else {
+                        elements.pageHeader.classList.add('hidden');
+                    }
+                } else {
+                    btn.classList.remove('active');
+                }
             });
-             clone.querySelector('.exercise-label').setAttribute('data-i18n', `${sectionId}_exercise_label`);
-             clone.querySelector('.exercise-label').innerText = currentTranslations[`${sectionId}_exercise_label`] || '';
-        };
+        }
         
-        const showResult = (sectionId, isCorrect, messageKey) => {
-            const resultBox = document.querySelector(`#section-${sectionId} .result-box`);
-            resultBox.innerHTML = translations[state.language][messageKey];
-            resultBox.className = 'result-box mt-5 p-4 rounded-lg text-center font-bold text-base transition-all duration-300 scale-100 opacity-100';
-            if (isCorrect === true) resultBox.classList.add('feedback-correct');
-            else if (isCorrect === false) resultBox.classList.add('feedback-incorrect');
-            else resultBox.classList.add('feedback-warning');
-        };
+        // Funzione per generare un numero casuale intero
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
 
-        const checkAnswer = (sectionId) => {
-            const module = exerciseModules[sectionId];
-            const container = document.getElementById(`section-${sectionId}`);
-            const userAnswers = module.getAnswer(container);
+        // Funzione per generare un numero casuale con decimali
+        function getRandomFloat(min, max, decimals = 2) {
+            const str = (Math.random() * (max - min) + min).toFixed(decimals);
+            return parseFloat(str);
+        }
 
-            if (userAnswers.some(answer => answer === '')) {
-                showResult(sectionId, null, 'feedback_warning_empty');
-                return;
+        // Funzione per generare un'operazione aritmetica
+        function generateArithmetic() {
+            const operators = ['+', '-', '×', '÷'];
+            let num1, num2, answer, operator;
+
+            if (state.difficulty === 'facile') {
+                num1 = getRandomInt(1, 10);
+                num2 = getRandomInt(1, 10);
+                operator = operators[getRandomInt(0, 1)]; // Solo + e -
+            } else if (state.difficulty === 'medio') {
+                num1 = getRandomInt(1, 20);
+                num2 = getRandomInt(1, 20);
+                operator = operators[getRandomInt(0, 3)]; // Tutte le operazioni
+            } else {
+                num1 = getRandomInt(10, 100);
+                num2 = getRandomInt(1, 20);
+                operator = operators[getRandomInt(0, 3)];
+                if (operator === '÷') {
+                    num1 = num2 * getRandomInt(1, 10); // Assicura che la divisione sia esatta
+                }
             }
             
-            const isCorrect = module.checkAnswer(userAnswers, state.currentExercise[sectionId].answer);
-            showResult(sectionId, isCorrect, isCorrect ? 'feedback_correct' : 'feedback_incorrect');
+            let problemString;
+            switch(operator) {
+                case '+': answer = num1 + num2; problemString = `${num1} + ${num2}`; break;
+                case '-': answer = num1 - num2; problemString = `${num1} - ${num2}`; break;
+                case '×': answer = num1 * num2; problemString = `${num1} \\times ${num2}`; break;
+                case '÷': answer = num1 / num2; problemString = `${num1} \\div ${num2}`; break;
+            }
+
+            return {
+                problem: problemString,
+                answer: answer.toString(),
+                type: 'single',
+                hint: translations[state.language].arithmetic_hint(operator === '×' ? 'moltiplicazione' : operator === '÷' ? 'divisione' : operator === '+' ? 'addizione' : 'sottrazione')
+            };
+        }
+
+        // Funzione per generare un'espressione
+        function generateExpression() {
+            let problem, answer;
+            if (state.difficulty === 'facile') {
+                problem = `${getRandomInt(1, 10)} + ${getRandomInt(1, 10)} \\times ${getRandomInt(1, 5)}`;
+                answer = eval(problem.replace(/\\times/g, '*'));
+            } else if (state.difficulty === 'medio') {
+                problem = `${getRandomInt(1, 15)} \\times (${getRandomInt(1, 10)} + ${getRandomInt(1, 10)}) - ${getRandomInt(1, 5)}`;
+                answer = eval(problem.replace(/\\times/g, '*').replace(/\(/g, '(').replace(/\)/g, ')'));
+            } else {
+                problem = `${getRandomInt(10, 20)} \\div (${getRandomInt(1, 5)} + ${getRandomInt(1, 5)}) \\times ${getRandomInt(1, 10)} - ${getRandomInt(1, 10)}`;
+                answer = eval(problem.replace(/\\div/g, '/').replace(/\\times/g, '*').replace(/\(/g, '(').replace(/\)/g, ')'));
+            }
+            return {
+                problem: problem,
+                answer: answer.toString(),
+                type: 'single',
+                hint: translations[state.language].expressions_hint
+            };
+        }
+
+        // Funzione per generare una proporzione
+        function generateProportion() {
+            let a, b, c, x, problem;
+            if (state.difficulty === 'facile') {
+                b = getRandomInt(2, 10);
+                c = getRandomInt(2, 10);
+                a = b * c / getRandomInt(2, 5);
+                if (a !== Math.floor(a)) {
+                    a = Math.floor(a);
+                    b = getRandomInt(2, 10);
+                    c = a / getRandomInt(2, 5);
+                    if (c !== Math.floor(c)) {
+                        c = Math.floor(c);
+                        a = getRandomInt(2,10);
+                        b = a*getRandomInt(2,5);
+                        c = getRandomInt(2,5);
+                    }
+                }
+            } else if (state.difficulty === 'medio') {
+                b = getRandomInt(5, 15);
+                c = getRandomInt(5, 15);
+                a = b * c / getRandomInt(2, 10);
+                if (a !== Math.floor(a)) {
+                    a = Math.floor(a);
+                    b = getRandomInt(5, 15);
+                    c = a / getRandomInt(2, 10);
+                    if (c !== Math.floor(c)) {
+                        c = Math.floor(c);
+                        a = getRandomInt(5,15);
+                        b = a*getRandomInt(2,10);
+                        c = getRandomInt(5,15);
+                    }
+                }
+            } else {
+                 b = getRandomInt(10, 25);
+                 c = getRandomInt(10, 25);
+                 a = b * c / getRandomInt(5, 15);
+                 if (a !== Math.floor(a)) {
+                     a = Math.floor(a);
+                     b = getRandomInt(10, 25);
+                     c = a / getRandomInt(5, 15);
+                     if (c !== Math.floor(c)) {
+                         c = Math.floor(c);
+                         a = getRandomInt(10,25);
+                         b = a*getRandomInt(5,15);
+                         c = getRandomInt(10,25);
+                     }
+                 }
+            }
+
+            x = (b * c) / a;
+            problem = `${a} : ${b} = ${c} : x`;
+            
+            return {
+                problem: problem,
+                answer: x.toString(),
+                type: 'single',
+                hint: translations[state.language].proportions_hint
+            };
+        }
+
+        // Funzione per generare un problema di geometria
+        function generateGeometry() {
+            let figure, problemText, answer, hint, type, figureSVG;
+            const figureType = Math.random() > 0.5 ? 'rettangolo' : 'triangolo';
+            const problemType = Math.random() > 0.5 ? 'area' : 'perimeter';
+
+            const svgBaseClasses = "geometry-svg fill-indigo-500 stroke-indigo-300";
+
+            if (figureType === 'rettangolo') {
+                const b = state.difficulty === 'facile' ? getRandomInt(2, 10) : getRandomFloat(5, 20);
+                const h = state.difficulty === 'facile' ? getRandomInt(2, 10) : getRandomFloat(5, 20);
+                if (problemType === 'area') {
+                    answer = (b * h).toFixed(2);
+                    problemText = translations[state.language].geometry_rectangle_area(b, h);
+                    hint = translations[state.language].geometry_hint_area(translations[state.language].figure_rectangle);
+                } else {
+                    answer = (2 * (b + h)).toFixed(2);
+                    problemText = translations[state.language].geometry_rectangle_perimeter(b, h);
+                    hint = translations[state.language].geometry_hint_perimeter(translations[state.language].figure_rectangle);
+                }
+                type = 'single';
+                figureSVG = `<svg class="${svgBaseClasses}" viewBox="0 0 100 60"><rect x="10" y="10" width="80" height="40" rx="5" ry="5" /></svg>`;
+            } else { // triangolo
+                const b = state.difficulty === 'facile' ? getRandomInt(2, 10) : getRandomFloat(5, 20);
+                const h = state.difficulty === 'facile' ? getRandomInt(2, 10) : getRandomFloat(5, 20);
+                if (problemType === 'area') {
+                    answer = ((b * h) / 2).toFixed(2);
+                    problemText = translations[state.language].geometry_triangle_area(b, h);
+                    hint = translations[state.language].geometry_hint_area(translations[state.language].figure_triangle);
+                    figureSVG = `<svg class="${svgBaseClasses}" viewBox="0 0 100 100"><polygon points="50,10 90,90 10,90" /></svg>`;
+                } else {
+                    const s1 = state.difficulty === 'facile' ? getRandomInt(2, 10) : getRandomFloat(5, 20);
+                    const s2 = state.difficulty === 'facile' ? getRandomInt(2, 10) : getRandomFloat(5, 20);
+                    const s3 = state.difficulty === 'facile' ? getRandomInt(2, 10) : getRandomFloat(5, 20);
+                    answer = (s1 + s2 + s3).toFixed(2);
+                    problemText = translations[state.language].geometry_triangle_perimeter(s1, s2, s3);
+                    hint = translations[state.language].geometry_hint_perimeter(translations[state.language].figure_triangle);
+                    figureSVG = `<svg class="${svgBaseClasses}" viewBox="0 0 100 100"><polygon points="50,10 90,90 10,90" /></svg>`;
+                }
+                type = 'single';
+            }
+            
+            const problemHTML = `<div class="flex flex-col items-center justify-center p-4">
+                                     ${figureSVG}
+                                     <p class="text-xl font-normal text-slate-200 mt-2">${problemText}</p>
+                                 </div>`;
+            
+            return { problem: problemHTML, answer, type, hint };
+        }
+
+        // Funzione per generare un sistema di equazioni
+        function generateSystems() {
+            let x, y, a1, b1, c1, a2, b2, c2;
+            if (state.difficulty === 'facile') {
+                x = getRandomInt(1, 5);
+                y = getRandomInt(1, 5);
+                a1 = getRandomInt(1, 3);
+                b1 = getRandomInt(1, 3);
+                a2 = getRandomInt(1, 3);
+                b2 = getRandomInt(1, 3);
+            } else if (state.difficulty === 'medio') {
+                x = getRandomInt(-5, 5);
+                y = getRandomInt(-5, 5);
+                a1 = getRandomInt(-5, 5);
+                b1 = getRandomInt(-5, 5);
+                a2 = getRandomInt(-5, 5);
+                b2 = getRandomInt(-5, 5);
+            } else { // difficile
+                x = getRandomFloat(-5, 5);
+                y = getRandomFloat(-5, 5);
+                a1 = getRandomInt(-10, 10);
+                b1 = getRandomInt(-10, 10);
+                a2 = getRandomInt(-10, 10);
+                b2 = getRandomInt(-10, 10);
+            }
+
+            c1 = a1 * x + b1 * y;
+            c2 = a2 * x + b2 * y;
+            
+            // Per il rendering LaTeX
+            const problem = `$$\\begin{cases} ${a1}x + ${b1}y = ${c1} \\\\ ${a2}x + ${b2}y = ${c2} \\end{cases}$$`;
+            
+            return {
+                problem,
+                answer: { x: x.toFixed(2), y: y.toFixed(2) },
+                type: 'multi',
+                hint: translations[state.language].systems_hint
+            };
+        }
+
+        const generators = {
+            esercizi: generateArithmetic,
+            espressioni: generateExpression,
+            proporzioni: generateProportion,
+            geometria: generateGeometry,
+            sistemi: generateSystems
         };
 
-        const showHint = (sectionId) => {
-            const hintBox = document.querySelector(`#section-${sectionId} .hint-box`);
-            const exercise = state.currentExercise[sectionId];
-            hintBox.innerHTML = exerciseModules[sectionId].getHint(exercise.hintData);
-            hintBox.style.display = 'block';
-        };
+        // Funzione principale per generare l'esercizio
+        function generateExercise(sectionId) {
+            const exerciseContainer = document.getElementById(`section-${sectionId}`);
+            if (!exerciseContainer) return;
 
-        const canvas = document.getElementById('background-canvas');
-        const ctx = canvas.getContext('2d');
-        let particles = [];
-        class Particle {
-            constructor() {
-                this.x = Math.random() * canvas.width; this.y = Math.random() * canvas.height;
-                this.size = Math.random() * 2 + 1;
-                this.speedX = (Math.random() - 0.5) * 0.5; this.speedY = (Math.random() - 0.5) * 0.5;
-                this.color = `rgba(79, 70, 229, ${Math.random() * 0.5 + 0.2})`;
+            const newExerciseCard = elements.exerciseTemplate.cloneNode(true);
+            newExerciseCard.classList.remove('hidden');
+            newExerciseCard.id = '';
+
+            const problemData = generators[sectionId]();
+            state.currentExercise = problemData;
+
+            const problemElement = newExerciseCard.querySelector('.exercise-problem');
+            const inputsContainer = newExerciseCard.querySelector('.exercise-inputs');
+            const resultBox = newExerciseCard.querySelector('.result-box');
+            const hintBox = newExerciseCard.querySelector('.hint-box');
+
+            // Set the problem content (HTML or text for MathJax)
+            if (sectionId === 'geometria') {
+                 problemElement.innerHTML = problemData.problem;
+            } else {
+                 problemElement.innerHTML = problemData.problem;
+                 if (window.MathJax) {
+                      window.MathJax.typesetPromise([problemElement]);
+                 }
             }
-            update() {
-                this.x += this.speedX; this.y += this.speedY;
-                if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
-                if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+
+
+            // Clear previous inputs
+            inputsContainer.innerHTML = '';
+
+            // Create inputs based on exercise type
+            if (problemData.type === 'single') {
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'custom-input w-full px-4 py-3 rounded-xl text-center font-medium';
+                input.placeholder = translations[state.language][`${sectionId}_answer_placeholder`];
+                inputsContainer.appendChild(input);
+            } else if (problemData.type === 'multi') {
+                const inputX = document.createElement('input');
+                inputX.type = 'text';
+                inputX.className = 'custom-input w-full px-4 py-3 rounded-xl text-center font-medium';
+                inputX.placeholder = translations[state.language][`systems_answer_x_placeholder`];
+                inputX.id = 'input-x';
+                inputsContainer.appendChild(inputX);
+
+                const inputY = document.createElement('input');
+                inputY.type = 'text';
+                inputY.className = 'custom-input w-full px-4 py-3 rounded-xl text-center font-medium';
+                inputY.placeholder = translations[state.language][`systems_answer_y_placeholder`];
+                inputY.id = 'input-y';
+                inputsContainer.appendChild(inputY);
             }
-            draw() {
-                ctx.fillStyle = this.color; ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill();
+            
+            // Set the label
+            const labelElement = newExerciseCard.querySelector('.exercise-label');
+            labelElement.textContent = translations[state.language][`${sectionId}_exercise_label`];
+
+            // Clear container and append new card
+            exerciseContainer.innerHTML = '';
+            exerciseContainer.appendChild(newExerciseCard);
+            
+            // Attach event listeners to the new buttons
+            const newButton = newExerciseCard.querySelector('.new-button');
+            const checkButton = newExerciseCard.querySelector('.check-button');
+            const hintButton = newExerciseCard.querySelector('.hint-button');
+
+            newButton.addEventListener('click', () => generateExercise(sectionId));
+            checkButton.addEventListener('click', () => checkAnswer(sectionId, inputsContainer, resultBox));
+            hintButton.addEventListener('click', () => showHint(hintBox));
+        }
+
+        function showHint(hintBox) {
+            hintBox.textContent = state.currentExercise.hint;
+            hintBox.classList.remove('hidden');
+        }
+
+        // Funzione per verificare la risposta
+        function checkAnswer(sectionId, inputsContainer, resultBox) {
+            const userAnswers = [];
+            if (state.currentExercise.type === 'single') {
+                const input = inputsContainer.querySelector('input');
+                if (!input.value) {
+                    displayFeedback(resultBox, 'warning', translations[state.language].feedback_warning_empty);
+                    return;
+                }
+                userAnswers.push(input.value);
+            } else {
+                const inputX = inputsContainer.querySelector('#input-x');
+                const inputY = inputsContainer.querySelector('#input-y');
+                if (!inputX.value || !inputY.value) {
+                    displayFeedback(resultBox, 'warning', translations[state.language].feedback_warning_empty);
+                    return;
+                }
+                userAnswers.push(inputX.value, inputY.value);
             }
+            
+            let isCorrect = false;
+            if (state.currentExercise.type === 'single') {
+                isCorrect = parseFloat(userAnswers[0]) === parseFloat(state.currentExercise.answer);
+            } else {
+                isCorrect = (parseFloat(userAnswers[0]) === parseFloat(state.currentExercise.answer.x)) && (parseFloat(userAnswers[1]) === parseFloat(state.currentExercise.answer.y));
+            }
+            
+            const feedbackMessage = isCorrect ? translations[state.language].feedback_correct : translations[state.language].feedback_incorrect;
+            const feedbackClass = isCorrect ? 'correct' : 'incorrect';
+            displayFeedback(resultBox, feedbackClass, feedbackMessage);
         }
-        function resizeCanvas() {
-            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-            particles = [];
-            let particleCount = window.innerWidth < 768 ? 25 : 50;
-            for (let i = 0; i < particleCount; i++) particles.push(new Particle());
+
+        function displayFeedback(resultBox, type, message) {
+            resultBox.textContent = message;
+            resultBox.className = `result-box mt-5 p-4 rounded-lg text-center font-bold text-base transition-all duration-300 transform scale-100 opacity-100 feedback-${type}`;
         }
-        function animate() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            particles.forEach(p => { p.update(); p.draw(); });
-            requestAnimationFrame(animate);
-        }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-        animate();
         
-        updateLanguage(state.language);
-        switchSection('home');
+        // Listener per la navigazione principale
+        elements.navButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                const section = e.currentTarget.id.replace('nav-', 'section-');
+                showSection(section);
+            });
+        });
+
+        // Listener per i pulsanti di difficoltà
+        elements.difficultyButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                elements.difficultyButtons.forEach(btn => btn.classList.remove('active'));
+                e.currentTarget.classList.add('active');
+                state.difficulty = e.currentTarget.dataset.difficulty;
+                if (document.querySelector('.section-container.active').id !== 'section-home') {
+                    const activeSection = document.querySelector('.section-container.active').id.replace('section-', '');
+                    generateExercise(activeSection);
+                }
+            });
+        });
+
+        // Listener per il selettore della lingua
+        elements.languageSelector.addEventListener('change', (e) => {
+            state.language = e.target.value;
+            translatePage();
+            lucide.createIcons();
+            // Rigenera l'esercizio per applicare i testi tradotti
+            if (document.querySelector('.section-container.active').id !== 'section-home') {
+                const activeSection = document.querySelector('.section-container.active').id.replace('section-', '');
+                generateExercise(activeSection);
+            }
+        });
+        
+        // Inizializza la pagina
+        translatePage();
+        showSection('section-home');
     });
     </script>
 </body>
 </html>
-
