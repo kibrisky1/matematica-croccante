@@ -36,6 +36,8 @@
             --incorrect-color: #ef4444;
             --warning-color: #f59e0b;
             --glass-border: rgba(255, 255, 255, 0.1);
+            --accent-green: #22c55e;
+            --accent-red: #ef4444;
         }
 
         body {
@@ -43,6 +45,14 @@
             background: linear-gradient(135deg, var(--bg-start), var(--bg-end));
             color: var(--text-primary);
             overflow: hidden;
+        }
+
+        body.high-contrast {
+            filter: contrast(150%) hue-rotate(10deg);
+        }
+
+        body.large-font {
+            font-size: 1.125rem;
         }
 
         #background-canvas {
@@ -147,12 +157,92 @@
             color: white;
         }
 
+        /* Nuovi stili per animazioni feedback */
+        @keyframes correct-pulse {
+            0% { box-shadow: 0 0 0 0 var(--correct-color); }
+            70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        @keyframes incorrect-shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
+        .correct-animation {
+            animation: correct-pulse 1s;
+        }
+
+        .incorrect-animation {
+            animation: incorrect-shake 0.5s;
+        }
+
+        /* Message Box */
+        .message-box {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(30, 41, 59, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            padding: 2rem;
+            border-radius: 1rem;
+            z-index: 1000;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            display: none;
+        }
+        .message-box.active { display: block; }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 999;
+            display: none;
+        }
+        .modal-overlay.active { display: block; }
     </style>
 </head>
 <body class="min-h-screen p-4">
     <canvas id="background-canvas"></canvas>
 
-    <div class="flex flex-col lg:flex-row h-[calc(100vh-2rem)] gap-4">
+    <!-- UI di Autenticazione (Login/Register) -->
+    <div id="auth-ui" class="flex items-center justify-center min-h-screen">
+        <div class="glass-card rounded-2xl p-6 sm:p-10 w-full max-w-lg text-center">
+            <h1 class="text-3xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400" data-i18n="auth_title">Benvenuto!</h1>
+            <p class="text-slate-400 mb-6" data-i18n="auth_subtitle">Accedi per salvare i tuoi progressi o continua come ospite.</p>
+            
+            <!-- Login Form -->
+            <div id="login-form" class="auth-section">
+                <form id="login-container" class="space-y-4">
+                    <input type="email" id="login-email" class="w-full custom-input p-3 rounded-lg" placeholder="Email" required>
+                    <input type="password" id="login-password" class="w-full custom-input p-3 rounded-lg" placeholder="Password" required>
+                    <button type="submit" class="w-full bg-gradient-to-r from-primary-start to-primary-end text-white font-bold py-3 px-6 rounded-xl shadow-lg hover:from-primary-hover-start hover:to-primary-hover-end transition-all duration-300 transform hover:scale-105" data-i18n="button_login">Accedi</button>
+                </form>
+                <button id="guest-btn" class="w-full mt-4 text-sm font-semibold text-slate-400 hover:text-white transition-colors duration-200" data-i18n="button_guest">Continua come Ospite</button>
+                <p class="text-slate-500 mt-4 text-sm" data-i18n="auth_no_account">Non hai un account? <a href="#" id="show-register-btn" class="text-indigo-400 font-semibold hover:underline" data-i18n="auth_register_link">Registrati</a></p>
+            </div>
+
+            <!-- Register Form -->
+            <div id="register-form" class="auth-section hidden">
+                <form id="register-container" class="space-y-4">
+                    <input type="email" id="register-email" class="w-full custom-input p-3 rounded-lg" placeholder="Email" required>
+                    <input type="password" id="register-password" class="w-full custom-input p-3 rounded-lg" placeholder="Password" required>
+                    <button type="submit" class="w-full bg-gradient-to-r from-primary-start to-primary-end text-white font-bold py-3 px-6 rounded-xl shadow-lg hover:from-primary-hover-start hover:to-primary-hover-end transition-all duration-300 transform hover:scale-105" data-i18n="button_register">Registrati</button>
+                </form>
+                <p class="text-slate-500 mt-4 text-sm" data-i18n="auth_have_account">Hai già un account? <a href="#" id="show-login-btn" class="text-indigo-400 font-semibold hover:underline" data-i18n="auth_login_link">Accedi</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- UI principale del sito -->
+    <div id="main-ui" class="hidden flex flex-col lg:flex-row h-[calc(100vh-2rem)] gap-4">
         <!-- Sidebar di Navigazione -->
         <aside class="w-full lg:w-72 glass-card rounded-2xl p-6 flex flex-col flex-shrink-0">
             <div class="text-center lg:text-left mb-8">
@@ -160,7 +250,7 @@
                 <p class="text-sm text-slate-400" data-i18n="header_subtitle">Impara divertendoti!</p>
             </div>
 
-            <nav class="flex flex-row lg:flex-col justify-around lg:justify-start gap-2 mb-8">
+            <nav class="flex flex-row lg:flex-col justify-around lg:justify-start gap-2 mb-8 overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0">
                 <button id="nav-home" class="nav-button active flex items-center justify-center lg:justify-start gap-3 p-3 rounded-lg font-semibold">
                     <i data-lucide="home"></i> <span class="hidden lg:inline" data-i18n="nav_home">Home</span>
                 </button>
@@ -176,7 +266,36 @@
                 <button id="nav-sistemi" class="nav-button flex items-center justify-center lg:justify-start gap-3 p-3 rounded-lg font-semibold">
                     <i data-lucide="braces"></i> <span class="hidden lg:inline" data-i18n="nav_systems">Sistemi</span>
                 </button>
+                <button id="nav-geometria" class="nav-button flex items-center justify-center lg:justify-start gap-3 p-3 rounded-lg font-semibold">
+                    <i data-lucide="square"></i> <span class="hidden lg:inline" data-i18n="nav_geometry">Geometria</span>
+                </button>
             </nav>
+
+            <!-- Statistiche Guest e Info Account -->
+            <div id="user-info" class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50 mb-4">
+                <div class="flex items-center justify-between mb-2">
+                    <p id="user-status" class="text-sm font-semibold text-slate-300" data-i18n="guest_mode">Accesso come Ospite</p>
+                    <i data-lucide="user-round" class="w-5 h-5 text-slate-400"></i>
+                </div>
+                <div class="space-y-1 text-sm text-slate-400">
+                    <p id="user-id-display" class="break-all text-xs text-slate-500 hidden"></p>
+                    <p>
+                        <span data-i18n="stats_total_score">Punteggio totale:</span>
+                        <span id="stats-score" class="font-bold text-white">0</span>
+                    </p>
+                    <p>
+                        <span data-i18n="stats_exercises_done">Esercizi fatti:</span>
+                        <span id="stats-done" class="font-bold text-white">0</span>
+                    </p>
+                    <p>
+                        <span data-i18n="stats_correct_percentage">Correttezza:</span>
+                        <span id="stats-percentage" class="font-bold text-white">0%</span>
+                    </p>
+                </div>
+                <button id="logout-btn" class="w-full mt-4 text-xs font-semibold text-red-400 hover:text-red-300 transition-colors duration-200" data-i18n="button_logout">
+                    Esci
+                </button>
+            </div>
 
             <div class="mt-auto">
                 <div class="mb-4">
@@ -188,6 +307,12 @@
                         <option value="zh">中文</option>
                         <option value="ar">العربية</option>
                     </select>
+                </div>
+                <div class="flex items-center justify-between mb-4">
+                    <label class="text-sm font-medium text-slate-400" data-i18n="accessibility_label">Accessibilità</label>
+                    <button id="accessibility-toggle" class="p-2 rounded-full bg-slate-800/50 border border-slate-700/50 transition-colors duration-200 hover:bg-slate-700/50" aria-label="Toggle accessibility mode">
+                        <i data-lucide="eye" class="w-5 h-5 text-slate-400"></i>
+                    </button>
                 </div>
                 <p class="text-xs text-center text-slate-500" data-i18n="footer_credits">Creato da David Miron.</p>
             </div>
@@ -210,7 +335,7 @@
                     <p class="text-lg text-slate-300 mb-8" data-i18n="home_intro">
                         Migliora le tue competenze matematiche in modo interattivo. Scegli un argomento dalla navigazione e imposta la difficoltà per iniziare.
                     </p>
-                    <div class="bg-slate-900/50 p-6 rounded-xl border border-slate-700/50">
+                    <div class="bg-slate-900/50 p-6 rounded-xl border border-slate-700/50 mb-4">
                         <p class="text-md font-semibold text-slate-300 mb-3" data-i18n="home_difficulty_label">Seleziona il tuo livello:</p>
                         <div id="difficulty-selector" class="flex justify-center gap-2 p-1 bg-slate-800/70 rounded-full">
                             <button class="difficulty-button flex-1 px-4 py-2 rounded-full font-medium transition-all duration-300 active" data-difficulty="facile" data-i18n="difficulty_easy">Facile</button>
@@ -237,11 +362,11 @@
 
                         <div class="flex justify-center gap-4 mt-4">
                             <button class="new-button w-auto bg-slate-700 text-slate-300 font-medium py-2 px-5 rounded-full hover:bg-slate-600 transition-colors duration-200" data-i18n="button_new">Nuovo Esercizio</button>
-                            <button class="hint-button w-auto bg-amber-500/80 text-white font-medium py-2 px-5 rounded-full hover:bg-amber-500 transition-colors duration-200" data-i18n="button_hint">Suggerimento</button>
+                            <button class="hint-button w-auto bg-amber-500/80 text-white font-medium py-2 px-5 rounded-full hover:bg-amber-500 transition-colors duration-200" data-i18n="button_hint">Spiegazione</button>
                         </div>
 
                         <div class="result-box mt-5 p-4 rounded-lg text-center font-bold text-base transition-all duration-300 scale-95 opacity-0"></div>
-                        <div class="hint-box mt-4 p-4 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 hidden"></div>
+                        <div class="explanation-box mt-4 p-4 rounded-lg bg-slate-800/50 border border-slate-700/50 text-slate-300 hidden"></div>
                     </div>
                 </div>
             </div>
@@ -251,47 +376,55 @@
             <div id="section-espressioni" class="section-container"></div>
             <div id="section-proporzioni" class="section-container"></div>
             <div id="section-sistemi" class="section-container"></div>
+            <div id="section-geometria" class="section-container"></div>
 
         </main>
     </div>
 
-    <script>
-    document.addEventListener('DOMContentLoaded', () => {
+    <!-- Modale per messaggi -->
+    <div id="message-modal" class="message-box">
+        <div id="message-text" class="mb-4"></div>
+        <button id="message-ok" class="bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors">OK</button>
+    </div>
+    <div id="modal-overlay" class="modal-overlay"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Variabili globali per l'ambiente Canvas
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        let app;
+        let db;
+        let auth;
+        let unsubscribe; // Per disconnettere il listener onSnapshot
 
         // --- Funzioni di utilità ---
         const randomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
         const shuffle = (array) => array.sort(() => Math.random() - 0.5);
-        
-        // This function creates a message box instead of using the `alert()` function,
-        // which is not visible in this environment.
-        const showMessageBox = (message, type = 'info') => {
-            const messageBox = document.createElement('div');
-            messageBox.style.cssText = `
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background-color: #fff;
-                color: #333;
-                padding: 20px;
-                border-radius: 10px;
-                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-                z-index: 1000;
-                font-family: 'Poppins', sans-serif;
-                text-align: center;
-                max-width: 80%;
-            `;
-            if (type === 'error') {
-                messageBox.style.backgroundColor = '#fca5a5';
-                messageBox.style.color = '#7f1d1d';
-            }
-            messageBox.innerHTML = `
-                <p>${message}</p>
-                <button onclick="this.parentElement.remove()" style="margin-top: 15px; padding: 8px 16px; background-color: #f3f4f6; border: none; border-radius: 5px; cursor: pointer;">Chiudi</button>
-            `;
-            document.body.appendChild(messageBox);
+        const formatLatex = (str) => {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = `\\(${str}\\)`;
+            MathJax.typesetPromise([tempDiv]);
+            return tempDiv.innerHTML;
         };
-        
+
+        const showMessageBox = (message) => {
+            const modal = document.getElementById('message-modal');
+            const overlay = document.getElementById('modal-overlay');
+            document.getElementById('message-text').innerText = message;
+            modal.classList.add('active');
+            overlay.classList.add('active');
+            document.getElementById('message-ok').onclick = () => {
+                modal.classList.remove('active');
+                overlay.classList.remove('active');
+            };
+        };
+
         // --- INIZIO SCRIPT SFONDO DINAMICO ---
         const canvas = document.getElementById('background-canvas');
         if (canvas) {
@@ -376,13 +509,32 @@
 
         lucide.createIcons();
 
-        const sections = ['home', 'esercizi', 'espressioni', 'proporzioni', 'sistemi'];
-        const state = {
+        const sections = ['home', 'esercizi', 'espressioni', 'proporzioni', 'sistemi', 'geometria'];
+        let state = {
             difficulty: localStorage.getItem('difficulty') || 'facile',
             language: localStorage.getItem('language') || 'it',
-            currentExercise: null
+            currentExercise: null,
+            stats: {
+                totalScore: 0,
+                exercisesDone: 0,
+                correctAnswers: 0
+            },
+            isAuthReady: false
         };
+
         const elements = {
+            authUI: document.getElementById('auth-ui'),
+            mainUI: document.getElementById('main-ui'),
+            loginForm: document.getElementById('login-form'),
+            registerForm: document.getElementById('register-form'),
+            showLoginBtn: document.getElementById('show-login-btn'),
+            showRegisterBtn: document.getElementById('show-register-btn'),
+            loginContainer: document.getElementById('login-container'),
+            registerContainer: document.getElementById('register-container'),
+            guestBtn: document.getElementById('guest-btn'),
+            logoutBtn: document.getElementById('logout-btn'),
+            userIdDisplay: document.getElementById('user-id-display'),
+            userStatusDisplay: document.getElementById('user-status'),
             navButtons: document.querySelectorAll('.nav-button'),
             difficultyButtons: document.querySelectorAll('.difficulty-button'),
             languageSelector: document.getElementById('language-selector'),
@@ -390,13 +542,21 @@
             pageHeader: document.getElementById('page-header'),
             pageTitle: document.getElementById('page-title'),
             pageSubtitle: document.getElementById('page-subtitle'),
-            mainContent: document.querySelector('main')
+            mainContent: document.querySelector('main'),
+            statsScore: document.getElementById('stats-score'),
+            statsDone: document.getElementById('stats-done'),
+            statsPercentage: document.getElementById('stats-percentage'),
+            accessibilityToggle: document.getElementById('accessibility-toggle'),
         };
 
         const translations = {
             'it': {
-                title: 'Tutor Matematico', header_title: 'Tutor Matematico', header_subtitle: 'Impara divertendoti!',
-                nav_home: 'Home', nav_arithmetic: 'Aritmetica', nav_expressions: 'Espressioni', nav_proportions: 'Proporzioni', nav_systems: 'Sistemi',
+                title: 'Tutor Matematico', auth_title: 'Benvenuto!', auth_subtitle: 'Accedi per salvare i tuoi progressi o continua come ospite.',
+                auth_no_account: 'Non hai un account? ', auth_register_link: 'Registrati',
+                auth_have_account: 'Hai già un account? ', auth_login_link: 'Accedi',
+                button_login: 'Accedi', button_register: 'Registrati', button_guest: 'Continua come Ospite', button_logout: 'Esci',
+                header_title: 'Tutor Matematico', header_subtitle: 'Impara divertendoti!',
+                nav_home: 'Home', nav_arithmetic: 'Aritmetica', nav_expressions: 'Espressioni', nav_proportions: 'Proporzioni', nav_systems: 'Sistemi', nav_geometry: 'Geometria',
                 home_welcome: 'Benvenuto!', home_intro: 'Migliora le tue competenze matematiche in modo interattivo. Scegli un argomento e una difficoltà per iniziare.',
                 home_difficulty_label: 'Seleziona il tuo livello:', language_label: 'Lingua',
                 difficulty_easy: 'Facile', difficulty_medium: 'Medio', difficulty_hard: 'Difficile',
@@ -404,21 +564,56 @@
                 expressions_title: 'Espressioni', expressions_subtitle: 'Risolvi calcoli con più operazioni.',
                 proportions_title: 'Proporzioni', proportions_subtitle: 'Trova il termine incognito.',
                 systems_title: 'Sistemi di Equazioni', systems_subtitle: 'Trova le soluzioni che soddisfano più equazioni.',
+                geometry_title: 'Geometria', geometry_subtitle: 'Calcola aree, perimetri e volumi.',
                 arithmetic_exercise_label: 'Calcola il risultato:', arithmetic_answer_placeholder: 'La tua risposta',
                 expressions_exercise_label: 'Risolvi l\'espressione:', expressions_answer_placeholder: 'La tua risposta',
                 proportions_exercise_label: 'Trova il valore di x:', proportions_answer_placeholder: 'Valore di x',
                 systems_answer_x_placeholder: 'Valore di x', systems_answer_y_placeholder: 'Valore di y',
                 systems_exercise_label: 'Risolvi il sistema:',
-                button_check: 'Verifica', button_new: 'Nuovo Esercizio', button_hint: 'Suggerimento', footer_credits: 'Creato da David Miron.',
-                feedback_correct: 'Corretto! Ottimo lavoro! 🎉', feedback_incorrect: 'Sbagliato. Riprova! 🧐', feedback_warning_empty: 'Per favore, inserisci una risposta.',
+                geometry_exercise_label: 'Calcola:', geometry_answer_placeholder: 'La tua risposta',
+                button_check: 'Verifica', button_new: 'Nuovo Esercizio', button_hint: 'Spiegazione', footer_credits: 'Creato da David Miron.',
+                feedback_correct: 'Corretto! Ottimo lavoro! 🎉', feedback_incorrect: 'Sbagliato. La risposta corretta è ', feedback_warning_empty: 'Per favore, inserisci una risposta.',
+                guest_mode: 'Accesso come Ospite', stats_total_score: 'Punteggio totale:', stats_exercises_done: 'Esercizi fatti:', stats_correct_percentage: 'Correttezza:',
+                convert_account: 'Vuoi salvare i tuoi progressi? Registrati!',
+                accessibility_label: 'Accessibilità',
                 arithmetic_hint: (op) => `Per risolvere questo esercizio, devi eseguire l'operazione di ${op}.`,
-                expressions_hint: 'Ricorda l\'ordine delle operazioni: prima le parentesi, poi moltiplicazioni/divisioni, infine addizioni/sottrazioni.',
-                proportions_hint: 'Usa la proprietà fondamentale: il prodotto dei medi è uguale al prodotto degli estremi.',
-                systems_hint: 'Puoi usare il metodo di sostituzione: isola una variabile in un\'equazione e sostituiscila nell\'altra.',
+                expressions_hint: (problem, result) => `Segui l'ordine delle operazioni (PEMDAS/BODMAS): prima parentesi, poi esponenti, moltiplicazioni/divisioni, e infine addizioni/sottrazioni.
+Problema: ${problem}
+Passaggi:
+1. Risolvi le operazioni all'interno delle parentesi.
+2. Esegui moltiplicazioni e divisioni da sinistra a destra.
+3. Esegui addizioni e sottrazioni da sinistra a destra.
+La risposta corretta è ${result}.`,
+                proportions_hint: (problem, result) => `Usa la proprietà fondamentale: il prodotto dei medi è uguale al prodotto degli estremi.
+Problema: ${problem}
+Passaggi:
+1. Moltiplica i termini centrali (medi) e i termini esterni (estremi).
+2.  ${problem} -> $${problem.split(':')[1]} \times ${problem.split(':')[2].split('=')[0]} = ${problem.split(':')[0]} \times x$
+3. Risolvi l'equazione per $x$.
+La risposta corretta è ${result}.`,
+                systems_hint: (problem, result) => `Ci sono diversi metodi per risolvere un sistema. Prova il metodo di sostituzione.
+Problema:
+${problem}
+Passaggi:
+1. Isola una variabile (ad es., $x$) in una delle due equazioni.
+2. Sostituisci l'espressione trovata nell'altra equazione.
+3. Risolvi la nuova equazione per trovare il valore dell'altra variabile ($y$).
+4. Sostituisci il valore di $y$ in una delle equazioni originali per trovare $x$.
+La risposta corretta è $x = ${result.x}$ e $y = ${result.y}.`,
+                geometry_hint: (problem, result) => `La formula per calcolare il ${problem.type} di un ${problem.shape} è:
+${problem.formula}
+Sostituisci i valori dati nell'esercizio: ${problem.values} e calcola.
+La risposta corretta è ${result}.`,
+                user_id_label: 'ID Utente:',
+                authenticated_user: 'Benvenuto, '
             },
             'en': {
-                title: 'Math Tutor', header_title: 'Math Tutor', header_subtitle: 'Learn while having fun!',
-                nav_home: 'Home', nav_arithmetic: 'Arithmetic', nav_expressions: 'Expressions', nav_proportions: 'Proportions', nav_systems: 'Systems',
+                title: 'Math Tutor', auth_title: 'Welcome!', auth_subtitle: 'Login to save your progress or continue as a guest.',
+                auth_no_account: 'Don\'t have an account? ', auth_register_link: 'Sign up',
+                auth_have_account: 'Already have an account? ', auth_login_link: 'Login',
+                button_login: 'Login', button_register: 'Sign Up', button_guest: 'Continue as Guest', button_logout: 'Logout',
+                header_title: 'Math Tutor', header_subtitle: 'Learn while having fun!',
+                nav_home: 'Home', nav_arithmetic: 'Arithmetic', nav_expressions: 'Expressions', nav_proportions: 'Proportions', nav_systems: 'Systems', nav_geometry: 'Geometry',
                 home_welcome: 'Welcome!', home_intro: 'Improve your math skills interactively. Choose a topic and difficulty to start.',
                 home_difficulty_label: 'Select your level:', language_label: 'Language',
                 difficulty_easy: 'Easy', difficulty_medium: 'Medium', difficulty_hard: 'Hard',
@@ -426,458 +621,650 @@
                 expressions_title: 'Expressions', expressions_subtitle: 'Solve calculations with multiple operations.',
                 proportions_title: 'Proportions', proportions_subtitle: 'Find the unknown term.',
                 systems_title: 'Systems of Equations', systems_subtitle: 'Find solutions that satisfy multiple equations.',
+                geometry_title: 'Geometry', geometry_subtitle: 'Calculate areas, perimeters, and volumes.',
                 arithmetic_exercise_label: 'Calculate the result:', arithmetic_answer_placeholder: 'Your answer',
                 expressions_exercise_label: 'Solve the expression:', expressions_answer_placeholder: 'Your answer',
                 proportions_exercise_label: 'Find the value of x:', proportions_answer_placeholder: 'Value of x',
                 systems_answer_x_placeholder: 'Value of x', systems_answer_y_placeholder: 'Value of y',
                 systems_exercise_label: 'Solve the system:',
-                button_check: 'Check', button_new: 'New Exercise', button_hint: 'Hint', footer_credits: 'Created by David Miron.',
-                feedback_correct: 'Correct! Great job! 🎉', feedback_incorrect: 'Incorrect. Try again! 🧐', feedback_warning_empty: 'Please enter an answer.',
+                geometry_exercise_label: 'Calculate:', geometry_answer_placeholder: 'Your answer',
+                button_check: 'Check', button_new: 'New Exercise', button_hint: 'Explanation', footer_credits: 'Created by David Miron.',
+                feedback_correct: 'Correct! Great job! 🎉', feedback_incorrect: 'Incorrect. The correct answer is ', feedback_warning_empty: 'Please enter an answer.',
+                guest_mode: 'Guest Access', stats_total_score: 'Total Score:', stats_exercises_done: 'Exercises Done:', stats_correct_percentage: 'Correctness:',
+                convert_account: 'Want to save your progress? Sign Up!',
+                accessibility_label: 'Accessibility',
                 arithmetic_hint: (op) => `To solve this exercise, you need to perform the ${op} operation.`,
-                expressions_hint: 'Remember the order of operations: parentheses first, then multiplications/divisions, and finally additions/subtractions.',
-                proportions_hint: 'Use the fundamental property: the product of the means equals the product of the extremes.',
-                systems_hint: 'You can use the substitution method: isolate a variable in one equation and substitute it into the other.',
+                expressions_hint: (problem, result) => `Follow the order of operations (PEMDAS/BODMAS): parentheses first, then exponents, multiplications/divisions, and finally additions/subtractions.
+Problem: ${problem}
+Steps:
+1. Solve operations inside parentheses.
+2. Perform multiplications and divisions from left to right.
+3. Perform additions and subtractions from left to right.
+The correct answer is ${result}.`,
+                proportions_hint: (problem, result) => `Use the fundamental property: the product of the means equals the product of the extremes.
+Problem: ${problem}
+Steps:
+1. Multiply the middle terms (means) and the outer terms (extremes).
+2. ${problem} -> $${problem.split(':')[1]} \times ${problem.split(':')[2].split('=')[0]} = ${problem.split(':')[0]} \times x$
+3. Solve the equation for $x$.
+The correct answer is ${result}.`,
+                systems_hint: (problem, result) => `There are several methods to solve a system. Try the substitution method.
+Problem:
+${problem}
+Steps:
+1. Isolate one variable (e.g., $x$) in one of the two equations.
+2. Substitute the found expression into the other equation.
+3. Solve the new equation to find the value of the other variable ($y$).
+4. Substitute the value of $y$ into one of the original equations to find $x$.
+The correct answer is $x = ${result.x}$ and $y = ${result.y}.`,
+                geometry_hint: (problem, result) => `The formula to calculate the ${problem.type} of a ${problem.shape} is:
+${problem.formula}
+Substitute the given values from the exercise: ${problem.values} and calculate.
+The correct answer is ${result}.`,
+                user_id_label: 'User ID:',
+                authenticated_user: 'Welcome, '
             },
-            'es': {
-                title: 'Tutor de Matemáticas', header_title: 'Tutor de Matemáticas', header_subtitle: '¡Aprende divirtiéndote!',
-                nav_home: 'Inicio', nav_arithmetic: 'Aritmética', nav_expressions: 'Expresiones', nav_proportions: 'Proporciones', nav_systems: 'Sistemas',
-                home_welcome: '¡Bienvenido!', home_intro: 'Mejora tus habilidades matemáticas de forma interactiva. Elige un tema y una dificultad para empezar.',
-                home_difficulty_label: 'Selecciona tu nivel:', language_label: 'Idioma',
-                difficulty_easy: 'Fácil', difficulty_medium: 'Medio', difficulty_hard: 'Difícil',
-                arithmetic_title: 'Aritmética', arithmetic_subtitle: 'Pon a prueba tus habilidades de cálculo.',
-                expressions_title: 'Expresiones', expressions_subtitle: 'Resuelve cálculos con múltiples operaciones.',
-                proportions_title: 'Proporciones', proportions_subtitle: 'Encuentra el término desconocido.',
-                systems_title: 'Sistemas de Ecuaciones', systems_subtitle: 'Encuentra soluciones que satisfagan múltiples ecuaciones.',
-                arithmetic_exercise_label: 'Calcula el resultado:', arithmetic_answer_placeholder: 'Tu respuesta',
-                expressions_exercise_label: 'Resuelve la expresión:', expressions_answer_placeholder: 'Tu respuesta',
-                proportions_exercise_label: 'Encuentra el valor de x:', proportions_answer_placeholder: 'Valor de x',
-                systems_answer_x_placeholder: 'Valor de x', systems_answer_y_placeholder: 'Valor de y',
-                systems_exercise_label: 'Resuelve el sistema:',
-                button_check: 'Verificar', button_new: 'Nuevo Ejercicio', button_hint: 'Sugerencia', footer_credits: 'Creado por David Miron.',
-                feedback_correct: '¡Correcto! ¡Gran trabajo! 🎉', feedback_incorrect: 'Incorrecto. ¡Inténtalo de nuevo! 🧐', feedback_warning_empty: 'Por favor, introduce una respuesta.',
-                arithmetic_hint: (op) => `Para resolver este ejercicio, necesitas realizar la operación de ${op}.`,
-                expressions_hint: 'Recuerda el orden de las operaciones: primero paréntesis, luego multiplicaciones/divisiones, y finalmente sumas/restas.',
-                proportions_hint: 'Usa la propiedad fundamental: el producto de los medios es igual al producto de los extremos.',
-                systems_hint: 'Puedes usar el método de sustitución: aísla una variable en una ecuación y sustitúyela en la otra.',
-            },
-            'zh': {
-                title: '数学导师', header_title: '数学导师', header_subtitle: '寓教于乐！',
-                nav_home: '主页', nav_arithmetic: '算术', nav_expressions: '表达式', nav_proportions: '比例', nav_systems: '方程组',
-                home_welcome: '欢迎！', home_intro: '以互动方式提高您的数学技能。选择一个主题和难度即可开始。',
-                home_difficulty_label: '选择您的级别：', language_label: '语言',
-                difficulty_easy: '简单', difficulty_medium: '中等', difficulty_hard: '困难',
-                arithmetic_title: '算术', arithmetic_subtitle: '测试您的计算能力。',
-                expressions_title: '表达式', expressions_subtitle: '解决多重运算的计算。',
-                proportions_title: '比例', proportions_subtitle: '求未知项。',
-                systems_title: '方程组', systems_subtitle: '找到满足多个方程的解。',
-                arithmetic_exercise_label: '计算结果：', arithmetic_answer_placeholder: '你的答案',
-                expressions_exercise_label: '解表达式：', expressions_answer_placeholder: '你的答案',
-                proportions_exercise_label: '求 x 的值：', proportions_answer_placeholder: 'x 的值',
-                systems_answer_x_placeholder: 'x 的值', systems_answer_y_placeholder: 'y 的值',
-                systems_exercise_label: '解方程组：',
-                button_check: '检查', button_new: '新练习', button_hint: '提示', footer_credits: '由 David Miron 创建。',
-                feedback_correct: '正确！干得好！ 🎉', feedback_incorrect: '不正确。再试一次！ 🧐', feedback_warning_empty: '请输入答案。',
-                arithmetic_hint: (op) => `要解决这个练习，你需要执行 ${op} 运算。`,
-                expressions_hint: '记住运算顺序：先括号，然后乘除，最后加减。',
-                proportions_hint: '使用基本性质：内项积等于外项积。',
-                systems_hint: '你可以使用代入法：在一个方程中分离一个变量，然后将其代入另一个方程。',
-            },
-            'ar': {
-                title: 'مدرس الرياضيات', header_title: 'مدرس الرياضيات', header_subtitle: 'تعلم واستمتع!',
-                nav_home: 'الرئيسية', nav_arithmetic: 'الحساب', nav_expressions: 'التعبيرات', nav_proportions: 'النسب', nav_systems: 'الأنظمة',
-                home_welcome: 'مرحبًا بك!', home_intro: 'حسّن مهاراتك في الرياضيات بطريقة تفاعلية. اختر موضوعًا ومستوى صعوبة لتبدأ.',
-                home_difficulty_label: 'اختر مستواك:', language_label: 'اللغة',
-                difficulty_easy: 'سهل', difficulty_medium: 'متوسط', difficulty_hard: 'صعب',
-                arithmetic_title: 'الحساب', arithmetic_subtitle: 'اختبر مهاراتك في الحساب.',
-                expressions_title: 'التعبيرات', expressions_subtitle: 'حل العمليات الحسابية المتعددة.',
-                proportions_title: 'النسب', proportions_subtitle: 'أوجد الحد المجهول.',
-                systems_title: 'أنظمة المعادلات', systems_subtitle: 'أوجد الحلول التي تحقق المعادلات المتعددة.',
-                arithmetic_exercise_label: 'احسب النتيجة:', arithmetic_answer_placeholder: 'إجابتك',
-                expressions_exercise_label: 'حل التعبير:', expressions_answer_placeholder: 'إجابتك',
-                proportions_exercise_label: 'أوجد قيمة x:', proportions_answer_placeholder: 'قيمة x',
-                systems_answer_x_placeholder: 'قيمة x', systems_answer_y_placeholder: 'قيمة y',
-                systems_exercise_label: 'حل النظام:',
-                button_check: 'تحقق', button_new: 'تمرين جديد', button_hint: 'تلميح', footer_credits: 'تم الإنشاء بواسطة ديفيد ميرون.',
-                feedback_correct: 'صحيح! عمل رائع! 🎉', feedback_incorrect: 'غير صحيح. حاول مرة أخرى! 🧐', feedback_warning_empty: 'الرجاء إدخال إجابة.',
-                arithmetic_hint: (op) => `لحل هذا التمرين، يجب عليك القيام بعملية ${op}.`,
-                expressions_hint: 'تذكر ترتيب العمليات: الأقواس أولاً، ثم الضرب/القسمة، وأخيرًا الجمع/الطرح.',
-                proportions_hint: 'استخدم الخاصية الأساسية: حاصل ضرب الوسطين يساوي حاصل ضرب الطرفين.',
-                systems_hint: 'يمكنك استخدام طريقة التعويض: اعزل متغيرًا في معادلة واحدة واستبدله في الأخرى.',
-            }
         };
 
-        const updateLanguage = (lang) => {
-            document.documentElement.lang = lang;
-            document.title = translations[lang].title;
-            const elementsToTranslate = document.querySelectorAll('[data-i18n]');
-            elementsToTranslate.forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                if (translations[lang][key]) {
-                    el.textContent = translations[lang][key];
-                }
-            });
-            // Update placeholders and other dynamic text
-            const inputs = document.querySelectorAll('.custom-input');
-            inputs.forEach(input => {
-                const placeholderKey = input.getAttribute('data-i18n-placeholder');
-                if (placeholderKey && translations[lang][placeholderKey]) {
-                    input.placeholder = translations[lang][placeholderKey];
-                }
-            });
-        };
 
-        const showSection = (id) => {
-            sections.forEach(sec => {
-                document.getElementById(`section-${sec}`).classList.remove('active');
-                document.getElementById(`nav-${sec}`).classList.remove('active');
-            });
-            document.getElementById(`section-${id}`).classList.add('active');
-            document.getElementById(`nav-${id}`).classList.add('active');
-
-            if (id !== 'home') {
-                elements.pageHeader.classList.remove('hidden');
-                elements.pageTitle.textContent = translations[state.language][`${id}_title`];
-                elements.pageSubtitle.textContent = translations[state.language][`${id}_subtitle`];
-            } else {
-                elements.pageHeader.classList.add('hidden');
-            }
-        };
-
-        const clearSection = (id) => {
-            const container = document.getElementById(`section-${id}`);
-            while (container.firstChild) {
-                container.removeChild(container.firstChild);
-            }
-        };
-
-        const renderExercise = (id, problemHtml, inputsHtml) => {
-            clearSection(id);
-            const clone = elements.exerciseTemplate.cloneNode(true);
-            clone.id = `exercise-${id}`;
-            clone.classList.remove('hidden');
-            clone.querySelector('.exercise-problem').innerHTML = problemHtml;
-            clone.querySelector('.exercise-inputs').innerHTML = inputsHtml;
-
-            const labelKey = `${id}_exercise_label`;
-            const labelEl = clone.querySelector('.exercise-label');
-            if (translations[state.language][labelKey]) {
-                labelEl.textContent = translations[state.language][labelKey];
-            } else {
-                labelEl.textContent = ' ';
-            }
-
-            document.getElementById(`section-${id}`).appendChild(clone);
-            MathJax.typesetPromise([clone]);
-        };
-
-        // --- Generator Functions ---
-
-        const generateArithmetic = () => {
-            let num1, num2, operation, result, problemString, opString;
-            const ops = ['+', '-', '×', '÷'];
-            const difficulty = state.difficulty;
-
-            if (difficulty === 'facile') {
-                num1 = randomInt(1, 20);
-                num2 = randomInt(1, 20);
-                operation = ops[randomInt(0, 1)];
-                opString = operation === '+' ? 'addizione' : 'sottrazione';
-                result = operation === '+' ? num1 + num2 : num1 - num2;
-            } else if (difficulty === 'medio') {
-                num1 = randomInt(1, 50);
-                num2 = randomInt(1, 10);
-                operation = ops[randomInt(0, 2)];
-                if (operation === '×') {
-                    opString = 'moltiplicazione';
-                    result = num1 * num2;
-                } else {
-                    opString = operation === '+' ? 'addizione' : 'sottrazione';
-                    result = operation === '+' ? num1 + num2 : num1 - num2;
-                }
-            } else { // difficile
-                num1 = randomInt(1, 100);
-                num2 = randomInt(1, 10);
-                operation = ops[randomInt(0, 3)];
-                if (operation === '÷') {
-                    num1 = num1 * num2; // Ensure integer division
-                    opString = 'divisione';
-                } else if (operation === '×') {
-                    opString = 'moltiplicazione';
-                } else {
-                    opString = operation === '+' ? 'addizione' : 'sottrazione';
-                }
-                result = operation === '+' ? num1 + num2 : operation === '-' ? num1 - num2 : operation === '×' ? num1 * num2 : num1 / num2;
-            }
-            problemString = `$$${num1} ${operation} ${num2} = ?$$`;
-            return {
-                problem: problemString,
-                answer: result.toString(),
-                inputs: `<input type="number" step="any" class="custom-input flex-1 w-full text-center p-3 rounded-lg" data-i18n-placeholder="arithmetic_answer_placeholder" placeholder="${translations[state.language].arithmetic_answer_placeholder}" />`,
-                hint: translations[state.language].arithmetic_hint(opString)
-            };
-        };
-
-        const generateExpressions = () => {
-            let expression, result;
-            const ops = ['+', '-', '*', '/'];
-            const difficulty = state.difficulty;
-            let numCount;
-
-            if (difficulty === 'facile') {
-                numCount = 3;
-            } else if (difficulty === 'medio') {
-                numCount = 4;
-            } else { // difficile
-                numCount = 5;
-            }
-
-            const nums = Array.from({ length: numCount }, () => randomInt(1, 10));
-            const exprParts = [];
-            for (let i = 0; i < numCount - 1; i++) {
-                exprParts.push(nums[i]);
-                exprParts.push(ops[randomInt(0, ops.length - 1)]);
-            }
-            exprParts.push(nums[numCount - 1]);
-
-            // Add parentheses for higher difficulty
-            if (difficulty === 'medio' || difficulty === 'difficile') {
-                const openIndex = randomInt(0, numCount - 2);
-                const closeIndex = randomInt(openIndex + 1, numCount - 1);
-                exprParts[openIndex * 2] = '(' + exprParts[openIndex * 2];
-                exprParts[closeIndex * 2] = exprParts[closeIndex * 2] + ')';
-            }
-
-            expression = exprParts.join(' ');
+        // --- Gestione Autenticazione e UI ---
+        const setupFirebase = async () => {
             try {
-                // Use a safe `eval` to compute the result of the expression
-                const cleanExpr = expression.replace(/×/g, '*').replace(/÷/g, '/');
-                result = eval(cleanExpr);
-            } catch (e) {
-                // Recurse if the expression is invalid
-                return generateExpressions();
-            }
-
-            const problemString = `$$${expression.replace(/\*/g, '\\times ').replace(/\//g, '\\div ')}$$`;
-            return {
-                problem: problemString,
-                answer: result.toString(),
-                inputs: `<input type="number" step="any" class="custom-input flex-1 w-full text-center p-3 rounded-lg" data-i18n-placeholder="expressions_answer_placeholder" placeholder="${translations[state.language].expressions_answer_placeholder}" />`,
-                hint: translations[state.language].expressions_hint
-            };
-        };
-
-        const generateProportions = () => {
-            let a, b, c, x, problemString;
-            const difficulty = state.difficulty;
-            if (difficulty === 'facile') {
-                a = randomInt(1, 10);
-                b = randomInt(1, 10);
-                c = a * b;
-            } else if (difficulty === 'medio') {
-                a = randomInt(1, 20);
-                b = randomInt(1, 20);
-                c = a * b;
-            } else { // difficile
-                a = randomInt(1, 50);
-                b = randomInt(1, 50);
-                c = a * b;
-            }
-            x = c / a;
-            problemString = `$$\\frac{x}{${b}} = \\frac{${c}}{${a}}$$`;
-
-            // Randomly place 'x'
-            const patterns = [
-                `$$\\frac{x}{${b}} = \\frac{${c}}{${a}}$$`,
-                `$$\\frac{${a}}{x} = \\frac{${b}}{${c}}$$`,
-                `$$\\frac{${a}}{${b}} = \\frac{x}{${c}}$$`,
-                `$$\\frac{${a}}{${b}} = \\frac{${c}}{x}$$`
-            ];
-            problemString = patterns[randomInt(0, 3)];
-            
-            // Re-calculate x based on the pattern
-            if (problemString.includes('x}}{')) {
-                x = (b * c) / a;
-            } else if (problemString.includes('x} =')) {
-                x = (a * c) / b;
-            } else if (problemString.includes('x}}$$')) {
-                x = (b * c) / a;
-            } else {
-                 x = (a * c) / b;
-            }
-            
-            return {
-                problem: problemString,
-                answer: x.toString(),
-                inputs: `<input type="number" step="any" class="custom-input flex-1 w-full text-center p-3 rounded-lg" data-i18n-placeholder="proportions_answer_placeholder" placeholder="${translations[state.language].proportions_answer_placeholder}" />`,
-                hint: translations[state.language].proportions_hint
-            };
-        };
-
-        const generateSystems = () => {
-            let x, y, a1, b1, c1, a2, b2, c2;
-            x = randomInt(-5, 5);
-            y = randomInt(-5, 5);
-            const difficulty = state.difficulty;
-
-            if (difficulty === 'facile') {
-                a1 = randomInt(1, 3);
-                b1 = randomInt(1, 3);
-                a2 = randomInt(1, 3);
-                b2 = randomInt(1, 3);
-            } else if (difficulty === 'medio') {
-                a1 = randomInt(1, 5);
-                b1 = randomInt(1, 5);
-                a2 = randomInt(1, 5);
-                b2 = randomInt(1, 5);
-            } else { // difficile
-                a1 = randomInt(1, 10);
-                b1 = randomInt(1, 10);
-                a2 = randomInt(1, 10);
-                b2 = randomInt(1, 10);
-            }
-
-            c1 = a1 * x + b1 * y;
-            c2 = a2 * x + b2 * y;
-
-            const problemString = `$$\\begin{cases} ${a1}x + ${b1}y = ${c1} \\\\ ${a2}x + ${b2}y = ${c2} \\end{cases}$$`;
-            return {
-                problem: problemString,
-                answer: { x: x.toString(), y: y.toString() },
-                inputs: `
-                    <input type="number" step="any" class="custom-input flex-1 w-full text-center p-3 rounded-lg" data-i18n-placeholder="systems_answer_x_placeholder" placeholder="${translations[state.language].systems_answer_x_placeholder}" />
-                    <input type="number" step="any" class="custom-input flex-1 w-full text-center p-3 rounded-lg" data-i18n-placeholder="systems_answer_y_placeholder" placeholder="${translations[state.language].systems_answer_y_placeholder}" />
-                `,
-                hint: translations[state.language].systems_hint
-            };
-        };
-
-        const generateExercise = (id) => {
-            let exercise;
-            if (id === 'esercizi') {
-                exercise = generateArithmetic();
-            } else if (id === 'espressioni') {
-                exercise = generateExpressions();
-            } else if (id === 'proporzioni') {
-                exercise = generateProportions();
-            } else if (id === 'sistemi') {
-                exercise = generateSystems();
-            }
-            state.currentExercise = { id, ...exercise };
-            renderExercise(id, exercise.problem, exercise.inputs);
-        };
-
-        const handleCheck = (event) => {
-            const container = event.target.closest('.section-container');
-            const resultBox = container.querySelector('.result-box');
-            const inputs = container.querySelectorAll('.custom-input');
-            const userAnswers = Array.from(inputs).map(input => input.value.trim());
-
-            resultBox.style.transform = 'scale(0.95)';
-            resultBox.style.opacity = '0';
-            setTimeout(() => {
-                if (userAnswers.some(ans => ans === '')) {
-                    resultBox.textContent = translations[state.language].feedback_warning_empty;
-                    resultBox.classList.remove('feedback-correct', 'feedback-incorrect');
-                    resultBox.classList.add('feedback-warning');
+                if (Object.keys(firebaseConfig).length === 0) {
+                    console.error("Firebase config is not defined.");
+                    return;
+                }
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                
+                // Gestione dell'autenticazione iniziale
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
                 } else {
-                    let isCorrect = false;
-                    const correctAnswers = state.currentExercise.answer;
-                    if (typeof correctAnswers === 'object') {
-                        // Systems of equations
-                        isCorrect = parseFloat(userAnswers[0]) === parseFloat(correctAnswers.x) &&
-                                    parseFloat(userAnswers[1]) === parseFloat(correctAnswers.y);
-                    } else {
-                        // All other exercises
-                        isCorrect = parseFloat(userAnswers[0]) === parseFloat(correctAnswers);
-                    }
-                    
-                    if (isCorrect) {
-                        resultBox.textContent = translations[state.language].feedback_correct;
-                        resultBox.classList.remove('feedback-incorrect', 'feedback-warning');
-                        resultBox.classList.add('feedback-correct');
-                    } else {
-                        resultBox.textContent = translations[state.language].feedback_incorrect;
-                        resultBox.classList.remove('feedback-correct', 'feedback-warning');
-                        resultBox.classList.add('feedback-incorrect');
-                    }
+                    await signInAnonymously(auth);
                 }
-                resultBox.style.transform = 'scale(1)';
-                resultBox.style.opacity = '1';
-            }, 300);
+
+                // Listener per lo stato di autenticazione
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        await loadUserData(user);
+                        updateUI(true, user);
+                    } else {
+                        updateUI(false);
+                        if (unsubscribe) {
+                            unsubscribe();
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error("Firebase setup failed:", error);
+                showMessageBox("Si è verificato un errore durante l'autenticazione. Riprova più tardi.");
+            }
         };
 
-        const handleNew = () => {
-            const currentSectionId = sections.find(id => document.getElementById(`section-${id}`).classList.contains('active'));
-            generateExercise(currentSectionId);
+        const loadUserData = async (user) => {
+            try {
+                const docPath = `artifacts/${appId}/users/${user.uid}/stats/user_stats`;
+                const userDocRef = doc(db, docPath);
+
+                // Listener in tempo reale
+                unsubscribe = onSnapshot(userDocRef, (docSnap) => {
+                    if (docSnap.exists()) {
+                        state.stats = docSnap.data();
+                    } else {
+                        // Se il documento non esiste, crealo con i dati iniziali
+                        state.stats = { totalScore: 0, exercisesDone: 0, correctAnswers: 0 };
+                        setDoc(userDocRef, state.stats);
+                    }
+                    updateStatsDisplay();
+                }, (error) => {
+                    console.error("Errore nel listener Firestore:", error);
+                });
+            } catch (error) {
+                console.error("Errore nel caricamento dei dati utente:", error);
+            }
         };
 
-        const handleHint = (event) => {
-            const container = event.target.closest('.section-container');
-            const hintBox = container.querySelector('.hint-box');
-            hintBox.textContent = state.currentExercise.hint;
-            hintBox.classList.toggle('hidden');
+        const updateStatsInFirestore = async () => {
+            if (!auth.currentUser) return;
+            try {
+                const docPath = `artifacts/${appId}/users/${auth.currentUser.uid}/stats/user_stats`;
+                const userDocRef = doc(db, docPath);
+                await setDoc(userDocRef, state.stats, { merge: true });
+            } catch (error) {
+                console.error("Errore nel salvataggio dei dati su Firestore:", error);
+            }
         };
+        
+        const updateUI = (isAuthenticated, user = null) => {
+            elements.authUI.classList.toggle('hidden', isAuthenticated);
+            elements.mainUI.classList.toggle('hidden', !isAuthenticated);
 
-        // --- Event Listeners ---
-
-        // Navigation buttons
-        elements.navButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const sectionId = button.id.replace('nav-', '');
-                showSection(sectionId);
-                if (sectionId !== 'home') {
-                    generateExercise(sectionId);
+            if (isAuthenticated) {
+                if (user.isAnonymous) {
+                    elements.userStatusDisplay.innerText = translations[state.language].guest_mode;
+                    elements.userIdDisplay.innerText = `${translations[state.language].user_id_label} ${user.uid}`;
+                    elements.userIdDisplay.classList.remove('hidden');
+                } else {
+                    elements.userStatusDisplay.innerText = translations[state.language].authenticated_user + user.email;
+                    elements.userIdDisplay.classList.add('hidden');
                 }
-            });
-        });
-
-        // Difficulty buttons
-        elements.difficultyButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                elements.difficultyButtons.forEach(btn => btn.classList.remove('active'));
-                button.classList.add('active');
-                state.difficulty = button.dataset.difficulty;
-                localStorage.setItem('difficulty', state.difficulty);
-            });
-        });
-
-        // Language selector
-        elements.languageSelector.addEventListener('change', (e) => {
-            state.language = e.target.value;
-            localStorage.setItem('language', state.language);
-            updateLanguage(state.language);
-            // Re-render the current section to update exercise text
-            const currentSectionId = sections.find(id => document.getElementById(`section-${id}`).classList.contains('active'));
-            if (currentSectionId && currentSectionId !== 'home') {
-                generateExercise(currentSectionId);
             }
-        });
+        };
 
-        // General event listener for dynamic buttons inside exercise sections
-        elements.mainContent.addEventListener('click', (event) => {
-            if (event.target.classList.contains('check-button')) {
-                handleCheck(event);
-            } else if (event.target.classList.contains('new-button')) {
-                handleNew();
-            } else if (event.target.classList.contains('hint-button')) {
-                handleHint(event);
-            }
-        });
-
-        // Initial setup
-        updateLanguage(state.language);
-        elements.difficultyButtons.forEach(btn => {
-            if (btn.dataset.difficulty === state.difficulty) {
-                btn.classList.add('active');
+        const updateStats = (isCorrect) => {
+            state.stats.exercisesDone += 1;
+            if (isCorrect) {
+                state.stats.correctAnswers += 1;
+                state.stats.totalScore += 10;
             } else {
-                btn.classList.remove('active');
+                state.stats.totalScore -= 5;
+                if (state.stats.totalScore < 0) state.stats.totalScore = 0;
+            }
+            updateStatsInFirestore();
+        };
+
+        const updateStatsDisplay = () => {
+            elements.statsScore.innerText = state.stats.totalScore;
+            elements.statsDone.innerText = state.stats.exercisesDone;
+            const percentage = state.stats.exercisesDone > 0 ? Math.round((state.stats.correctAnswers / state.stats.exercisesDone) * 100) : 0;
+            elements.statsPercentage.innerText = `${percentage}%`;
+        };
+
+        const switchAuthForm = (isRegister) => {
+            elements.loginForm.classList.toggle('hidden', isRegister);
+            elements.registerForm.classList.toggle('hidden', !isRegister);
+        };
+
+        // Event Listeners per l'Autenticazione
+        elements.showRegisterBtn.addEventListener('click', (e) => { e.preventDefault(); switchAuthForm(true); });
+        elements.showLoginBtn.addEventListener('click', (e) => { e.preventDefault(); switchAuthForm(false); });
+
+        elements.loginContainer.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = e.target.querySelector('#login-email').value;
+            const password = e.target.querySelector('#login-password').value;
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+            } catch (error) {
+                console.error("Errore login:", error);
+                showMessageBox("Credenziali non valide. Riprova.");
             }
         });
-        if (state.language && elements.languageSelector) {
-            elements.languageSelector.value = state.language;
-        }
 
-    });
+        elements.registerContainer.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = e.target.querySelector('#register-email').value;
+            const password = e.target.querySelector('#register-password').value;
+            try {
+                await createUserWithEmailAndPassword(auth, email, password);
+                showMessageBox("Registrazione avvenuta con successo! Puoi ora accedere.");
+            } catch (error) {
+                console.error("Errore registrazione:", error);
+                showMessageBox("Errore nella registrazione. L'email potrebbe essere già in uso o la password non è valida (min 6 caratteri).");
+            }
+        });
+
+        elements.guestBtn.addEventListener('click', async () => {
+            try {
+                await signInAnonymously(auth);
+            } catch (error) {
+                console.error("Errore accesso ospite:", error);
+                showMessageBox("Errore nell'accesso come ospite. Riprova più tardi.");
+            }
+        });
+
+        elements.logoutBtn.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+            } catch (error) {
+                console.error("Errore logout:", error);
+                showMessageBox("Errore durante il logout.");
+            }
+        });
+
+        // Esercizi di matematica
+        const exercises = {
+            'esercizi': {
+                title: 'Aritmetica',
+                subtitle: 'Metti alla prova le tue abilità di calcolo.',
+                label: 'Calcola il risultato:',
+                generate: (difficulty) => {
+                    let a, b, op, result;
+                    const ops = ['+', '-', '*', '/'];
+                    let opIdx = randomInt(0, ops.length - 1);
+                    if (difficulty === 'facile') {
+                        opIdx = randomInt(0, 1);
+                        a = randomInt(1, 10);
+                        b = randomInt(1, 10);
+                    } else if (difficulty === 'medio') {
+                        a = randomInt(10, 50);
+                        b = randomInt(1, 20);
+                    } else { // difficile
+                        a = randomInt(50, 200);
+                        b = randomInt(1, 50);
+                    }
+                    op = ops[opIdx];
+                    if (op === '/') {
+                        const temp = a * b;
+                        a = temp;
+                    }
+                    if (op === '+') result = a + b;
+                    else if (op === '-') result = a - b;
+                    else if (op === '*') result = a * b;
+                    else if (op === '/') result = a / b;
+
+                    return { problem: `${a} ${op} ${b}`, solution: result.toString(), hint: translations[state.language].arithmetic_hint(op) };
+                },
+                render: (problemContainer, inputsContainer, placeholder) => {
+                    problemContainer.innerHTML = `<span class="math-problem">${problem}</span>`;
+                    inputsContainer.innerHTML = '';
+                    const input = document.createElement('input');
+                    input.type = 'number';
+                    input.placeholder = placeholder;
+                    input.className = 'custom-input flex-1 p-3 rounded-lg text-center';
+                    inputsContainer.appendChild(input);
+                },
+                check: (answer, solution) => {
+                    return parseFloat(answer) === parseFloat(solution);
+                }
+            },
+            'espressioni': {
+                title: 'Espressioni',
+                subtitle: 'Risolvi calcoli con più operazioni.',
+                label: 'Risolvi l\'espressione:',
+                generate: (difficulty) => {
+                    let expression, solution;
+                    if (difficulty === 'facile') {
+                        const a = randomInt(1, 10), b = randomInt(1, 10), c = randomInt(1, 5);
+                        expression = `${a} + ${b} * ${c}`;
+                        solution = a + b * c;
+                    } else if (difficulty === 'medio') {
+                        const a = randomInt(5, 15), b = randomInt(1, 10), c = randomInt(2, 5), d = randomInt(1, 10);
+                        expression = `${a} * (${b} + ${c}) - ${d}`;
+                        solution = a * (b + c) - d;
+                    } else { // difficile
+                        const a = randomInt(10, 30), b = randomInt(5, 15), c = randomInt(2, 10), d = randomInt(1, 5), e = randomInt(1, 10);
+                        expression = `${a} / ${c} + (${b} - ${d}) * ${e}`;
+                        solution = a / c + (b - d) * e;
+                    }
+                    return { problem: expression, solution: solution.toString(), hint: translations[state.language].expressions_hint(expression, solution) };
+                },
+                render: (problemContainer, inputsContainer, placeholder) => {
+                    problemContainer.innerHTML = `<span class="math-problem">${problem}</span>`;
+                    inputsContainer.innerHTML = '';
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.placeholder = placeholder;
+                    input.className = 'custom-input flex-1 p-3 rounded-lg text-center';
+                    inputsContainer.appendChild(input);
+                },
+                check: (answer, solution) => {
+                    try {
+                        return eval(answer.replace(/[^-()\d/*+.]/g, '')) === parseFloat(solution);
+                    } catch (e) {
+                        return false;
+                    }
+                }
+            },
+            'proporzioni': {
+                title: 'Proporzioni',
+                subtitle: 'Trova il termine incognito.',
+                label: 'Trova il valore di x:',
+                generate: (difficulty) => {
+                    let a, b, c, problem, solution;
+                    if (difficulty === 'facile') {
+                        a = randomInt(1, 10); b = randomInt(1, 10);
+                        c = randomInt(1, 10);
+                        if (c % a !== 0) c = a * randomInt(1,5);
+                    } else if (difficulty === 'medio') {
+                        a = randomInt(1, 20); b = randomInt(1, 20);
+                        c = randomInt(1, 20);
+                        if (c % a !== 0) c = a * randomInt(1, 10);
+                    } else { // difficile
+                        a = randomInt(20, 50); b = randomInt(20, 50);
+                        c = randomInt(20, 50);
+                        if (c % a !== 0) c = a * randomInt(1, 10);
+                    }
+                    solution = (b * c) / a;
+                    problem = `${a} : ${b} = ${c} : x`;
+                    return { problem: problem, solution: solution.toString(), hint: translations[state.language].proportions_hint(problem, solution) };
+                },
+                render: (problemContainer, inputsContainer, placeholder) => {
+                    problemContainer.innerHTML = `<span class="math-problem">${formatLatex(problem.replace(/:/g, '\\div'))}</span>`;
+                    inputsContainer.innerHTML = '';
+                    const input = document.createElement('input');
+                    input.type = 'number';
+                    input.placeholder = placeholder;
+                    input.className = 'custom-input flex-1 p-3 rounded-lg text-center';
+                    inputsContainer.appendChild(input);
+                },
+                check: (answer, solution) => {
+                    return parseFloat(answer) === parseFloat(solution);
+                }
+            },
+            'sistemi': {
+                title: 'Sistemi di Equazioni',
+                subtitle: 'Trova le soluzioni che soddisfano più equazioni.',
+                label: 'Risolvi il sistema:',
+                generate: (difficulty) => {
+                    let x, y, a1, b1, c1, a2, b2, c2;
+                    if (difficulty === 'facile') {
+                        x = randomInt(1, 5); y = randomInt(1, 5);
+                        a1 = randomInt(1, 3); b1 = randomInt(1, 3);
+                        a2 = randomInt(1, 3); b2 = randomInt(1, 3);
+                    } else if (difficulty === 'medio') {
+                        x = randomInt(-5, 5); y = randomInt(-5, 5);
+                        a1 = randomInt(1, 5); b1 = randomInt(1, 5);
+                        a2 = randomInt(1, 5); b2 = randomInt(1, 5);
+                    } else { // difficile
+                        x = randomInt(-10, 10); y = randomInt(-10, 10);
+                        a1 = randomInt(1, 10); b1 = randomInt(1, 10);
+                        a2 = randomInt(1, 10); b2 = randomInt(1, 10);
+                    }
+
+                    c1 = a1 * x + b1 * y;
+                    c2 = a2 * x + b2 * y;
+                    
+                    const eq1 = `${a1}x + ${b1}y = ${c1}`;
+                    const eq2 = `${a2}x + ${b2}y = ${c2}`;
+                    const problem = `\\begin{cases} ${eq1} \\\\ ${eq2} \\end{cases}`;
+                    const solution = { x: x.toString(), y: y.toString() };
+                    return { problem: problem, solution: solution, hint: translations[state.language].systems_hint(problem, solution) };
+                },
+                render: (problemContainer, inputsContainer, placeholders) => {
+                    problemContainer.innerHTML = `<div class="text-2xl">${problem}</div>`;
+                    inputsContainer.innerHTML = '';
+                    const inputX = document.createElement('input');
+                    inputX.type = 'number';
+                    inputX.placeholder = placeholders.x;
+                    inputX.className = 'custom-input flex-1 p-3 rounded-lg text-center';
+                    inputsContainer.appendChild(inputX);
+                    const inputY = document.createElement('input');
+                    inputY.type = 'number';
+                    inputY.placeholder = placeholders.y;
+                    inputY.className = 'custom-input flex-1 p-3 rounded-lg text-center';
+                    inputsContainer.appendChild(inputY);
+                },
+                check: (answer, solution) => {
+                    const inputs = answer.split(',').map(s => parseFloat(s.trim()));
+                    if (inputs.length !== 2) return false;
+                    return inputs[0] === parseFloat(solution.x) && inputs[1] === parseFloat(solution.y);
+                }
+            },
+            'geometria': {
+                title: 'Geometria',
+                subtitle: 'Calcola aree, perimetri e volumi.',
+                label: 'Calcola:',
+                generate: (difficulty) => {
+                    const types = ['area', 'perimetro'];
+                    const shapes = ['rettangolo', 'quadrato', 'cerchio', 'triangolo'];
+                    const shape = shapes[randomInt(0, shapes.length - 1)];
+                    const type = types[randomInt(0, types.length - 1)];
+                    let problem, solution, formula, values;
+
+                    if (shape === 'rettangolo') {
+                        let base, altezza;
+                        if (difficulty === 'facile') { base = randomInt(2, 10); altezza = randomInt(2, 10); }
+                        else if (difficulty === 'medio') { base = randomInt(10, 20); altezza = randomInt(10, 20); }
+                        else { base = randomInt(20, 50); altezza = randomInt(20, 50); }
+                        if (type === 'area') {
+                            problem = `L'area di un rettangolo con base ${base} e altezza ${altezza}.`;
+                            solution = base * altezza;
+                            formula = `Area = base $\\times$ altezza`;
+                            values = `$${base} \\times ${altezza}$`;
+                        } else {
+                            problem = `Il perimetro di un rettangolo con base ${base} e altezza ${altezza}.`;
+                            solution = 2 * (base + altezza);
+                            formula = `Perimetro = $2 \\times$ (base + altezza)`;
+                            values = `$2 \\times (${base} + ${altezza})$`;
+                        }
+                    } else if (shape === 'quadrato') {
+                        let lato;
+                        if (difficulty === 'facile') { lato = randomInt(2, 10); }
+                        else if (difficulty === 'medio') { lato = randomInt(10, 20); }
+                        else { lato = randomInt(20, 50); }
+                        if (type === 'area') {
+                            problem = `L'area di un quadrato con lato ${lato}.`;
+                            solution = lato * lato;
+                            formula = `Area = $lato^2$`;
+                            values = `$${lato}^2$`;
+                        } else {
+                            problem = `Il perimetro di un quadrato con lato ${lato}.`;
+                            solution = 4 * lato;
+                            formula = `Perimetro = $4 \\times lato$`;
+                            values = `$4 \\times ${lato}$`;
+                        }
+                    } else if (shape === 'cerchio') {
+                        let raggio;
+                        if (difficulty === 'facile') { raggio = randomInt(1, 5); }
+                        else if (difficulty === 'medio') { raggio = randomInt(5, 15); }
+                        else { raggio = randomInt(10, 30); }
+                        if (type === 'area') {
+                            problem = `L'area di un cerchio con raggio ${raggio}. (Usa $\\pi \\approx 3.14$)`;
+                            solution = Math.round(Math.PI * raggio * raggio * 100) / 100;
+                            formula = `Area = $\\pi \\times raggio^2$`;
+                            values = `$\\pi \\times ${raggio}^2$`;
+                        } else {
+                            problem = `Il perimetro di un cerchio (circonferenza) con raggio ${raggio}. (Usa $\\pi \\approx 3.14$)`;
+                            solution = Math.round(2 * Math.PI * raggio * 100) / 100;
+                            formula = `Circonferenza = $2 \\times \\pi \\times raggio$`;
+                            values = `$2 \\times \\pi \\times ${raggio}$`;
+                        }
+                    } else if (shape === 'triangolo') {
+                        let base, altezza;
+                        if (difficulty === 'facile') { base = randomInt(2, 10); altezza = randomInt(2, 10); }
+                        else if (difficulty === 'medio') { base = randomInt(10, 20); altezza = randomInt(10, 20); }
+                        else { base = randomInt(20, 50); altezza = randomInt(20, 50); }
+                        if (type === 'area') {
+                            problem = `L'area di un triangolo con base ${base} e altezza ${altezza}.`;
+                            solution = (base * altezza) / 2;
+                            formula = `Area = (base $\\times$ altezza) / 2`;
+                            values = `$(${base} \\times ${altezza}) / 2$`;
+                        } else {
+                            // Perimetro di un triangolo rettangolo
+                            const ipotenusa = Math.round(Math.sqrt(base * base + altezza * altezza) * 100) / 100;
+                            problem = `Il perimetro di un triangolo rettangolo con cateti ${base} e ${altezza}.`;
+                            solution = base + altezza + ipotenusa;
+                            formula = `Perimetro = cateto1 + cateto2 + ipotenusa`;
+                            values = `${base} + ${altezza} + ${ipotenusa}`;
+                        }
+                    }
+
+                    return { problem: problem, solution: solution.toString(), hint: translations[state.language].geometry_hint({ type: type, shape: shape, formula: formula, values: values }, solution) };
+                },
+                render: (problemContainer, inputsContainer, placeholder) => {
+                    problemContainer.innerHTML = `<span class="math-problem">${formatLatex(problem)}</span>`;
+                    inputsContainer.innerHTML = '';
+                    const input = document.createElement('input');
+                    input.type = 'number';
+                    input.placeholder = placeholder;
+                    input.className = 'custom-input flex-1 p-3 rounded-lg text-center';
+                    inputsContainer.appendChild(input);
+                },
+                check: (answer, solution) => {
+                    const answerFloat = parseFloat(answer);
+                    const solutionFloat = parseFloat(solution);
+                    const tolerance = 0.01;
+                    return Math.abs(answerFloat - solutionFloat) < tolerance;
+                }
+            }
+        };
+
+        const generateExercise = (sectionId) => {
+            const exerciseInfo = exercises[sectionId];
+            if (!exerciseInfo) return;
+
+            state.currentExercise = exerciseInfo.generate(state.difficulty);
+            
+            const sectionContainer = document.getElementById(`section-${sectionId}`);
+            let currentContainer = sectionContainer.querySelector('.exercise-template-instance');
+
+            if (!currentContainer) {
+                const template = elements.exerciseTemplate.cloneNode(true);
+                template.id = '';
+                template.classList.remove('hidden');
+                template.classList.add('exercise-template-instance', 'h-full');
+                sectionContainer.appendChild(template);
+                currentContainer = template;
+            }
+
+            const problemContainer = currentContainer.querySelector('.exercise-problem');
+            const inputsContainer = currentContainer.querySelector('.exercise-inputs');
+            const resultBox = currentContainer.querySelector('.result-box');
+            const explanationBox = currentContainer.querySelector('.explanation-box');
+            const checkButton = currentContainer.querySelector('.check-button');
+            const newButton = currentContainer.querySelector('.new-button');
+            const hintButton = currentContainer.querySelector('.hint-button');
+            const label = currentContainer.querySelector('.exercise-label');
+
+            label.textContent = translations[state.language][`${sectionId}_exercise_label`];
+            resultBox.textContent = '';
+            resultBox.style.opacity = '0';
+            explanationBox.classList.add('hidden');
+            inputsContainer.innerHTML = '';
+            
+            let placeholder;
+            if (sectionId === 'sistemi') {
+                placeholder = {
+                    x: translations[state.language].systems_answer_x_placeholder,
+                    y: translations[state.language].systems_answer_y_placeholder
+                };
+            } else {
+                placeholder = translations[state.language][`${sectionId}_answer_placeholder`];
+            }
+            
+            exerciseInfo.render(problemContainer, inputsContainer, placeholder);
+
+            checkButton.onclick = () => checkAnswer(sectionId, currentContainer);
+            newButton.onclick = () => generateExercise(sectionId);
+            hintButton.onclick = () => showHint(currentContainer);
+        };
+
+        const checkAnswer = (sectionId, currentContainer) => {
+            const exerciseInfo = exercises[sectionId];
+            const inputsContainer = currentContainer.querySelector('.exercise-inputs');
+            const resultBox = currentContainer.querySelector('.result-box');
+
+            let answer;
+            if (sectionId === 'sistemi') {
+                const inputs = inputsContainer.querySelectorAll('input');
+                answer = `${inputs[0].value}, ${inputs[1].value}`;
+            } else {
+                answer = inputsContainer.querySelector('input').value;
+            }
+
+            if (!answer) {
+                showMessageBox(translations[state.language].feedback_warning_empty);
+                return;
+            }
+
+            if (exerciseInfo.check(answer, state.currentExercise.solution)) {
+                resultBox.classList.remove('feedback-incorrect');
+                resultBox.classList.add('feedback-correct', 'correct-animation');
+                resultBox.textContent = translations[state.language].feedback_correct;
+                updateStats(true);
+            } else {
+                resultBox.classList.remove('feedback-correct');
+                resultBox.classList.add('feedback-incorrect', 'incorrect-animation');
+                resultBox.textContent = translations[state.language].feedback_incorrect + state.currentExercise.solution;
+                updateStats(false);
+            }
+            resultBox.style.opacity = '1';
+            resultBox.style.transform = 'scale(1)';
+        };
+
+        const showHint = (currentContainer) => {
+            const explanationBox = currentContainer.querySelector('.explanation-box');
+            explanationBox.innerHTML = formatLatex(state.currentExercise.hint);
+            explanationBox.classList.remove('hidden');
+        };
+
+        const updateLanguage = () => {
+            const elementsToTranslate = document.querySelectorAll('[data-i18n]');
+            elementsToTranslate.forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (translations[state.language][key]) {
+                    element.textContent = translations[state.language][key];
+                }
+            });
+
+            const placeholders = document.querySelectorAll('input[placeholder]');
+            placeholders.forEach(input => {
+                const key = input.getAttribute('placeholder').toLowerCase().replace(' ', '_');
+                if (translations[state.language][key]) {
+                    input.placeholder = translations[state.language][key];
+                }
+            });
+
+            // Aggiorna anche i testi dinamici
+            const pageTitles = document.getElementById('page-title');
+            if (pageTitles.textContent) {
+                const currentSectionId = document.querySelector('.section-container.active').id.replace('section-', '');
+                if (exercises[currentSectionId]) {
+                    pageTitles.textContent = translations[state.language][`${currentSectionId}_title`];
+                    document.getElementById('page-subtitle').textContent = translations[state.language][`${currentSectionId}_subtitle`];
+                    document.querySelector('.exercise-label').textContent = translations[state.language][`${currentSectionId}_exercise_label`];
+                }
+            }
+        };
+        
+        // --- Inizializzazione ---
+        document.addEventListener('DOMContentLoaded', () => {
+            setupFirebase();
+            
+            // Gestione dei pulsanti di navigazione
+            elements.navButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    elements.navButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+
+                    const targetSectionId = button.id.replace('nav-', '');
+                    document.querySelectorAll('.section-container').forEach(section => {
+                        section.classList.remove('active');
+                    });
+                    document.getElementById(`section-${targetSectionId}`).classList.add('active');
+
+                    if (targetSectionId !== 'home') {
+                        elements.pageHeader.classList.remove('hidden');
+                        elements.pageTitle.textContent = translations[state.language][`${targetSectionId}_title`];
+                        elements.pageSubtitle.textContent = translations[state.language][`${targetSectionId}_subtitle`];
+                        generateExercise(targetSectionId);
+                    } else {
+                        elements.pageHeader.classList.add('hidden');
+                    }
+                });
+            });
+
+            // Gestione dei pulsanti di difficoltà
+            elements.difficultyButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    elements.difficultyButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    state.difficulty = button.dataset.difficulty;
+                    localStorage.setItem('difficulty', state.difficulty);
+                });
+            });
+
+            // Imposta la difficoltà iniziale e la lingua
+            const initialDifficultyButton = document.querySelector(`[data-difficulty="${state.difficulty}"]`);
+            if (initialDifficultyButton) initialDifficultyButton.classList.add('active');
+            elements.languageSelector.value = state.language;
+            updateLanguage();
+
+            elements.languageSelector.addEventListener('change', (e) => {
+                state.language = e.target.value;
+                localStorage.setItem('language', state.language);
+                updateLanguage();
+            });
+
+            // Toggle per l'accessibilità
+            elements.accessibilityToggle.addEventListener('click', () => {
+                document.body.classList.toggle('high-contrast');
+                document.body.classList.toggle('large-font');
+            });
+        });
     </script>
 </body>
 </html>
