@@ -26,9 +26,9 @@
             --bg-end: #0f172a;   /* Slate 900 */
             --card-bg: rgba(15, 23, 42, 0.6); /* Slate 900 with alpha */
             --primary-start: #22d3ee; /* Cyan 400 (Aqua) */
-            --primary-end: #10b981;   /* Emerald 500 */
+            --primary-end: #10b981;    /* Emerald 500 */
             --primary-hover-start: #67e8f9; /* Cyan 300 */
-            --primary-hover-end: #34d399;   /* Emerald 400 */
+            --primary-hover-end: #34d399;    /* Emerald 400 */
             --text-primary: #f8fafc; /* Slate 50 */
             --text-secondary: #94a3b8; /* Slate 400 */
             --border-color: rgba(34, 211, 238, 0.2);
@@ -557,7 +557,7 @@
                 arithmetic_title: 'Arithmetic', arithmetic_subtitle: 'Test your calculation skills.',
                 expressions_title: 'Expressions', expressions_subtitle: 'Solve calculations with multiple operations.',
                 proportions_title: 'Proportions', proportions_subtitle: 'Find the unknown term.',
-                systems_title: 'Systems of Equations', systems_subtitle: 'Find solutions that satisfy multiple equations.',
+                systems_title: 'Systems of Equations', systems_subtitle: 'Find the solutions that satisfy multiple equations.',
                 arithmetic_exercise_label: 'Calculate the result:', arithmetic_answer_placeholder: 'Your answer',
                 expressions_exercise_label: 'Solve the expression:', expressions_answer_placeholder: 'Your answer',
                 proportions_exercise_label: 'Find the value of x:', proportions_answer_placeholder: 'Value of x',
@@ -565,424 +565,436 @@
                 systems_exercise_label: 'Solve the system:',
                 button_check: 'Check', button_new: 'New Exercise', button_hint: 'Explanation', footer_credits: 'Created by David Miron.',
                 feedback_correct: 'Correct! Great job! 🎉', feedback_incorrect: (solution) => `Incorrect. The correct answer is ${solution}.`, feedback_warning_empty: 'Please enter an answer.',
-                guest_mode: 'Guest Mode', stats_total_score: 'Total score:', stats_exercises_done: 'Exercises done:', stats_correct_percentage: 'Correctness:',
+                guest_mode: 'Guest Mode', stats_total_score: 'Total Score:', stats_exercises_done: 'Exercises done:', stats_correct_percentage: 'Correctness:',
                 convert_account: 'Want to save your progress? Sign in with Google!',
-                arithmetic_hint: (op) => `To solve this exercise, you need to perform the ${op} operation.`,
-                expressions_hint: (problem, result) => `Follow the order of operations (PEMDAS/BODMAS): parentheses, exponents, multiplication/division, and finally addition/subtraction.\nProblem: ${problem}\nThe correct answer is ${result}.`,
+                arithmetic_hint: (op) => `To solve this exercise, you must perform the operation of ${op}.`,
+                expressions_hint: (problem, result) => `Follow the order of operations (PEMDAS/BODMAS): first parentheses, then exponents, multiplication/division, and finally addition/subtraction.\nProblem: ${problem}\nThe correct answer is ${result}.`,
                 proportions_hint: (problem, result) => `Use the fundamental property: the product of the means equals the product of the extremes.\nProblem: ${problem}\nSteps: ${problem.split(':')[1]} * ${problem.split(':')[2].split('=')[0]} = ${problem.split(':')[0]} * x\nSolve the equation for x.\nThe correct answer is ${result}.`,
                 systems_hint: (problem, result) => `Try the substitution method.\nProblem:\n${problem}\nSteps:\n1. Isolate one variable in one of the equations.\n2. Substitute the expression into the other equation.\n3. Solve to find one variable, then the other.\nThe correct answer is x=${result.x}, y=${result.y}.`,
             }
         };
 
-        const setLanguage = (lang) => {
-            state.language = lang;
-            localStorage.setItem('language', lang);
-            document.documentElement.lang = lang;
+        const updateUI = () => {
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
-                if (translations[lang] && translations[lang][key]) {
-                    if (typeof translations[lang][key] === 'function') {
-                        // Non aggiorniamo le funzioni qui, verranno chiamate al bisogno
-                    } else {
-                        el.textContent = translations[lang][key];
-                    }
+                if (translations[state.language] && translations[state.language][key]) {
+                    el.innerHTML = translations[state.language][key];
                 }
             });
-             // Aggiorna specificamente i placeholder
-            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-                const key = el.getAttribute('data-i18n-placeholder');
-                if (translations[lang] && translations[lang][key]) {
-                    el.placeholder = translations[lang][key];
+
+            elements.difficultyButtons.forEach(btn => {
+                if (btn.dataset.difficulty === state.difficulty) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
                 }
             });
-            // Re-render dell'esercizio corrente per aggiornare i testi
-            if (state.currentExercise && state.currentExercise.type) {
-                const sectionId = `section-${state.currentExercise.type}`;
-                const section = document.getElementById(sectionId);
-                generateExercise(section, state.currentExercise.type);
-            }
+
+            elements.languageSelector.value = state.language;
+            lucide.createIcons();
         };
 
         const updateStatsUI = () => {
             elements.statsScore.textContent = state.stats.totalScore;
             elements.statsDone.textContent = state.stats.exercisesDone;
-            const percentage = state.stats.exercisesDone > 0 ?
-                Math.round((state.stats.correctAnswers / state.stats.exercisesDone) * 100) : 0;
+            const percentage = state.stats.exercisesDone > 0 ? ((state.stats.correctAnswers / state.stats.exercisesDone) * 100).toFixed(0) : 0;
             elements.statsPercentage.textContent = `${percentage}%`;
         };
 
-        const saveData = async (userId) => {
+        const saveStats = async (userId) => {
             if (!db) return;
+            const userDocRef = doc(db, `artifacts/${appId}/users/${userId}/data/stats`);
             try {
-                const userDocRef = doc(db, `artifacts/${appId}/users/${userId}/mathTutorStats`);
-                await setDoc(userDocRef, state.stats);
-            } catch (error) {
-                console.error("Error saving data: ", error);
+                await setDoc(userDocRef, state.stats, { merge: true });
+            } catch (e) {
+                console.error("Error saving stats: ", e);
             }
         };
 
-        const signInWithGoogle = async () => {
-            if (!auth) return;
-            const provider = new GoogleAuthProvider();
-            try {
-                await signInWithPopup(auth, provider);
-            } catch (error) {
-                console.error("Google Sign-In Error: ", error);
-                showMessageBox("Errore durante l'accesso con Google.");
+        const loadStats = (userId) => {
+            if (!db || !userId) {
+                state.stats = { totalScore: 0, exercisesDone: 0, correctAnswers: 0 };
+                updateStatsUI();
+                return;
             }
+
+            const docRef = doc(db, `artifacts/${appId}/users/${userId}/data/stats`);
+            unsubscribe = onSnapshot(docRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    state.stats = docSnap.data();
+                } else {
+                    state.stats = { totalScore: 0, exercisesDone: 0, correctAnswers: 0 };
+                }
+                updateStatsUI();
+            }, (error) => {
+                console.error("Error fetching stats:", error);
+                state.stats = { totalScore: 0, exercisesDone: 0, correctAnswers: 0 };
+                updateStatsUI();
+            });
         };
 
-        const setupAuth = () => {
+        const setupAuth = async () => {
             if (!firebaseConfig) {
-                console.warn("Firebase config not found. Running in offline mode.");
-                elements.authUI.classList.add('hidden');
-                elements.mainUI.classList.remove('hidden');
+                console.error("Firebase config not found.");
                 return;
             }
 
             try {
                 app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
                 auth = getAuth(app);
-            } catch (e) {
-                console.error("Error initializing Firebase:", e);
-                elements.authUI.classList.add('hidden');
-                elements.mainUI.classList.remove('hidden');
-                return;
-            }
+                db = getFirestore(app);
 
-            onAuthStateChanged(auth, user => {
-                if (user) {
-                    elements.authUI.classList.add('hidden');
-                    elements.mainUI.classList.remove('hidden');
-                    
-                    // Mostra sempre il pulsante Esci se l'utente è loggato (anche come ospite)
-                    elements.signOutBtn.classList.remove('hidden');
-                    elements.goToLoginBtn.classList.add('hidden'); // Nascondiamo questo, dato che Esci + Login è più chiaro
-
-                    if (user.isAnonymous) {
+                onAuthStateChanged(auth, async (user) => {
+                    if (unsubscribe) {
+                        unsubscribe();
+                    }
+                    if (user) {
+                        // User is signed in.
+                        elements.authUI.classList.add('hidden');
+                        elements.mainUI.classList.remove('hidden');
+                        elements.userStatusDisplay.textContent = user.isAnonymous ? translations[state.language].guest_mode : user.email || translations[state.language].username_default;
+                        elements.userIdDisplay.textContent = `ID: ${user.uid}`;
+                        elements.userIdDisplay.classList.remove('hidden');
+                        elements.signOutBtn.classList.remove('hidden');
+                        elements.goToLoginBtn.classList.add('hidden');
+                        loadStats(user.uid);
+                    } else {
+                        // User is signed out.
+                        elements.authUI.classList.remove('hidden');
+                        elements.mainUI.classList.add('hidden');
                         elements.userStatusDisplay.textContent = translations[state.language].guest_mode;
-                    } else {
-                        elements.userStatusDisplay.textContent = user.displayName || 'Utente';
+                        elements.userIdDisplay.classList.add('hidden');
+                        elements.signOutBtn.classList.add('hidden');
+                        elements.goToLoginBtn.classList.remove('hidden');
+                        loadStats(null);
                     }
-                    elements.userIdDisplay.textContent = `ID: ${user.uid}`;
-                    elements.userIdDisplay.classList.remove('hidden');
-                    
-                    if (unsubscribe) unsubscribe();
-                    const userDocRef = doc(db, `artifacts/${appId}/users/${user.uid}/mathTutorStats`);
-                    unsubscribe = onSnapshot(userDocRef, (doc) => {
-                        if (doc.exists()) {
-                            state.stats = doc.data();
-                        } else {
-                            // Inizializza le statistiche se non esistono
-                             state.stats = { totalScore: 0, exercisesDone: 0, correctAnswers: 0 };
-                        }
-                        updateStatsUI();
-                    });
+                });
 
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
                 } else {
-                    elements.authUI.classList.remove('hidden');
-                    elements.mainUI.classList.add('hidden');
-                    elements.userIdDisplay.classList.add('hidden');
-                     if (unsubscribe) unsubscribe();
+                    await signInAnonymously(auth);
                 }
-            });
-        };
 
-        const setupEventListeners = () => {
-            elements.guestBtn.addEventListener('click', () => {
-                if(auth) signInAnonymously(auth).catch(err => console.error(err));
-            });
-            elements.googleLoginBtn.addEventListener('click', signInWithGoogle);
-            elements.goToLoginBtn.addEventListener('click', signInWithGoogle);
-            
-            elements.signOutBtn.addEventListener('click', () => {
-                if(auth) signOut(auth);
-            });
-
-            elements.navButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    const targetId = button.id.replace('nav-', '');
-                    navigateTo(targetId);
-                });
-            });
-
-            elements.difficultyButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    state.difficulty = button.dataset.difficulty;
-                    localStorage.setItem('difficulty', state.difficulty);
-                    elements.difficultyButtons.forEach(btn => btn.classList.remove('active'));
-                    button.classList.add('active');
-                });
-            });
-            
-            elements.languageSelector.addEventListener('change', (e) => setLanguage(e.target.value));
+            } catch (e) {
+                console.error("Error setting up Firebase: ", e);
+                showMessageBox("Errore di inizializzazione: " + e.message);
+            }
         };
         
-        const navigateTo = (sectionId) => {
-            elements.navButtons.forEach(btn => btn.classList.remove('active', 'transform', 'translate-y-[-2px]', 'scale-102'));
-            document.getElementById(`nav-${sectionId}`).classList.add('active');
-
-            document.querySelectorAll('.section-container').forEach(sec => sec.classList.remove('active'));
-            document.getElementById(`section-${sectionId}`).classList.add('active');
-
-            if (sectionId !== 'home') {
-                elements.pageHeader.classList.remove('hidden');
-                elements.pageTitle.textContent = translations[state.language][`${sectionId}_title`] || sectionId;
-                elements.pageSubtitle.textContent = translations[state.language][`${sectionId}_subtitle`] || '';
-                
-                const sectionContainer = document.getElementById(`section-${sectionId}`);
-                if (!sectionContainer.hasChildNodes()) { // Genera esercizio solo se la sezione è vuota
-                     generateExercise(sectionContainer, sectionId);
-                }
-            } else {
-                 elements.pageHeader.classList.add('hidden');
-            }
-        };
-
-        const exerciseGenerators = {
-            esercizi: (diff) => {
-                let num1, num2, op, question, answer;
-                const ops = ['+', '-', '*', '/'];
-                const opSymbols = {'*': '\\times', '/': '\\div'};
-                
-                if (diff === 'facile') {
-                    op = ops[randomInt(0, 1)];
-                    num1 = randomInt(1, 20); num2 = randomInt(1, 20);
-                } else if (diff === 'medio') {
-                    op = ops[randomInt(0, 2)];
-                    num1 = randomInt(10, 100); num2 = randomInt(10, 100);
-                } else {
-                    op = ops[randomInt(2, 3)];
-                    if(op === '/') {
-                        num2 = randomInt(2, 10);
-                        num1 = num2 * randomInt(2, 20);
-                    } else {
-                        num1 = randomInt(10, 50); num2 = randomInt(10, 50);
-                    }
-                }
-
-                if (op === '-' && num1 < num2) [num1, num2] = [num2, num1];
-                
-                question = `${num1} ${opSymbols[op] || op} ${num2}`;
-                answer = eval(`${num1} ${op} ${num2}`);
-
-                const opName = { '+': 'addizione', '-': 'sottrazione', '*': 'moltiplicazione', '/': 'divisione' }[op];
-                return {
-                    type: 'esercizi',
-                    problem: formatLatex(question),
-                    solution: answer,
-                    hint: translations[state.language].arithmetic_hint(opName)
-                };
-            },
-            espressioni: (diff) => {
-                let num1, num2, num3, problem, result;
-                 if (diff === 'facile') { // a * b + c
-                    num1 = randomInt(2, 10); num2 = randomInt(2, 10); num3 = randomInt(5, 20);
-                    problem = `${num1} \\times ${num2} + ${num3}`;
-                    result = num1 * num2 + num3;
-                } else if (diff === 'medio') { // (a + b) * c
-                    num1 = randomInt(5, 15); num2 = randomInt(5, 15); num3 = randomInt(2, 8);
-                    problem = `(${num1} + ${num2}) \\times ${num3}`;
-                    result = (num1 + num2) * num3;
-                } else { // (a * b - c) / d
-                    let d = randomInt(2, 5);
-                    let c = randomInt(5, 15);
-                    let temp_result = randomInt(5, 10) * d + c;
-                    num1 = randomInt(3, 12);
-                    num2 = Math.round(temp_result / num1);
-                    if (num1 * num2 < c) num2 += Math.ceil(c/num1);
-                     problem = `(${num1} \\times ${num2} - ${c}) \\div ${d}`;
-                    result = (num1 * num2 - c) / d;
-                }
-                return {
-                    type: 'espressioni',
-                    problem: formatLatex(problem),
-                    solution: result,
-                    hint: translations[state.language].expressions_hint(problem, result)
-                };
-            },
-            proporzioni: (diff) => {
-                let a, b, c, x;
-                if (diff === 'facile') {
-                    c = randomInt(2, 5);
-                    a = randomInt(2, 5) * c;
-                    b = randomInt(6, 10) * c;
-                } else if (diff === 'medio') {
-                    c = randomInt(2, 10);
-                    a = randomInt(2, 10) * c;
-                    b = randomInt(11, 20) * c;
-                } else {
-                    c = randomInt(5, 15);
-                    a = randomInt(5, 15) * c;
-                    b = randomInt(15, 30) * c;
-                }
-                x = (b * c) / a;
-                const problem = `${a} : ${b} = ${c} : x`;
-                return {
-                    type: 'proporzioni',
-                    problem: formatLatex(problem),
-                    solution: x,
-                    hint: translations[state.language].proportions_hint(problem, x)
-                };
-            },
-            sistemi: (diff) => {
-                 let x, y, a1, b1, c1, a2, b2, c2;
-                if (diff === 'facile') {
-                    x = randomInt(1, 5); y = randomInt(1, 5);
-                    a1 = 1; b1 = 1; c1 = x + y;
-                    a2 = 1; b2 = -1; c2 = x - y;
-                } else if (diff === 'medio') {
-                    x = randomInt(-5, 5); y = randomInt(-5, 5);
-                    a1 = randomInt(1, 3); b1 = randomInt(1, 3);
-                    a2 = randomInt(1, 3); b2 = randomInt(-3, -1);
-                    c1 = a1 * x + b1 * y;
-                    c2 = a2 * x + b2 * y;
-                } else {
-                    x = randomInt(-10, 10); y = randomInt(-10, 10);
-                    a1 = randomInt(2, 5); b1 = randomInt(-5, 5); if (b1 === 0) b1 = 1;
-                    a2 = randomInt(-5, 5); if (a2 === 0) a2 = 2; b2 = randomInt(2, 5);
-                    if (a1 * b2 === a2 * b1) { a1++; }
-                    c1 = a1 * x + b1 * y;
-                    c2 = a2 * x + b2 * y;
-                }
-
-                const formatTerm = (coeff, variable) => {
-                    if (coeff === 0) return '';
-                    let sign = coeff > 0 ? '+' : '-';
-                    let absCoeff = Math.abs(coeff);
-                    let coeffStr = absCoeff === 1 ? '' : absCoeff;
-                    return ` ${sign} ${coeffStr}${variable}`;
-                };
-                const formatEq = (a, b, c) => {
-                     let eq = `${a === 1 ? '' : a}x`;
-                     eq += `${formatTerm(b,'y')} = ${c}`;
-                     return eq.trim().startsWith('+') ? eq.trim().substring(2) : eq.trim();
-                };
-
-                const problem = `\\begin{cases} ${formatEq(a1, b1, c1)} \\\\ ${formatEq(a2, b2, c2)} \\end{cases}`;
-                return {
-                    type: 'sistemi',
-                    problem: problem,
-                    solution: { x, y },
-                    hint: translations[state.language].systems_hint(problem, {x, y})
-                };
-            }
-        };
-
-        const createExerciseUI = (container, exercise) => {
-            container.innerHTML = '';
-            const exerciseUI = elements.exerciseTemplate.firstElementChild.cloneNode(true);
-            const problemDiv = exerciseUI.querySelector('.exercise-problem');
-            const inputsDiv = exerciseUI.querySelector('.exercise-inputs');
-            
-            problemDiv.innerHTML = exercise.type === 'sistemi' ? `$$${exercise.problem}$$` : exercise.problem;
-            exerciseUI.querySelector('.exercise-label').textContent = translations[state.language][`${exercise.type}_exercise_label`];
-            
-            if (exercise.type === 'sistemi') {
-                inputsDiv.innerHTML = `
-                    <input type="number" class="w-full p-3 rounded-lg custom-input" placeholder="${translations[state.language].systems_answer_x_placeholder}" data-answer-part="x">
-                    <input type="number" class="w-full p-3 rounded-lg custom-input" placeholder="${translations[state.language].systems_answer_y_placeholder}" data-answer-part="y">
-                `;
-            } else {
-                 inputsDiv.innerHTML = `<input type="number" class="w-full p-3 rounded-lg custom-input" placeholder="${translations[state.language][`${exercise.type}_answer_placeholder`]}">`;
-            }
-             MathJax.typesetPromise([problemDiv]);
-
-            container.appendChild(exerciseUI);
-            return exerciseUI;
-        };
-        
-        const generateExercise = (sectionContainer, exerciseType) => {
-            const exerciseData = exerciseGenerators[exerciseType](state.difficulty);
-            state.currentExercise = exerciseData;
-
-            const exerciseUI = createExerciseUI(sectionContainer, exerciseData);
-            
-            const checkButton = exerciseUI.querySelector('.check-button');
-            const newButton = exerciseUI.querySelector('.new-button');
-            const hintButton = exerciseUI.querySelector('.hint-button');
-            const resultBox = exerciseUI.querySelector('.result-box');
-            const explanationBox = exerciseUI.querySelector('.explanation-box');
-
-            const checkAnswer = () => {
-                let isCorrect = false;
-                const inputs = exerciseUI.querySelectorAll('.custom-input');
-                
-                if (exerciseData.type === 'sistemi') {
-                    const x_val = parseFloat(inputs[0].value);
-                    const y_val = parseFloat(inputs[1].value);
-                    if (isNaN(x_val) || isNaN(y_val)) {
-                        resultBox.textContent = translations[state.language].feedback_warning_empty;
-                        resultBox.className = 'result-box mt-5 p-4 rounded-lg text-center font-bold text-base scale-100 opacity-100 feedback-warning';
-                        return;
-                    }
-                    isCorrect = (x_val === exerciseData.solution.x && y_val === exerciseData.solution.y);
-                } else {
-                    const val = parseFloat(inputs[0].value);
-                    if (isNaN(val)) {
-                        resultBox.textContent = translations[state.language].feedback_warning_empty;
-                        resultBox.className = 'result-box mt-5 p-4 rounded-lg text-center font-bold text-base scale-100 opacity-100 feedback-warning';
-                        return;
-                    }
-                    isCorrect = Math.abs(val - exerciseData.solution) < 0.01;
-                }
-                
-                state.stats.exercisesDone++;
-                if (isCorrect) {
-                    state.stats.correctAnswers++;
-                    state.stats.totalScore += (['facile', 'medio', 'difficile'].indexOf(state.difficulty) + 1) * 10;
-                    resultBox.textContent = translations[state.language].feedback_correct;
-                    resultBox.className = 'result-box mt-5 p-4 rounded-lg text-center font-bold text-base scale-100 opacity-100 feedback-correct';
-                    checkButton.classList.add('correct-animation');
-                } else {
-                    const solutionText = typeof exerciseData.solution === 'object' ? `x=${exerciseData.solution.x}, y=${exerciseData.solution.y}` : exerciseData.solution;
-                    resultBox.textContent = translations[state.language].feedback_incorrect(solutionText);
-                    resultBox.className = 'result-box mt-5 p-4 rounded-lg text-center font-bold text-base scale-100 opacity-100 feedback-incorrect';
-                    checkButton.classList.add('incorrect-animation');
-                }
-                
-                updateStatsUI();
-                if (auth.currentUser) saveData(auth.currentUser.uid);
-                
-                setTimeout(() => {
-                    checkButton.classList.remove('correct-animation', 'incorrect-animation');
-                }, 1000);
-            };
-
-            checkButton.addEventListener('click', checkAnswer);
-            exerciseUI.querySelectorAll('.custom-input').forEach(input => {
-                input.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') checkAnswer();
-                });
-            });
-
-            newButton.addEventListener('click', () => generateExercise(sectionContainer, exerciseType));
-            hintButton.addEventListener('click', () => {
-                explanationBox.innerHTML = exerciseData.hint;
-                MathJax.typesetPromise([explanationBox]);
-                explanationBox.classList.toggle('hidden');
-            });
-        };
-
-        const initApp = () => {
-            setLanguage(state.language);
-            elements.languageSelector.value = state.language;
-            
-            const storedDifficulty = localStorage.getItem('difficulty');
-            if (storedDifficulty) {
-                 elements.difficultyButtons.forEach(btn => {
-                    btn.classList.toggle('active', btn.dataset.difficulty === storedDifficulty);
-                });
-                state.difficulty = storedDifficulty;
-            }
-
-            setupEventListeners();
+        // --- Event Listeners ---
+        window.addEventListener('load', () => {
+            updateUI();
             setupAuth();
+        });
+
+        elements.guestBtn.addEventListener('click', () => {
+             elements.authUI.classList.add('hidden');
+             elements.mainUI.classList.remove('hidden');
+        });
+
+        elements.googleLoginBtn.addEventListener('click', async () => {
+            const provider = new GoogleAuthProvider();
+            try {
+                await signInWithPopup(auth, provider);
+            } catch (error) {
+                console.error("Google login failed: ", error);
+                showMessageBox("Accesso con Google fallito: " + error.message);
+            }
+        });
+
+        elements.goToLoginBtn.addEventListener('click', async () => {
+            if (auth.currentUser && auth.currentUser.isAnonymous) {
+                await signOut(auth);
+            }
+            elements.authUI.classList.remove('hidden');
+            elements.mainUI.classList.add('hidden');
+        });
+
+        elements.signOutBtn.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+            } catch (error) {
+                console.error("Sign out failed: ", error);
+                showMessageBox("Logout fallito: " + error.message);
+            }
+        });
+
+        elements.navButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const sectionId = button.id.replace('nav-', 'section-');
+                const targetSection = document.getElementById(sectionId);
+
+                if (!targetSection) return;
+
+                document.querySelectorAll('.section-container').forEach(s => s.classList.add('hidden'));
+                targetSection.classList.remove('hidden');
+                
+                elements.navButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+
+                if (button.id !== 'nav-home') {
+                    elements.pageHeader.classList.remove('hidden');
+                    elements.pageTitle.textContent = translations[state.language][`${button.id.replace('nav-', '')}_title`];
+                    elements.pageSubtitle.textContent = translations[state.language][`${button.id.replace('nav-', '')}_subtitle`];
+                    generateExercise(button.id.replace('nav-', ''));
+                } else {
+                    elements.pageHeader.classList.add('hidden');
+                }
+            });
+        });
+
+        elements.difficultyButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                state.difficulty = button.dataset.difficulty;
+                localStorage.setItem('difficulty', state.difficulty);
+                elements.difficultyButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                if (state.currentExercise) {
+                    const currentSection = elements.mainContent.querySelector('.section-container:not(.hidden)').id.replace('section-', '');
+                    generateExercise(currentSection);
+                }
+            });
+        });
+
+        elements.languageSelector.addEventListener('change', (e) => {
+            state.language = e.target.value;
+            localStorage.setItem('language', state.language);
+            updateUI();
+        });
+
+        // --- Generazione e Logica degli Esercizi ---
+        const generateExercise = (type) => {
+            const container = document.getElementById(`section-${type}`);
+            container.innerHTML = elements.exerciseTemplate.innerHTML;
+            const checkButton = container.querySelector('.check-button');
+            const newButton = container.querySelector('.new-button');
+            const hintButton = container.querySelector('.hint-button');
+            const resultBox = container.querySelector('.result-box');
+            const explanationBox = container.querySelector('.explanation-box');
+            const problemEl = container.querySelector('.exercise-problem');
+            const inputsEl = container.querySelector('.exercise-inputs');
+
+            switch (type) {
+                case 'esercizi':
+                    state.currentExercise = generateArithmeticProblem(state.difficulty);
+                    inputsEl.innerHTML = `<input type="number" class="custom-input w-full sm:flex-1 py-3 px-4 rounded-xl text-center" placeholder="${translations[state.language].arithmetic_answer_placeholder}">`;
+                    break;
+                case 'espressioni':
+                    state.currentExercise = generateExpression(state.difficulty);
+                    inputsEl.innerHTML = `<input type="number" class="custom-input w-full sm:flex-1 py-3 px-4 rounded-xl text-center" placeholder="${translations[state.language].expressions_answer_placeholder}">`;
+                    break;
+                case 'proporzioni':
+                    state.currentExercise = generateProportion(state.difficulty);
+                    inputsEl.innerHTML = `<input type="number" class="custom-input w-full sm:flex-1 py-3 px-4 rounded-xl text-center" placeholder="${translations[state.language].proportions_answer_placeholder}">`;
+                    break;
+                case 'sistemi':
+                    state.currentExercise = generateSystem(state.difficulty);
+                    inputsEl.innerHTML = `
+                        <input type="number" class="custom-input w-full sm:flex-1 py-3 px-4 rounded-xl text-center" placeholder="${translations[state.language].systems_answer_x_placeholder}" data-variable="x">
+                        <input type="number" class="custom-input w-full sm:flex-1 py-3 px-4 rounded-xl text-center" placeholder="${translations[state.language].systems_answer_y_placeholder}" data-variable="y">
+                    `;
+                    break;
+            }
+            problemEl.innerHTML = formatLatex(state.currentExercise.problem);
+            
+            checkButton.onclick = () => checkAnswer(type, container);
+            newButton.onclick = () => generateExercise(type);
+            hintButton.onclick = () => showHint(type, explanationBox);
         };
 
-        initApp();
+        const generateArithmeticProblem = (difficulty) => {
+            let num1, num2, op, result;
+            const ops = ['+', '-', '*', '/'];
+            if (difficulty === 'facile') {
+                op = shuffle(['+', '-'])[0];
+                num1 = randomInt(1, 20);
+                num2 = randomInt(1, 20);
+                if (op === '-') num1 += num2;
+                result = op === '+' ? num1 + num2 : num1 - num2;
+            } else if (difficulty === 'medio') {
+                op = shuffle(ops)[0];
+                num1 = randomInt(1, 50);
+                num2 = randomInt(1, 50);
+                if (op === '-') num1 += num2;
+                if (op === '/') {
+                    num1 = num2 * randomInt(1, 10);
+                }
+                result = op === '+' ? num1 + num2 : op === '-' ? num1 - num2 : op === '*' ? num1 * num2 : num1 / num2;
+            } else {
+                op = shuffle(ops)[0];
+                num1 = randomInt(10, 100);
+                num2 = randomInt(10, 100);
+                if (op === '-') num1 += num2;
+                if (op === '/') {
+                    num1 = num2 * randomInt(10, 20);
+                }
+                result = op === '+' ? num1 + num2 : op === '-' ? num1 - num2 : op === '*' ? num1 * num2 : num1 / num2;
+            }
+            return {
+                problem: `${num1} ${op} ${num2} = ?`,
+                solution: result,
+                type: 'single',
+                op: op
+            };
+        };
+
+        const generateExpression = (difficulty) => {
+            let problem, result;
+            const ops = ['+', '-', '*', '/'];
+            if (difficulty === 'facile') {
+                const a = randomInt(1, 10), b = randomInt(1, 10), c = randomInt(1, 10);
+                const op1 = shuffle(ops.slice(0, 2))[0], op2 = shuffle(ops.slice(0, 2))[0];
+                problem = `${a} ${op1} (${b} ${op2} ${c})`;
+                result = eval(problem);
+            } else if (difficulty === 'medio') {
+                const a = randomInt(1, 10), b = randomInt(1, 10), c = randomInt(1, 10), d = randomInt(1, 10);
+                const op1 = shuffle(ops)[0], op2 = shuffle(ops)[0], op3 = shuffle(ops)[0];
+                problem = `${a} ${op1} ${b} ${op2} (${c} ${op3} ${d})`;
+                result = eval(problem);
+            } else {
+                const a = randomInt(1, 20), b = randomInt(1, 20), c = randomInt(1, 20), d = randomInt(1, 20), e = randomInt(1, 20);
+                const op1 = shuffle(ops)[0], op2 = shuffle(ops)[0], op3 = shuffle(ops)[0], op4 = shuffle(ops)[0];
+                problem = `(${a} ${op1} ${b}) ${op2} ${c} ${op3} (${d} ${op4} ${e})`;
+                result = eval(problem);
+            }
+            return { problem: problem, solution: result, type: 'single' };
+        };
+
+        const generateProportion = (difficulty) => {
+            let a, b, c, x;
+            if (difficulty === 'facile') {
+                a = randomInt(1, 10);
+                b = randomInt(1, 10);
+                c = randomInt(1, 10);
+                x = (b * c) / a;
+            } else if (difficulty === 'medio') {
+                a = randomInt(1, 20);
+                b = randomInt(1, 20);
+                c = randomInt(1, 20);
+                x = (b * c) / a;
+            } else {
+                a = randomInt(1, 50);
+                b = randomInt(1, 50);
+                c = randomInt(1, 50);
+                x = (b * c) / a;
+            }
+            return {
+                problem: `${a} : ${b} = ${c} : x`,
+                solution: x,
+                type: 'single'
+            };
+        };
+        
+        const generateSystem = (difficulty) => {
+            let x, y, a1, b1, c1, a2, b2, c2;
+            if (difficulty === 'facile') {
+                x = randomInt(1, 5);
+                y = randomInt(1, 5);
+            } else if (difficulty === 'medio') {
+                x = randomInt(1, 10);
+                y = randomInt(1, 10);
+            } else {
+                x = randomInt(1, 20);
+                y = randomInt(1, 20);
+            }
+
+            a1 = randomInt(1, 5);
+            b1 = randomInt(1, 5);
+            c1 = a1 * x + b1 * y;
+
+            a2 = randomInt(1, 5);
+            b2 = randomInt(1, 5);
+            c2 = a2 * x + b2 * y;
+
+            // Evita equazioni identiche o dipendenti linearmente
+            if ((a1 * b2) === (a2 * b1)) {
+                return generateSystem(difficulty);
+            }
+
+            const eq1 = `${a1}x + ${b1}y = ${c1}`;
+            const eq2 = `${a2}x + ${b2}y = ${c2}`;
+
+            return {
+                problem: `\\begin{cases} ${eq1} \\\\ ${eq2} \\end{cases}`,
+                solution: { x: x, y: y },
+                type: 'multiple'
+            };
+        };
+
+        const checkAnswer = async (type, container) => {
+            const inputs = container.querySelectorAll('.custom-input');
+            const resultBox = container.querySelector('.result-box');
+            let isCorrect = false;
+
+            if (inputs.length === 1) {
+                const answer = parseFloat(inputs[0].value);
+                if (isNaN(answer)) {
+                    showFeedback(resultBox, translations[state.language].feedback_warning_empty, 'warning');
+                    return;
+                }
+                isCorrect = answer === state.currentExercise.solution;
+            } else if (inputs.length === 2) {
+                const answerX = parseFloat(inputs[0].value);
+                const answerY = parseFloat(inputs[1].value);
+                if (isNaN(answerX) || isNaN(answerY)) {
+                    showFeedback(resultBox, translations[state.language].feedback_warning_empty, 'warning');
+                    return;
+                }
+                isCorrect = answerX === state.currentExercise.solution.x && answerY === state.currentExercise.solution.y;
+            }
+
+            state.stats.exercisesDone++;
+            if (isCorrect) {
+                state.stats.correctAnswers++;
+                state.stats.totalScore += 10;
+                showFeedback(resultBox, translations[state.language].feedback_correct, 'correct');
+                container.querySelector('.exercise-problem').classList.add('correct-animation');
+            } else {
+                let solutionString;
+                if (state.currentExercise.type === 'single') {
+                    solutionString = state.currentExercise.solution;
+                } else {
+                    solutionString = `x=${state.currentExercise.solution.x}, y=${state.currentExercise.solution.y}`;
+                }
+                state.stats.totalScore = Math.max(0, state.stats.totalScore - 5);
+                showFeedback(resultBox, translations[state.language].feedback_incorrect(solutionString), 'incorrect');
+                container.querySelector('.exercise-problem').classList.add('incorrect-animation');
+            }
+
+            updateStatsUI();
+            await saveStats(auth.currentUser.uid);
+            
+            setTimeout(() => {
+                container.querySelector('.exercise-problem').classList.remove('correct-animation', 'incorrect-animation');
+            }, 500);
+        };
+
+        const showFeedback = (element, message, type) => {
+            element.classList.remove('feedback-correct', 'feedback-incorrect', 'feedback-warning', 'scale-95', 'opacity-0');
+            element.textContent = message;
+            element.classList.add(`feedback-${type}`, 'scale-100', 'opacity-100');
+        };
+
+        const showHint = (type, explanationBox) => {
+            let hint;
+            const prob = state.currentExercise.problem;
+            const sol = state.currentExercise.solution;
+
+            if (type === 'esercizi') {
+                let op = state.currentExercise.op;
+                op = op === '+' ? 'addizione' : op === '-' ? 'sottrazione' : op === '*' ? 'moltiplicazione' : 'divisione';
+                hint = translations[state.language].arithmetic_hint(op);
+            } else if (type === 'espressioni') {
+                hint = translations[state.language].expressions_hint(prob, sol);
+            } else if (type === 'proporzioni') {
+                hint = translations[state.language].proportions_hint(prob, sol);
+            } else if (type === 'sistemi') {
+                hint = translations[state.language].systems_hint(prob, sol);
+            }
+            explanationBox.innerHTML = hint;
+            explanationBox.classList.remove('hidden');
+        };
     </script>
 </body>
 </html>
-
