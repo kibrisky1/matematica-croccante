@@ -395,7 +395,7 @@
 
         // Variabili globali per l'ambiente Canvas
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
         let app;
@@ -588,7 +588,7 @@ La risposta corretta è ${result}.`,
 Problema: ${problem}
 Passaggi:
 1. Moltiplica i termini centrali (medi) e i termini esterni (estremi).
-2.  ${problem} -> $${problem.split(':')[1]} \times ${problem.split(':')[2].split('=')[0]} = ${problem.split(':')[0]} \times x$
+2.  ${problem} -> $${problem.split(':')[1]} \\times ${problem.split(':')[2].split('=')[0]} = ${problem.split(':')[0]} \\times x$
 3. Risolvi l'equazione per $x$.
 La risposta corretta è ${result}.`,
                 systems_hint: (problem, result) => `Ci sono diversi metodi per risolvere un sistema. Prova il metodo di sostituzione.
@@ -605,7 +605,8 @@ ${problem.formula}
 Sostituisci i valori dati nell'esercizio: ${problem.values} e calcola.
 La risposta corretta è ${result}.`,
                 user_id_label: 'ID Utente:',
-                authenticated_user: 'Benvenuto, '
+                authenticated_user: 'Benvenuto, ',
+                offline_mode: 'Modalità Offline'
             },
             'en': {
                 title: 'Math Tutor', auth_title: 'Welcome!', auth_subtitle: 'Login to save your progress or continue as a guest.',
@@ -645,7 +646,7 @@ The correct answer is ${result}.`,
 Problem: ${problem}
 Steps:
 1. Multiply the middle terms (means) and the outer terms (extremes).
-2. ${problem} -> $${problem.split(':')[1]} \times ${problem.split(':')[2].split('=')[0]} = ${problem.split(':')[0]} \times x$
+2. ${problem} -> $${problem.split(':')[1]} \\times ${problem.split(':')[2].split('=')[0]} = ${problem.split(':')[0]} \\times x$
 3. Solve the equation for $x$.
 The correct answer is ${result}.`,
                 systems_hint: (problem, result) => `There are several methods to solve a system. Try the substitution method.
@@ -662,18 +663,35 @@ ${problem.formula}
 Substitute the given values from the exercise: ${problem.values} and calculate.
 The correct answer is ${result}.`,
                 user_id_label: 'User ID:',
-                authenticated_user: 'Welcome, '
+                authenticated_user: 'Welcome, ',
+                offline_mode: 'Offline Mode'
             },
         };
 
 
         // --- Gestione Autenticazione e UI ---
         const setupFirebase = async () => {
+            // Controlla se la configurazione è disponibile
+            if (!firebaseConfig) {
+                console.error("Firebase config is not defined. Switching to offline mode.");
+                showMessageBox(translations[state.language].offline_mode + ". " + translations[state.language].convert_account);
+                
+                // Disabilita i form di autenticazione e i pulsanti
+                elements.loginForm.classList.add('hidden');
+                elements.registerForm.classList.add('hidden');
+                elements.guestBtn.classList.add('hidden');
+                elements.logoutBtn.classList.add('hidden');
+                
+                // Imposta l'UI per mostrare che siamo offline
+                elements.userStatusDisplay.innerText = translations[state.language].offline_mode;
+                elements.userIdDisplay.innerText = "ID: N/A";
+                elements.userIdDisplay.classList.remove('hidden');
+
+                updateUI(true); // Simula l'autenticazione per mostrare l'UI principale
+                return;
+            }
+
             try {
-                if (Object.keys(firebaseConfig).length === 0) {
-                    console.error("Firebase config is not defined.");
-                    return;
-                }
                 app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
@@ -742,11 +760,11 @@ The correct answer is ${result}.`,
             elements.mainUI.classList.toggle('hidden', !isAuthenticated);
 
             if (isAuthenticated) {
-                if (user.isAnonymous) {
+                if (user && user.isAnonymous) {
                     elements.userStatusDisplay.innerText = translations[state.language].guest_mode;
                     elements.userIdDisplay.innerText = `${translations[state.language].user_id_label} ${user.uid}`;
                     elements.userIdDisplay.classList.remove('hidden');
-                } else {
+                } else if (user && user.email) {
                     elements.userStatusDisplay.innerText = translations[state.language].authenticated_user + user.email;
                     elements.userIdDisplay.classList.add('hidden');
                 }
@@ -762,7 +780,9 @@ The correct answer is ${result}.`,
                 state.stats.totalScore -= 5;
                 if (state.stats.totalScore < 0) state.stats.totalScore = 0;
             }
-            updateStatsInFirestore();
+            if (firebaseConfig) {
+                updateStatsInFirestore();
+            }
         };
 
         const updateStatsDisplay = () => {
