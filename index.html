@@ -223,27 +223,27 @@
 
             <!-- Template per Sezioni di Esercizi (sarà clonato) -->
             <div id="exercise-template" class="hidden">
-                    <div class="max-w-2xl mx-auto flex flex-col justify-center h-full">
-                        <div class="bg-slate-900/50 rounded-xl p-6 border border-slate-700/50">
-                            <div class="text-center mb-5">
-                                <p class="exercise-label text-lg font-medium text-slate-400 mb-2"></p>
-                                <div class="exercise-problem text-4xl font-bold text-indigo-300 p-4 bg-slate-800/50 rounded-lg shadow-sm flex flex-col justify-center items-center"></div>
-                            </div>
+                <div class="max-w-2xl mx-auto flex flex-col justify-center h-full">
+                    <div class="bg-slate-900/50 rounded-xl p-6 border border-slate-700/50">
+                        <div class="text-center mb-5">
+                            <p class="exercise-label text-lg font-medium text-slate-400 mb-2"></p>
+                            <div class="exercise-problem text-4xl font-bold text-indigo-300 p-4 bg-slate-800/50 rounded-lg shadow-sm flex flex-col justify-center items-center"></div>
+                        </div>
 
-                            <div class="exercise-inputs flex flex-col sm:flex-row items-center gap-4 mb-4">
-                                <!-- Gli input verranno inseriti qui dinamicamente -->
-                            </div>
-                            <button class="check-button w-full bg-gradient-to-r from-primary-start to-primary-end text-white font-bold py-3 px-6 rounded-xl shadow-lg hover:from-primary-hover-start hover:to-primary-hover-end transition-all duration-300 transform hover:scale-105" data-i18n="button_check">Verifica</button>
+                        <div class="exercise-inputs flex flex-col sm:flex-row items-center gap-4 mb-4">
+                            <!-- Gli input verranno inseriti qui dinamicamente -->
+                        </div>
+                        <button class="check-button w-full bg-gradient-to-r from-primary-start to-primary-end text-white font-bold py-3 px-6 rounded-xl shadow-lg hover:from-primary-hover-start hover:to-primary-hover-end transition-all duration-300 transform hover:scale-105" data-i18n="button_check">Verifica</button>
 
-                            <div class="flex justify-center gap-4 mt-4">
-                                <button class="new-button w-auto bg-slate-700 text-slate-300 font-medium py-2 px-5 rounded-full hover:bg-slate-600 transition-colors duration-200" data-i18n="button_new">Nuovo Esercizio</button>
-                                <button class="hint-button w-auto bg-amber-500/80 text-white font-medium py-2 px-5 rounded-full hover:bg-amber-500 transition-colors duration-200" data-i18n="button_hint">Suggerimento</button>
-                            </div>
+                        <div class="flex justify-center gap-4 mt-4">
+                            <button class="new-button w-auto bg-slate-700 text-slate-300 font-medium py-2 px-5 rounded-full hover:bg-slate-600 transition-colors duration-200" data-i18n="button_new">Nuovo Esercizio</button>
+                            <button class="hint-button w-auto bg-amber-500/80 text-white font-medium py-2 px-5 rounded-full hover:bg-amber-500 transition-colors duration-200" data-i18n="button_hint">Suggerimento</button>
+                        </div>
 
-                            <div class="result-box mt-5 p-4 rounded-lg text-center font-bold text-base transition-all duration-300 scale-95 opacity-0"></div>
-                            <div class="hint-box mt-4 p-4 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 hidden"></div>
-                       </div>
+                        <div class="result-box mt-5 p-4 rounded-lg text-center font-bold text-base transition-all duration-300 scale-95 opacity-0"></div>
+                        <div class="hint-box mt-4 p-4 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 hidden"></div>
                     </div>
+                </div>
             </div>
 
             <!-- Contenitori per le sezioni -->
@@ -261,12 +261,37 @@
         // --- Funzioni di utilità ---
         const randomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
         const shuffle = (array) => array.sort(() => Math.random() - 0.5);
-        const formatLatex = (str) => {
-            const temp = document.createElement('div');
-            temp.innerHTML = `$$${str}$$`;
-            return temp.innerHTML;
+        
+        // This function creates a message box instead of using the `alert()` function,
+        // which is not visible in this environment.
+        const showMessageBox = (message, type = 'info') => {
+            const messageBox = document.createElement('div');
+            messageBox.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background-color: #fff;
+                color: #333;
+                padding: 20px;
+                border-radius: 10px;
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+                z-index: 1000;
+                font-family: 'Poppins', sans-serif;
+                text-align: center;
+                max-width: 80%;
+            `;
+            if (type === 'error') {
+                messageBox.style.backgroundColor = '#fca5a5';
+                messageBox.style.color = '#7f1d1d';
+            }
+            messageBox.innerHTML = `
+                <p>${message}</p>
+                <button onclick="this.parentElement.remove()" style="margin-top: 15px; padding: 8px 16px; background-color: #f3f4f6; border: none; border-radius: 5px; cursor: pointer;">Chiudi</button>
+            `;
+            document.body.appendChild(messageBox);
         };
-
+        
         // --- INIZIO SCRIPT SFONDO DINAMICO ---
         const canvas = document.getElementById('background-canvas');
         if (canvas) {
@@ -491,6 +516,14 @@
                     el.textContent = translations[lang][key];
                 }
             });
+            // Update placeholders and other dynamic text
+            const inputs = document.querySelectorAll('.custom-input');
+            inputs.forEach(input => {
+                const placeholderKey = input.getAttribute('data-i18n-placeholder');
+                if (placeholderKey && translations[lang][placeholderKey]) {
+                    input.placeholder = translations[lang][placeholderKey];
+                }
+            });
         };
 
         const showSection = (id) => {
@@ -520,205 +553,285 @@
         const renderExercise = (id, problemHtml, inputsHtml) => {
             clearSection(id);
             const clone = elements.exerciseTemplate.cloneNode(true);
-            clone.id = '';
+            clone.id = `exercise-${id}`;
             clone.classList.remove('hidden');
             clone.querySelector('.exercise-problem').innerHTML = problemHtml;
             clone.querySelector('.exercise-inputs').innerHTML = inputsHtml;
 
             const labelKey = `${id}_exercise_label`;
             const labelEl = clone.querySelector('.exercise-label');
-            labelEl.textContent = translations[state.language][labelKey];
+            if (translations[state.language][labelKey]) {
+                labelEl.textContent = translations[state.language][labelKey];
+            } else {
+                labelEl.textContent = ' ';
+            }
 
             document.getElementById(`section-${id}`).appendChild(clone);
             MathJax.typesetPromise([clone]);
         };
 
+        // --- Generator Functions ---
+
         const generateArithmetic = () => {
-            let num1, num2, operation, result;
+            let num1, num2, operation, result, problemString, opString;
             const ops = ['+', '-', '×', '÷'];
-            if (state.difficulty === 'facile') {
+            const difficulty = state.difficulty;
+
+            if (difficulty === 'facile') {
                 num1 = randomInt(1, 20);
                 num2 = randomInt(1, 20);
                 operation = ops[randomInt(0, 1)];
+                opString = operation === '+' ? 'addizione' : 'sottrazione';
                 result = operation === '+' ? num1 + num2 : num1 - num2;
-            } else if (state.difficulty === 'medio') {
+            } else if (difficulty === 'medio') {
                 num1 = randomInt(1, 50);
-                num2 = randomInt(1, 50);
+                num2 = randomInt(1, 10);
                 operation = ops[randomInt(0, 2)];
-                result = operation === '+' ? num1 + num2 : operation === '-' ? num1 - num2 : num1 * num2;
-            } else {
-                num1 = randomInt(10, 100);
-                num2 = randomInt(10, 100);
+                if (operation === '×') {
+                    opString = 'moltiplicazione';
+                    result = num1 * num2;
+                } else {
+                    opString = operation === '+' ? 'addizione' : 'sottrazione';
+                    result = operation === '+' ? num1 + num2 : num1 - num2;
+                }
+            } else { // difficile
+                num1 = randomInt(1, 100);
+                num2 = randomInt(1, 10);
                 operation = ops[randomInt(0, 3)];
                 if (operation === '÷') {
-                    const divisor = randomInt(2, 10);
-                    num1 = num2 * divisor;
-                    result = divisor;
+                    num1 = num1 * num2; // Ensure integer division
+                    opString = 'divisione';
+                } else if (operation === '×') {
+                    opString = 'moltiplicazione';
                 } else {
-                    result = operation === '+' ? num1 + num2 : operation === '-' ? num1 - num2 : num1 * num2;
+                    opString = operation === '+' ? 'addizione' : 'sottrazione';
                 }
+                result = operation === '+' ? num1 + num2 : operation === '-' ? num1 - num2 : operation === '×' ? num1 * num2 : num1 / num2;
             }
-            state.currentExercise = { answer: result, hint: translations[state.language].arithmetic_hint(operation === '+' ? 'addizione' : operation === '-' ? 'sottrazione' : operation === '×' ? 'moltiplicazione' : 'divisione') };
-            const problemHtml = `${num1} ${operation} ${num2} = ?`;
-            const inputsHtml = `<input type="number" class="custom-input flex-1 w-full px-4 py-2 rounded-lg" placeholder="${translations[state.language].arithmetic_answer_placeholder}">`;
-            renderExercise('esercizi', problemHtml, inputsHtml);
+            problemString = `$$${num1} ${operation} ${num2} = ?$$`;
+            return {
+                problem: problemString,
+                answer: result.toString(),
+                inputs: `<input type="number" step="any" class="custom-input flex-1 w-full text-center p-3 rounded-lg" data-i18n-placeholder="arithmetic_answer_placeholder" placeholder="${translations[state.language].arithmetic_answer_placeholder}" />`,
+                hint: translations[state.language].arithmetic_hint(opString)
+            };
         };
 
-        const generateExpression = () => {
-            let expr, result;
-            if (state.difficulty === 'facile') {
-                let a = randomInt(2, 10), b = randomInt(2, 10), c = randomInt(2, 10);
-                expr = `(${a} + ${b}) × ${c}`;
-                result = (a + b) * c;
-            } else if (state.difficulty === 'medio') {
-                let a = randomInt(5, 15), b = randomInt(5, 15), c = randomInt(2, 5), d = randomInt(1, 5);
-                expr = `${a} × ${b} + (${c} - ${d})`;
-                result = a * b + (c - d);
+        const generateExpressions = () => {
+            let expression, result;
+            const ops = ['+', '-', '*', '/'];
+            const difficulty = state.difficulty;
+            let numCount;
+
+            if (difficulty === 'facile') {
+                numCount = 3;
+            } else if (difficulty === 'medio') {
+                numCount = 4;
+            } else { // difficile
+                numCount = 5;
+            }
+
+            const nums = Array.from({ length: numCount }, () => randomInt(1, 10));
+            const exprParts = [];
+            for (let i = 0; i < numCount - 1; i++) {
+                exprParts.push(nums[i]);
+                exprParts.push(ops[randomInt(0, ops.length - 1)]);
+            }
+            exprParts.push(nums[numCount - 1]);
+
+            // Add parentheses for higher difficulty
+            if (difficulty === 'medio' || difficulty === 'difficile') {
+                const openIndex = randomInt(0, numCount - 2);
+                const closeIndex = randomInt(openIndex + 1, numCount - 1);
+                exprParts[openIndex * 2] = '(' + exprParts[openIndex * 2];
+                exprParts[closeIndex * 2] = exprParts[closeIndex * 2] + ')';
+            }
+
+            expression = exprParts.join(' ');
+            try {
+                // Use a safe `eval` to compute the result of the expression
+                const cleanExpr = expression.replace(/×/g, '*').replace(/÷/g, '/');
+                result = eval(cleanExpr);
+            } catch (e) {
+                // Recurse if the expression is invalid
+                return generateExpressions();
+            }
+
+            const problemString = `$$${expression.replace(/\*/g, '\\times ').replace(/\//g, '\\div ')}$$`;
+            return {
+                problem: problemString,
+                answer: result.toString(),
+                inputs: `<input type="number" step="any" class="custom-input flex-1 w-full text-center p-3 rounded-lg" data-i18n-placeholder="expressions_answer_placeholder" placeholder="${translations[state.language].expressions_answer_placeholder}" />`,
+                hint: translations[state.language].expressions_hint
+            };
+        };
+
+        const generateProportions = () => {
+            let a, b, c, x, problemString;
+            const difficulty = state.difficulty;
+            if (difficulty === 'facile') {
+                a = randomInt(1, 10);
+                b = randomInt(1, 10);
+                c = a * b;
+            } else if (difficulty === 'medio') {
+                a = randomInt(1, 20);
+                b = randomInt(1, 20);
+                c = a * b;
+            } else { // difficile
+                a = randomInt(1, 50);
+                b = randomInt(1, 50);
+                c = a * b;
+            }
+            x = c / a;
+            problemString = `$$\\frac{x}{${b}} = \\frac{${c}}{${a}}$$`;
+
+            // Randomly place 'x'
+            const patterns = [
+                `$$\\frac{x}{${b}} = \\frac{${c}}{${a}}$$`,
+                `$$\\frac{${a}}{x} = \\frac{${b}}{${c}}$$`,
+                `$$\\frac{${a}}{${b}} = \\frac{x}{${c}}$$`,
+                `$$\\frac{${a}}{${b}} = \\frac{${c}}{x}$$`
+            ];
+            problemString = patterns[randomInt(0, 3)];
+            
+            // Re-calculate x based on the pattern
+            if (problemString.includes('x}}{')) {
+                x = (b * c) / a;
+            } else if (problemString.includes('x} =')) {
+                x = (a * c) / b;
+            } else if (problemString.includes('x}}$$')) {
+                x = (b * c) / a;
             } else {
-                let a = randomInt(10, 20), b = randomInt(2, 10), c = randomInt(2, 5), d = randomInt(1, 5), e = randomInt(1, 5);
-                expr = `${a} ÷ ${b} + ${c} × (${d} + ${e})`;
-                result = a / b + c * (d + e);
+                 x = (a * c) / b;
             }
-            state.currentExercise = { answer: result, hint: translations[state.language].expressions_hint };
-            const problemHtml = `${expr}`;
-            const inputsHtml = `<input type="number" class="custom-input flex-1 w-full px-4 py-2 rounded-lg" placeholder="${translations[state.language].expressions_answer_placeholder}">`;
-            renderExercise('espressioni', problemHtml, inputsHtml);
+            
+            return {
+                problem: problemString,
+                answer: x.toString(),
+                inputs: `<input type="number" step="any" class="custom-input flex-1 w-full text-center p-3 rounded-lg" data-i18n-placeholder="proportions_answer_placeholder" placeholder="${translations[state.language].proportions_answer_placeholder}" />`,
+                hint: translations[state.language].proportions_hint
+            };
         };
-
-        const generateProportion = () => {
-            let a, b, c, result;
-            if (state.difficulty === 'facile') {
-                a = randomInt(2, 10);
-                b = randomInt(2, 10);
-                c = randomInt(2, 10);
-                result = (b * c) / a;
-            } else if (state.difficulty === 'medio') {
-                a = randomInt(5, 20);
-                b = randomInt(5, 20);
-                c = randomInt(5, 20);
-                result = (b * c) / a;
-            } else {
-                a = randomInt(10, 50);
-                b = randomInt(10, 50);
-                c = randomInt(10, 50);
-                result = (b * c) / a;
-            }
-            state.currentExercise = { answer: result, hint: translations[state.language].proportions_hint };
-            const problemHtml = `$$${a} : ${b} = ${c} : x$$`;
-            const inputsHtml = `<input type="number" class="custom-input flex-1 w-full px-4 py-2 rounded-lg" placeholder="${translations[state.language].proportions_answer_placeholder}">`;
-            renderExercise('proporzioni', problemHtml, inputsHtml);
-        };
-
 
         const generateSystems = () => {
-            let x, y, eq1, eq2;
-            if (state.difficulty === 'facile') {
-                x = randomInt(1, 5);
-                y = randomInt(1, 5);
-                eq1 = `x + y = ${x + y}`;
-                eq2 = `x - y = ${x - y}`;
-            } else if (state.difficulty === 'medio') {
-                x = randomInt(1, 10);
-                y = randomInt(1, 10);
-                eq1 = `2x + y = ${2 * x + y}`;
-                eq2 = `x + 3y = ${x + 3 * y}`;
-            } else {
-                x = randomInt(5, 15);
-                y = randomInt(5, 15);
-                eq1 = `3x - 2y = ${3 * x - 2 * y}`;
-                eq2 = `x + y = ${x + y}`;
+            let x, y, a1, b1, c1, a2, b2, c2;
+            x = randomInt(-5, 5);
+            y = randomInt(-5, 5);
+            const difficulty = state.difficulty;
+
+            if (difficulty === 'facile') {
+                a1 = randomInt(1, 3);
+                b1 = randomInt(1, 3);
+                a2 = randomInt(1, 3);
+                b2 = randomInt(1, 3);
+            } else if (difficulty === 'medio') {
+                a1 = randomInt(1, 5);
+                b1 = randomInt(1, 5);
+                a2 = randomInt(1, 5);
+                b2 = randomInt(1, 5);
+            } else { // difficile
+                a1 = randomInt(1, 10);
+                b1 = randomInt(1, 10);
+                a2 = randomInt(1, 10);
+                b2 = randomInt(1, 10);
             }
-            state.currentExercise = { answer: [x, y], hint: translations[state.language].systems_hint, type: 'systems' };
-            const problemHtml = `
-                <div class="flex flex-col items-center">
-                    <p>$$ \\begin{cases} ${eq1} \\\\ ${eq2} \\end{cases} $$</p>
-                </div>
-            `;
-            const inputsHtml = `
-                <input type="number" class="custom-input flex-1 w-full px-4 py-2 rounded-lg" placeholder="${translations[state.language].systems_answer_x_placeholder}">
-                <input type="number" class="custom-input flex-1 w-full px-4 py-2 rounded-lg" placeholder="${translations[state.language].systems_answer_y_placeholder}">
-            `;
-            renderExercise('sistemi', problemHtml, inputsHtml);
-        };
 
-        const checkAnswer = (inputs) => {
-            const resultBox = document.querySelector('.result-box');
-            resultBox.classList.remove('feedback-correct', 'feedback-incorrect', 'feedback-warning');
-            resultBox.classList.add('scale-95', 'opacity-0');
+            c1 = a1 * x + b1 * y;
+            c2 = a2 * x + b2 * y;
 
-            if (state.currentExercise.type === 'systems') {
-                const answerX = parseFloat(inputs[0].value);
-                const answerY = parseFloat(inputs[1].value);
-                if (isNaN(answerX) || isNaN(answerY)) {
-                    showFeedback('warning', translations[state.language].feedback_warning_empty);
-                    return;
-                }
-                if (answerX === state.currentExercise.answer[0] && answerY === state.currentExercise.answer[1]) {
-                    showFeedback('correct', translations[state.language].feedback_correct);
-                } else {
-                    showFeedback('incorrect', translations[state.language].feedback_incorrect);
-                }
-            } else {
-                const answer = parseFloat(inputs[0].value);
-                if (isNaN(answer)) {
-                    showFeedback('warning', translations[state.language].feedback_warning_empty);
-                    return;
-                }
-                if (answer === state.currentExercise.answer) {
-                    showFeedback('correct', translations[state.language].feedback_correct);
-                } else {
-                    showFeedback('incorrect', translations[state.language].feedback_incorrect);
-                }
-            }
-        };
-
-        const showFeedback = (type, message) => {
-            const resultBox = document.querySelector('.result-box');
-            resultBox.textContent = message;
-            resultBox.classList.add(`feedback-${type}`);
-            resultBox.classList.remove('scale-95', 'opacity-0');
-        };
-
-        const showHint = () => {
-            const hintBox = document.querySelector('.hint-box');
-            hintBox.textContent = state.currentExercise.hint;
-            hintBox.classList.remove('hidden');
-            MathJax.typesetPromise([hintBox]);
-        };
-
-        const initializeSection = (id) => {
-            const generators = {
-                'esercizi': generateArithmetic,
-                'espressioni': generateExpression,
-                'proporzioni': generateProportion,
-                'sistemi': generateSystems,
+            const problemString = `$$\\begin{cases} ${a1}x + ${b1}y = ${c1} \\\\ ${a2}x + ${b2}y = ${c2} \\end{cases}$$`;
+            return {
+                problem: problemString,
+                answer: { x: x.toString(), y: y.toString() },
+                inputs: `
+                    <input type="number" step="any" class="custom-input flex-1 w-full text-center p-3 rounded-lg" data-i18n-placeholder="systems_answer_x_placeholder" placeholder="${translations[state.language].systems_answer_x_placeholder}" />
+                    <input type="number" step="any" class="custom-input flex-1 w-full text-center p-3 rounded-lg" data-i18n-placeholder="systems_answer_y_placeholder" placeholder="${translations[state.language].systems_answer_y_placeholder}" />
+                `,
+                hint: translations[state.language].systems_hint
             };
-            if (generators[id]) {
-                generators[id]();
-                document.querySelector('.check-button').addEventListener('click', () => {
-                    const inputs = document.querySelectorAll('#section-' + id + ' .custom-input');
-                    checkAnswer(inputs);
-                });
-                document.querySelector('.new-button').addEventListener('click', () => {
-                    generators[id]();
-                    document.querySelector('.result-box').classList.add('scale-95', 'opacity-0');
-                    document.querySelector('.hint-box').classList.add('hidden');
-                });
-                document.querySelector('.hint-button').addEventListener('click', showHint);
+        };
+
+        const generateExercise = (id) => {
+            let exercise;
+            if (id === 'esercizi') {
+                exercise = generateArithmetic();
+            } else if (id === 'espressioni') {
+                exercise = generateExpressions();
+            } else if (id === 'proporzioni') {
+                exercise = generateProportions();
+            } else if (id === 'sistemi') {
+                exercise = generateSystems();
             }
+            state.currentExercise = { id, ...exercise };
+            renderExercise(id, exercise.problem, exercise.inputs);
+        };
+
+        const handleCheck = (event) => {
+            const container = event.target.closest('.section-container');
+            const resultBox = container.querySelector('.result-box');
+            const inputs = container.querySelectorAll('.custom-input');
+            const userAnswers = Array.from(inputs).map(input => input.value.trim());
+
+            resultBox.style.transform = 'scale(0.95)';
+            resultBox.style.opacity = '0';
+            setTimeout(() => {
+                if (userAnswers.some(ans => ans === '')) {
+                    resultBox.textContent = translations[state.language].feedback_warning_empty;
+                    resultBox.classList.remove('feedback-correct', 'feedback-incorrect');
+                    resultBox.classList.add('feedback-warning');
+                } else {
+                    let isCorrect = false;
+                    const correctAnswers = state.currentExercise.answer;
+                    if (typeof correctAnswers === 'object') {
+                        // Systems of equations
+                        isCorrect = parseFloat(userAnswers[0]) === parseFloat(correctAnswers.x) &&
+                                    parseFloat(userAnswers[1]) === parseFloat(correctAnswers.y);
+                    } else {
+                        // All other exercises
+                        isCorrect = parseFloat(userAnswers[0]) === parseFloat(correctAnswers);
+                    }
+                    
+                    if (isCorrect) {
+                        resultBox.textContent = translations[state.language].feedback_correct;
+                        resultBox.classList.remove('feedback-incorrect', 'feedback-warning');
+                        resultBox.classList.add('feedback-correct');
+                    } else {
+                        resultBox.textContent = translations[state.language].feedback_incorrect;
+                        resultBox.classList.remove('feedback-correct', 'feedback-warning');
+                        resultBox.classList.add('feedback-incorrect');
+                    }
+                }
+                resultBox.style.transform = 'scale(1)';
+                resultBox.style.opacity = '1';
+            }, 300);
+        };
+
+        const handleNew = () => {
+            const currentSectionId = sections.find(id => document.getElementById(`section-${id}`).classList.contains('active'));
+            generateExercise(currentSectionId);
+        };
+
+        const handleHint = (event) => {
+            const container = event.target.closest('.section-container');
+            const hintBox = container.querySelector('.hint-box');
+            hintBox.textContent = state.currentExercise.hint;
+            hintBox.classList.toggle('hidden');
         };
 
         // --- Event Listeners ---
+
+        // Navigation buttons
         elements.navButtons.forEach(button => {
             button.addEventListener('click', () => {
-                const id = button.id.replace('nav-', '');
-                showSection(id);
-                if (id !== 'home') {
-                    initializeSection(id);
+                const sectionId = button.id.replace('nav-', '');
+                showSection(sectionId);
+                if (sectionId !== 'home') {
+                    generateExercise(sectionId);
                 }
             });
         });
 
+        // Difficulty buttons
         elements.difficultyButtons.forEach(button => {
             button.addEventListener('click', () => {
                 elements.difficultyButtons.forEach(btn => btn.classList.remove('active'));
@@ -728,22 +841,42 @@
             });
         });
 
-        elements.languageSelector.addEventListener('change', (event) => {
-            const newLang = event.target.value;
-            state.language = newLang;
-            localStorage.setItem('language', newLang);
-            updateLanguage(newLang);
-            // Re-render current section with new language
-            const currentSection = document.querySelector('.section-container.active').id.replace('section-', '');
-            if (currentSection !== 'home') {
-                 initializeSection(currentSection);
+        // Language selector
+        elements.languageSelector.addEventListener('change', (e) => {
+            state.language = e.target.value;
+            localStorage.setItem('language', state.language);
+            updateLanguage(state.language);
+            // Re-render the current section to update exercise text
+            const currentSectionId = sections.find(id => document.getElementById(`section-${id}`).classList.contains('active'));
+            if (currentSectionId && currentSectionId !== 'home') {
+                generateExercise(currentSectionId);
             }
         });
 
-        // --- Init ---
+        // General event listener for dynamic buttons inside exercise sections
+        elements.mainContent.addEventListener('click', (event) => {
+            if (event.target.classList.contains('check-button')) {
+                handleCheck(event);
+            } else if (event.target.classList.contains('new-button')) {
+                handleNew();
+            } else if (event.target.classList.contains('hint-button')) {
+                handleHint(event);
+            }
+        });
+
+        // Initial setup
         updateLanguage(state.language);
-        elements.languageSelector.value = state.language;
-        document.querySelector(`[data-difficulty="${state.difficulty}"]`).classList.add('active');
+        elements.difficultyButtons.forEach(btn => {
+            if (btn.dataset.difficulty === state.difficulty) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+        if (state.language && elements.languageSelector) {
+            elements.languageSelector.value = state.language;
+        }
+
     });
     </script>
 </body>
