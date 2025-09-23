@@ -135,16 +135,6 @@
             font-size: 2rem;
         }
 
-        /* Stili per le SVG di geometria */
-        .geometry-svg {
-            width: 150px;
-            height: auto;
-            stroke: #c4b5fd;
-            fill: #7c3aed;
-            stroke-width: 2px;
-            margin-bottom: 1rem;
-        }
-
         /* Stili per le icone di navigazione */
         .nav-icon {
             width: 24px;
@@ -182,13 +172,6 @@
                 </button>
                 <button id="nav-proporzioni" class="nav-button flex items-center justify-center lg:justify-start gap-3 p-3 rounded-lg font-semibold">
                     <i data-lucide="ratio"></i> <span class="hidden lg:inline" data-i18n="nav_proportions">Proporzioni</span>
-                </button>
-                <button id="nav-geometria" class="nav-button flex items-center justify-center lg:justify-start gap-3 p-3 rounded-lg font-semibold">
-                    <svg class="nav-icon" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
-                        <polygon points="50,10 90,90 10,90" />
-                        <rect x="5" y="5" width="90" height="90" rx="10" ry="10" />
-                    </svg>
-                    <span class="hidden lg:inline" data-i18n="nav_geometry">Geometria</span>
                 </button>
                 <button id="nav-sistemi" class="nav-button flex items-center justify-center lg:justify-start gap-3 p-3 rounded-lg font-semibold">
                     <i data-lucide="braces"></i> <span class="hidden lg:inline" data-i18n="nav_systems">Sistemi</span>
@@ -240,8 +223,8 @@
 
             <!-- Template per Sezioni di Esercizi (sarà clonato) -->
             <div id="exercise-template" class="hidden">
-                   <div class="max-w-2xl mx-auto flex flex-col justify-center h-full">
-                       <div class="bg-slate-900/50 rounded-xl p-6 border border-slate-700/50">
+                    <div class="max-w-2xl mx-auto flex flex-col justify-center h-full">
+                        <div class="bg-slate-900/50 rounded-xl p-6 border border-slate-700/50">
                             <div class="text-center mb-5">
                                 <p class="exercise-label text-lg font-medium text-slate-400 mb-2"></p>
                                 <div class="exercise-problem text-4xl font-bold text-indigo-300 p-4 bg-slate-800/50 rounded-lg shadow-sm flex flex-col justify-center items-center"></div>
@@ -260,14 +243,13 @@
                             <div class="result-box mt-5 p-4 rounded-lg text-center font-bold text-base transition-all duration-300 scale-95 opacity-0"></div>
                             <div class="hint-box mt-4 p-4 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 hidden"></div>
                        </div>
-                   </div>
+                    </div>
             </div>
 
             <!-- Contenitori per le sezioni -->
             <div id="section-esercizi" class="section-container"></div>
             <div id="section-espressioni" class="section-container"></div>
             <div id="section-proporzioni" class="section-container"></div>
-            <div id="section-geometria" class="section-container"></div>
             <div id="section-sistemi" class="section-container"></div>
 
         </main>
@@ -369,7 +351,7 @@
 
         lucide.createIcons();
 
-        const sections = ['home', 'esercizi', 'espressioni', 'proporzioni', 'geometria', 'sistemi'];
+        const sections = ['home', 'esercizi', 'espressioni', 'proporzioni', 'sistemi'];
         const state = {
             difficulty: localStorage.getItem('difficulty') || 'facile',
             language: localStorage.getItem('language') || 'it',
@@ -389,19 +371,17 @@
         const translations = {
             'it': {
                 title: 'Tutor Matematico', header_title: 'Tutor Matematico', header_subtitle: 'Impara divertendoti!',
-                nav_home: 'Home', nav_arithmetic: 'Aritmetica', nav_expressions: 'Espressioni', nav_proportions: 'Proporzioni', nav_geometry: 'Geometria', nav_systems: 'Sistemi',
+                nav_home: 'Home', nav_arithmetic: 'Aritmetica', nav_expressions: 'Espressioni', nav_proportions: 'Proporzioni', nav_systems: 'Sistemi',
                 home_welcome: 'Benvenuto!', home_intro: 'Migliora le tue competenze matematiche in modo interattivo. Scegli un argomento e una difficoltà per iniziare.',
                 home_difficulty_label: 'Seleziona il tuo livello:', language_label: 'Lingua',
                 difficulty_easy: 'Facile', difficulty_medium: 'Medio', difficulty_hard: 'Difficile',
                 arithmetic_title: 'Aritmetica', arithmetic_subtitle: 'Metti alla prova le tue abilità di calcolo.',
                 expressions_title: 'Espressioni', expressions_subtitle: 'Risolvi calcoli con più operazioni.',
                 proportions_title: 'Proporzioni', proportions_subtitle: 'Trova il termine incognito.',
-                geometry_title: 'Geometria', geometry_subtitle: 'Calcola aree e perimetri delle figure piane.',
                 systems_title: 'Sistemi di Equazioni', systems_subtitle: 'Trova le soluzioni che soddisfano più equazioni.',
                 arithmetic_exercise_label: 'Calcola il risultato:', arithmetic_answer_placeholder: 'La tua risposta',
                 expressions_exercise_label: 'Risolvi l\'espressione:', expressions_answer_placeholder: 'La tua risposta',
                 proportions_exercise_label: 'Trova il valore di x:', proportions_answer_placeholder: 'Valore di x',
-                geometry_answer_placeholder: 'La tua risposta',
                 systems_answer_x_placeholder: 'Valore di x', systems_answer_y_placeholder: 'Valore di y',
                 systems_exercise_label: 'Risolvi il sistema:',
                 button_check: 'Verifica', button_new: 'Nuovo Esercizio', button_hint: 'Suggerimento', footer_credits: 'Creato da David Miron.',
@@ -409,30 +389,21 @@
                 arithmetic_hint: (op) => `Per risolvere questo esercizio, devi eseguire l'operazione di ${op}.`,
                 expressions_hint: 'Ricorda l\'ordine delle operazioni: prima le parentesi, poi moltiplicazioni/divisioni, infine addizioni/sottrazioni.',
                 proportions_hint: 'Usa la proprietà fondamentale: il prodotto dei medi è uguale al prodotto degli estremi.',
-                geometry_hint_area: (f) => `La formula per l'area di un ${f} è base $\\times$ altezza. Per un triangolo, dividi per 2.`,
-                geometry_hint_perimeter: (f) => `Il perimetro di un ${f} è la somma di tutti i suoi lati.`,
                 systems_hint: 'Puoi usare il metodo di sostituzione: isola una variabile in un\'equazione e sostituiscila nell\'altra.',
-                figure_rectangle: 'rettangolo', figure_triangle: 'triangolo',
-                geometry_rectangle_area: (b, h) => `Calcola l'area di un rettangolo con base ${b} e altezza ${h}.`,
-                geometry_rectangle_perimeter: (b, h) => `Calcola il perimetro di un rettangolo con base ${b} e altezza ${h}.`,
-                geometry_triangle_area: (b, h) => `Calcola l'area di un triangolo con base ${b} e altezza ${h}.`,
-                geometry_triangle_perimeter: (s1, s2, s3) => `Calcola il perimetro di un triangolo con lati ${s1}, ${s2} e ${s3}.`,
             },
             'en': {
                 title: 'Math Tutor', header_title: 'Math Tutor', header_subtitle: 'Learn while having fun!',
-                nav_home: 'Home', nav_arithmetic: 'Arithmetic', nav_expressions: 'Expressions', nav_proportions: 'Proportions', nav_geometry: 'Geometry', nav_systems: 'Systems',
+                nav_home: 'Home', nav_arithmetic: 'Arithmetic', nav_expressions: 'Expressions', nav_proportions: 'Proportions', nav_systems: 'Systems',
                 home_welcome: 'Welcome!', home_intro: 'Improve your math skills interactively. Choose a topic and difficulty to start.',
                 home_difficulty_label: 'Select your level:', language_label: 'Language',
                 difficulty_easy: 'Easy', difficulty_medium: 'Medium', difficulty_hard: 'Hard',
                 arithmetic_title: 'Arithmetic', arithmetic_subtitle: 'Test your calculation skills.',
                 expressions_title: 'Expressions', expressions_subtitle: 'Solve calculations with multiple operations.',
                 proportions_title: 'Proportions', proportions_subtitle: 'Find the unknown term.',
-                geometry_title: 'Geometry', geometry_subtitle: 'Calculate areas and perimeters of plane figures.',
                 systems_title: 'Systems of Equations', systems_subtitle: 'Find solutions that satisfy multiple equations.',
                 arithmetic_exercise_label: 'Calculate the result:', arithmetic_answer_placeholder: 'Your answer',
                 expressions_exercise_label: 'Solve the expression:', expressions_answer_placeholder: 'Your answer',
                 proportions_exercise_label: 'Find the value of x:', proportions_answer_placeholder: 'Value of x',
-                geometry_answer_placeholder: 'Your answer',
                 systems_answer_x_placeholder: 'Value of x', systems_answer_y_placeholder: 'Value of y',
                 systems_exercise_label: 'Solve the system:',
                 button_check: 'Check', button_new: 'New Exercise', button_hint: 'Hint', footer_credits: 'Created by David Miron.',
@@ -440,30 +411,21 @@
                 arithmetic_hint: (op) => `To solve this exercise, you need to perform the ${op} operation.`,
                 expressions_hint: 'Remember the order of operations: parentheses first, then multiplications/divisions, and finally additions/subtractions.',
                 proportions_hint: 'Use the fundamental property: the product of the means equals the product of the extremes.',
-                geometry_hint_area: (f) => `The formula for the area of a ${f} is base $\\times$ height. For a triangle, divide by 2.`,
-                geometry_hint_perimeter: (f) => `The perimeter of a ${f} is the sum of all its sides.`,
                 systems_hint: 'You can use the substitution method: isolate a variable in one equation and substitute it into the other.',
-                figure_rectangle: 'rectangle', figure_triangle: 'triangle',
-                geometry_rectangle_area: (b, h) => `Calculate the area of a rectangle with base ${b} and height ${h}.`,
-                geometry_rectangle_perimeter: (b, h) => `Calculate the perimeter of a rectangle with base ${b} and height ${h}.`,
-                geometry_triangle_area: (b, h) => `Calculate the area of a triangle with base ${b} and height ${h}.`,
-                geometry_triangle_perimeter: (s1, s2, s3) => `Calculate the perimeter of a triangle with sides ${s1}, ${s2}, and ${s3}.`,
             },
             'es': {
                 title: 'Tutor de Matemáticas', header_title: 'Tutor de Matemáticas', header_subtitle: '¡Aprende divirtiéndote!',
-                nav_home: 'Inicio', nav_arithmetic: 'Aritmética', nav_expressions: 'Expresiones', nav_proportions: 'Proporciones', nav_geometry: 'Geometría', nav_systems: 'Sistemas',
+                nav_home: 'Inicio', nav_arithmetic: 'Aritmética', nav_expressions: 'Expresiones', nav_proportions: 'Proporciones', nav_systems: 'Sistemas',
                 home_welcome: '¡Bienvenido!', home_intro: 'Mejora tus habilidades matemáticas de forma interactiva. Elige un tema y una dificultad para empezar.',
                 home_difficulty_label: 'Selecciona tu nivel:', language_label: 'Idioma',
                 difficulty_easy: 'Fácil', difficulty_medium: 'Medio', difficulty_hard: 'Difícil',
                 arithmetic_title: 'Aritmética', arithmetic_subtitle: 'Pon a prueba tus habilidades de cálculo.',
                 expressions_title: 'Expresiones', expressions_subtitle: 'Resuelve cálculos con múltiples operaciones.',
                 proportions_title: 'Proporciones', proportions_subtitle: 'Encuentra el término desconocido.',
-                geometry_title: 'Geometría', geometry_subtitle: 'Calcula áreas y perímetros de figuras planas.',
                 systems_title: 'Sistemas de Ecuaciones', systems_subtitle: 'Encuentra soluciones que satisfagan múltiples ecuaciones.',
                 arithmetic_exercise_label: 'Calcula el resultado:', arithmetic_answer_placeholder: 'Tu respuesta',
                 expressions_exercise_label: 'Resuelve la expresión:', expressions_answer_placeholder: 'Tu respuesta',
                 proportions_exercise_label: 'Encuentra el valor de x:', proportions_answer_placeholder: 'Valor de x',
-                geometry_answer_placeholder: 'Tu respuesta',
                 systems_answer_x_placeholder: 'Valor de x', systems_answer_y_placeholder: 'Valor de y',
                 systems_exercise_label: 'Resuelve el sistema:',
                 button_check: 'Verificar', button_new: 'Nuevo Ejercicio', button_hint: 'Sugerencia', footer_credits: 'Creado por David Miron.',
@@ -471,30 +433,21 @@
                 arithmetic_hint: (op) => `Para resolver este ejercicio, necesitas realizar la operación de ${op}.`,
                 expressions_hint: 'Recuerda el orden de las operaciones: primero paréntesis, luego multiplicaciones/divisiones, y finalmente sumas/restas.',
                 proportions_hint: 'Usa la propiedad fundamental: el producto de los medios es igual al producto de los extremos.',
-                geometry_hint_area: (f) => `La fórmula para el área de un ${f} es base $\\times$ altura. Para un triángulo, divide por 2.`,
-                geometry_hint_perimeter: (f) => `El perímetro de un ${f} es la suma de todos sus lados.`,
                 systems_hint: 'Puedes usar el método de sustitución: aísla una variable en una ecuación y sustitúyela en la otra.',
-                figure_rectangle: 'rectángulo', figure_triangle: 'triángulo',
-                geometry_rectangle_area: (b, h) => `Calcula el área de un rectángulo con base ${b} y altura ${h}.`,
-                geometry_rectangle_perimeter: (b, h) => `Calcula el perímetro de un rectángulo con base ${b} y altura ${h}.`,
-                geometry_triangle_area: (b, h) => `Calcula el área de un triángulo con base ${b} y altura ${h}.`,
-                geometry_triangle_perimeter: (s1, s2, s3) => `Calcula el perímetro de un triángulo con lados ${s1}, ${s2}, y ${s3}.`,
             },
             'zh': {
                 title: '数学导师', header_title: '数学导师', header_subtitle: '寓教于乐！',
-                nav_home: '主页', nav_arithmetic: '算术', nav_expressions: '表达式', nav_proportions: '比例', nav_geometry: '几何', nav_systems: '方程组',
+                nav_home: '主页', nav_arithmetic: '算术', nav_expressions: '表达式', nav_proportions: '比例', nav_systems: '方程组',
                 home_welcome: '欢迎！', home_intro: '以互动方式提高您的数学技能。选择一个主题和难度即可开始。',
                 home_difficulty_label: '选择您的级别：', language_label: '语言',
                 difficulty_easy: '简单', difficulty_medium: '中等', difficulty_hard: '困难',
                 arithmetic_title: '算术', arithmetic_subtitle: '测试您的计算能力。',
                 expressions_title: '表达式', expressions_subtitle: '解决多重运算的计算。',
                 proportions_title: '比例', proportions_subtitle: '求未知项。',
-                geometry_title: '几何', geometry_subtitle: '计算平面图形的面积和周长。',
                 systems_title: '方程组', systems_subtitle: '找到满足多个方程的解。',
                 arithmetic_exercise_label: '计算结果：', arithmetic_answer_placeholder: '你的答案',
                 expressions_exercise_label: '解表达式：', expressions_answer_placeholder: '你的答案',
                 proportions_exercise_label: '求 x 的值：', proportions_answer_placeholder: 'x 的值',
-                geometry_answer_placeholder: '你的答案',
                 systems_answer_x_placeholder: 'x 的值', systems_answer_y_placeholder: 'y 的值',
                 systems_exercise_label: '解方程组：',
                 button_check: '检查', button_new: '新练习', button_hint: '提示', footer_credits: '由 David Miron 创建。',
@@ -502,337 +455,295 @@
                 arithmetic_hint: (op) => `要解决这个练习，你需要执行 ${op} 运算。`,
                 expressions_hint: '记住运算顺序：先括号，然后乘除，最后加减。',
                 proportions_hint: '使用基本性质：内项积等于外项积。',
-                geometry_hint_area: (f) => `一个 ${f} 的面积公式是底 $\\times$ 高。对于三角形，再除以 2。`,
-                geometry_hint_perimeter: (f) => `一个 ${f} 的周长是所有边的总和。`,
                 systems_hint: '你可以使用代入法：在一个方程中分离一个变量，然后将其代入另一个方程。',
-                figure_rectangle: '长方形', figure_triangle: '三角形',
-                geometry_rectangle_area: (b, h) => `计算一个底为 ${b}，高为 ${h} 的长方形的面积。`,
-                geometry_rectangle_perimeter: (b, h) => `计算一个底为 ${b}，高为 ${h} 的长方形的周长。`,
-                geometry_triangle_area: (b, h) => `计算一个底为 ${b}，高为 ${h} 的三角形的面积。`,
-                geometry_triangle_perimeter: (s1, s2, s3) => `计算一个边长分别为 ${s1}, ${s2}, ${s3} 的三角形的周长。`,
             },
             'ar': {
                 title: 'مدرس الرياضيات', header_title: 'مدرس الرياضيات', header_subtitle: 'تعلم واستمتع!',
-                nav_home: 'الرئيسية', nav_arithmetic: 'الحساب', nav_expressions: 'التعبيرات', nav_proportions: 'النسب', nav_geometry: 'الهندسة', nav_systems: 'الأنظمة',
-                home_welcome: 'أهلاً بك!', home_intro: 'حسّن مهاراتك في الرياضيات بشكل تفاعلي. اختر موضوعًا وصعوبة لتبدأ.',
+                nav_home: 'الرئيسية', nav_arithmetic: 'الحساب', nav_expressions: 'التعبيرات', nav_proportions: 'النسب', nav_systems: 'الأنظمة',
+                home_welcome: 'مرحبًا بك!', home_intro: 'حسّن مهاراتك في الرياضيات بطريقة تفاعلية. اختر موضوعًا ومستوى صعوبة لتبدأ.',
                 home_difficulty_label: 'اختر مستواك:', language_label: 'اللغة',
                 difficulty_easy: 'سهل', difficulty_medium: 'متوسط', difficulty_hard: 'صعب',
                 arithmetic_title: 'الحساب', arithmetic_subtitle: 'اختبر مهاراتك في الحساب.',
                 expressions_title: 'التعبيرات', expressions_subtitle: 'حل العمليات الحسابية المتعددة.',
-                proportions_title: 'النسب', proportions_subtitle: 'اعثر على العنصر المجهول.',
-                geometry_title: 'الهندسة', geometry_subtitle: 'احسب مساحات ومحيطات الأشكال المستوية.',
-                systems_title: 'أنظمة المعادلات', systems_subtitle: 'ابحث عن الحلول التي ترضي معادلات متعددة.',
+                proportions_title: 'النسب', proportions_subtitle: 'أوجد الحد المجهول.',
+                systems_title: 'أنظمة المعادلات', systems_subtitle: 'أوجد الحلول التي تحقق المعادلات المتعددة.',
                 arithmetic_exercise_label: 'احسب النتيجة:', arithmetic_answer_placeholder: 'إجابتك',
                 expressions_exercise_label: 'حل التعبير:', expressions_answer_placeholder: 'إجابتك',
-                proportions_exercise_label: 'ابحث عن قيمة x:', proportions_answer_placeholder: 'قيمة x',
-                geometry_answer_placeholder: 'إجابتك',
+                proportions_exercise_label: 'أوجد قيمة x:', proportions_answer_placeholder: 'قيمة x',
                 systems_answer_x_placeholder: 'قيمة x', systems_answer_y_placeholder: 'قيمة y',
                 systems_exercise_label: 'حل النظام:',
-                button_check: 'تحقق', button_new: 'تمرين جديد', button_hint: 'تلميح', footer_credits: 'تم الإنشاء بواسطة David Miron.',
+                button_check: 'تحقق', button_new: 'تمرين جديد', button_hint: 'تلميح', footer_credits: 'تم الإنشاء بواسطة ديفيد ميرون.',
                 feedback_correct: 'صحيح! عمل رائع! 🎉', feedback_incorrect: 'غير صحيح. حاول مرة أخرى! 🧐', feedback_warning_empty: 'الرجاء إدخال إجابة.',
                 arithmetic_hint: (op) => `لحل هذا التمرين، يجب عليك القيام بعملية ${op}.`,
-                expressions_hint: 'تذكر ترتيب العمليات: الأقواس أولاً، ثم الضرب/القسمة، وأخيراً الجمع/الطرح.',
+                expressions_hint: 'تذكر ترتيب العمليات: الأقواس أولاً، ثم الضرب/القسمة، وأخيرًا الجمع/الطرح.',
                 proportions_hint: 'استخدم الخاصية الأساسية: حاصل ضرب الوسطين يساوي حاصل ضرب الطرفين.',
-                geometry_hint_area: (f) => `صيغة مساحة ${f} هي القاعدة $\\times$ الارتفاع. للمثلث، اقسم على 2.`,
-                geometry_hint_perimeter: (f) => `محيط ${f} هو مجموع جميع أضلاعه.`,
                 systems_hint: 'يمكنك استخدام طريقة التعويض: اعزل متغيرًا في معادلة واحدة واستبدله في الأخرى.',
-                figure_rectangle: 'مستطيل', figure_triangle: 'مثلث',
-                geometry_rectangle_area: (b, h) => `احسب مساحة مستطيل قاعدته ${b} وارتفاعه ${h}.`,
-                geometry_rectangle_perimeter: (b, h) => `احسب محيط مستطيل قاعدته ${b} وارتفاعه ${h}.`,
-                geometry_triangle_area: (b, h) => `احسب مساحة مثلث قاعدته ${b} وارتفاعه ${h}.`,
-                geometry_triangle_perimeter: (s1, s2, s3) => `احسب محيط مثلث أضلاعه ${s1}, ${s2}, و ${s3}.`,
-            },
+            }
         };
 
-        const i18n = (lang) => {
+        const updateLanguage = (lang) => {
             document.documentElement.lang = lang;
-            document.querySelectorAll('[data-i18n]').forEach(el => {
+            document.title = translations[lang].title;
+            const elementsToTranslate = document.querySelectorAll('[data-i18n]');
+            elementsToTranslate.forEach(el => {
                 const key = el.getAttribute('data-i18n');
-                if (translations[lang] && translations[lang][key]) {
+                if (translations[lang][key]) {
                     el.textContent = translations[lang][key];
                 }
             });
-            document.title = translations[lang].title;
-            // Aggiorna i placeholder degli input
-            const inputAnswer = document.querySelector('.exercise-inputs input.custom-input');
-            if (inputAnswer) {
-                inputAnswer.placeholder = translations[lang].arithmetic_answer_placeholder;
-            }
-            const inputX = document.querySelector('.exercise-inputs input[name="x"]');
-            if (inputX) {
-                inputX.placeholder = translations[lang].systems_answer_x_placeholder;
-            }
-            const inputY = document.querySelector('.exercise-inputs input[name="y"]');
-            if (inputY) {
-                inputY.placeholder = translations[lang].systems_answer_y_placeholder;
-            }
         };
 
-        const updateDifficulty = (difficulty) => {
-            state.difficulty = difficulty;
-            localStorage.setItem('difficulty', difficulty);
-            elements.difficultyButtons.forEach(btn => btn.classList.remove('active'));
-            document.querySelector(`[data-difficulty="${difficulty}"]`).classList.add('active');
-        };
+        const showSection = (id) => {
+            sections.forEach(sec => {
+                document.getElementById(`section-${sec}`).classList.remove('active');
+                document.getElementById(`nav-${sec}`).classList.remove('active');
+            });
+            document.getElementById(`section-${id}`).classList.add('active');
+            document.getElementById(`nav-${id}`).classList.add('active');
 
-        const showSection = (sectionId) => {
-            document.querySelectorAll('.section-container').forEach(sec => sec.classList.remove('active'));
-            document.getElementById(`section-${sectionId}`).classList.add('active');
-            elements.navButtons.forEach(btn => btn.classList.remove('active'));
-            document.getElementById(`nav-${sectionId}`).classList.add('active');
-
-            if (sectionId !== 'home') {
+            if (id !== 'home') {
                 elements.pageHeader.classList.remove('hidden');
-                elements.pageTitle.textContent = translations[state.language][`${sectionId}_title`];
-                elements.pageSubtitle.textContent = translations[state.language][`${sectionId}_subtitle`];
-                generateExercise(sectionId);
+                elements.pageTitle.textContent = translations[state.language][`${id}_title`];
+                elements.pageSubtitle.textContent = translations[state.language][`${id}_subtitle`];
             } else {
                 elements.pageHeader.classList.add('hidden');
             }
         };
 
-        const generateExercise = (type) => {
-            const exerciseContainer = document.getElementById(`section-${type}`);
-            let problemData = {};
-            let problemHTML = '';
-            let hintText = '';
-            let inputsHTML = '';
-
-            const difficultyMap = {
-                'facile': { min: 1, max: 10 },
-                'medio': { min: 10, max: 100 },
-                'difficile': { min: 100, max: 500 }
-            };
-            const diff = difficultyMap[state.difficulty];
-
-            switch (type) {
-                case 'esercizi':
-                    const op = ['+', '-', '×', '÷'][randomInt(0, 3)];
-                    const num1 = randomInt(diff.min, diff.max);
-                    let num2 = randomInt(diff.min, diff.max);
-                    let result;
-
-                    if (op === '+') result = num1 + num2;
-                    if (op === '-') {
-                        if (num1 < num2) [num1, num2] = [num2, num1];
-                        result = num1 - num2;
-                    }
-                    if (op === '×') {
-                        num2 = randomInt(1, Math.min(diff.max, 12));
-                        result = num1 * num2;
-                    }
-                    if (op === '÷') {
-                        num2 = randomInt(1, Math.min(diff.max, 10));
-                        result = num1;
-                        num1 = num1 * num2;
-                    }
-
-                    problemHTML = `${num1} ${op} ${num2} = ?`;
-                    problemData = { answer: result, hint: translations[state.language].arithmetic_hint(op === '×' ? 'moltiplicazione' : op === '÷' ? 'divisione' : op === '+' ? 'addizione' : 'sottrazione') };
-                    inputsHTML = `<input type="text" class="custom-input flex-1 w-full px-4 py-3 rounded-lg text-lg text-center" placeholder="${translations[state.language].arithmetic_answer_placeholder}">`;
-                    break;
-
-                case 'espressioni':
-                    let expression, solution;
-                    if (state.difficulty === 'facile') {
-                        expression = `${randomInt(1, 10)} + (${randomInt(1, 10)} ${['+', '-'][randomInt(0, 1)]} ${randomInt(1, 10)})`;
-                        solution = eval(expression.replace(/×/g, '*').replace(/÷/g, '/'));
-                    } else if (state.difficulty === 'medio') {
-                        expression = `${randomInt(1, 20)} × (${randomInt(1, 10)} ${['+', '-'][randomInt(0, 1)]} ${randomInt(1, 10)}) ${['+', '-'][randomInt(0, 1)]} ${randomInt(1, 15)}`;
-                        solution = eval(expression.replace(/×/g, '*').replace(/÷/g, '/'));
-                    } else { // difficile
-                        expression = `${randomInt(1, 50)} ${['+', '-'][randomInt(0, 1)]} (${randomInt(1, 20)} ${['×', '÷'][randomInt(0, 1)]} ${randomInt(1, 10)}) ${['+', '-'][randomInt(0, 1)]} ${randomInt(1, 30)}`;
-                        solution = eval(expression.replace(/×/g, '*').replace(/÷/g, '/'));
-                    }
-                    problemHTML = expression.replace(/×/g, `$\\times$`).replace(/÷/g, `$\\div$`);
-                    problemData = { answer: solution, hint: translations[state.language].expressions_hint };
-                    inputsHTML = `<input type="text" class="custom-input flex-1 w-full px-4 py-3 rounded-lg text-lg text-center" placeholder="${translations[state.language].expressions_answer_placeholder}">`;
-                    break;
-
-                case 'proporzioni':
-                    const a = randomInt(diff.min, diff.max);
-                    const b = randomInt(diff.min, diff.max);
-                    const c = randomInt(diff.min, diff.max);
-                    const d = (b * c) / a;
-                    const terms = shuffle([a, b, c, 'x']);
-                    let prop = '';
-                    if (terms[0] === 'x') problemData = { answer: d };
-                    if (terms[1] === 'x') problemData = { answer: (a * d) / c };
-                    if (terms[2] === 'x') problemData = { answer: (a * d) / b };
-                    if (terms[3] === 'x') problemData = { answer: (b * c) / a };
-
-                    prop = `${terms[0]} : ${terms[1]} = ${terms[2]} : ${terms[3]}`;
-                    problemHTML = formatLatex(prop);
-                    problemData.hint = translations[state.language].proportions_hint;
-                    inputsHTML = `<input type="text" class="custom-input flex-1 w-full px-4 py-3 rounded-lg text-lg text-center" placeholder="${translations[state.language].proportions_answer_placeholder}">`;
-                    break;
-
-                case 'geometria':
-                    const shapes = ['rectangle', 'triangle'];
-                    const shape = shapes[randomInt(0, 1)];
-                    const isArea = Math.random() < 0.5;
-
-                    let base, height, side1, side2;
-                    if (state.difficulty === 'facile') {
-                        base = randomInt(2, 10);
-                        height = randomInt(2, 10);
-                        side1 = randomInt(3, 12);
-                        side2 = randomInt(3, 12);
-                    } else if (state.difficulty === 'medio') {
-                        base = randomInt(5, 20);
-                        height = randomInt(5, 20);
-                        side1 = randomInt(5, 25);
-                        side2 = randomInt(5, 25);
-                    } else {
-                        base = randomInt(10, 50);
-                        height = randomInt(10, 50);
-                        side1 = randomInt(10, 50);
-                        side2 = randomInt(10, 50);
-                    }
-
-                    if (shape === 'rectangle') {
-                        if (isArea) {
-                            problemHTML = `<svg class="geometry-svg" viewBox="0 0 100 100"><rect x="10" y="30" width="80" height="40" fill="none" stroke="currentColor" stroke-width="2"/><text x="50" y="85" text-anchor="middle" font-size="12" fill="currentColor">${base}</text><text x="5" y="55" text-anchor="middle" font-size="12" fill="currentColor">${height}</text></svg>`;
-                            problemHTML += `<p>${translations[state.language].geometry_rectangle_area(base, height)}</p>`;
-                            problemData = { answer: base * height, hint: translations[state.language].geometry_hint_area(translations[state.language].figure_rectangle) };
-                        } else {
-                            problemHTML = `<svg class="geometry-svg" viewBox="0 0 100 100"><rect x="10" y="30" width="80" height="40" fill="none" stroke="currentColor" stroke-width="2"/><text x="50" y="85" text-anchor="middle" font-size="12" fill="currentColor">${base}</text><text x="5" y="55" text-anchor="middle" font-size="12" fill="currentColor">${height}</text></svg>`;
-                            problemHTML += `<p>${translations[state.language].geometry_rectangle_perimeter(base, height)}</p>`;
-                            problemData = { answer: 2 * (base + height), hint: translations[state.language].geometry_hint_perimeter(translations[state.language].figure_rectangle) };
-                        }
-                    } else { // triangle
-                        if (isArea) {
-                            problemHTML = `<svg class="geometry-svg" viewBox="0 0 100 100"><polygon points="50,10 90,90 10,90" fill="none" stroke="currentColor" stroke-width="2"/><line x1="50" y1="10" x2="50" y2="90" stroke="white" stroke-dasharray="2" /><text x="50" y="55" text-anchor="middle" font-size="12" fill="currentColor">${height}</text><text x="50" y="98" text-anchor="middle" font-size="12" fill="currentColor">${base}</text></svg>`;
-                            problemHTML += `<p>${translations[state.language].geometry_triangle_area(base, height)}</p>`;
-                            problemData = { answer: (base * height) / 2, hint: translations[state.language].geometry_hint_area(translations[state.language].figure_triangle) };
-                        } else {
-                            const s3 = randomInt(3, 12);
-                            problemHTML = `<svg class="geometry-svg" viewBox="0 0 100 100"><polygon points="50,10 90,90 10,90" fill="none" stroke="currentColor" stroke-width="2"/><text x="50" y="98" text-anchor="middle" font-size="12" fill="currentColor">${base}</text><text x="25" y="55" text-anchor="middle" font-size="12" fill="currentColor">${side1}</text><text x="75" y="55" text-anchor="middle" font-size="12" fill="currentColor">${side2}</text></svg>`;
-                            problemHTML += `<p>${translations[state.language].geometry_triangle_perimeter(base, side1, side2)}</p>`;
-                            problemData = { answer: base + side1 + side2, hint: translations[state.language].geometry_hint_perimeter(translations[state.language].figure_triangle) };
-                        }
-                    }
-                    inputsHTML = `<input type="text" class="custom-input flex-1 w-full px-4 py-3 rounded-lg text-lg text-center" placeholder="${translations[state.language].geometry_answer_placeholder}">`;
-                    break;
-
-                case 'sistemi':
-                    let x, y, eq1, eq2;
-                    if (state.difficulty === 'facile') {
-                        x = randomInt(-5, 5);
-                        y = randomInt(-5, 5);
-                    } else if (state.difficulty === 'medio') {
-                        x = randomInt(-10, 10);
-                        y = randomInt(-10, 10);
-                    } else {
-                        x = randomInt(-20, 20);
-                        y = randomInt(-20, 20);
-                    }
-                    const a1 = randomInt(1, 5), b1 = randomInt(1, 5), c1 = a1 * x + b1 * y;
-                    const a2 = randomInt(1, 5), b2 = randomInt(1, 5), c2 = a2 * x + b2 * y;
-
-                    problemHTML = translations[state.language].systems_exercise_label + `<br>$$\\begin{cases}${a1}x + ${b1}y = ${c1} \\\\ ${a2}x + ${b2}y = ${c2}\\end{cases}$$`;
-                    problemData = { answer: { x, y }, hint: translations[state.language].systems_hint };
-                    inputsHTML = `<input type="text" name="x" class="custom-input flex-1 w-full px-4 py-3 rounded-lg text-lg text-center" placeholder="${translations[state.language].systems_answer_x_placeholder}"><input type="text" name="y" class="custom-input flex-1 w-full px-4 py-3 rounded-lg text-lg text-center" placeholder="${translations[state.language].systems_answer_y_placeholder}">`;
-                    break;
+        const clearSection = (id) => {
+            const container = document.getElementById(`section-${id}`);
+            while (container.firstChild) {
+                container.removeChild(container.firstChild);
             }
-
-            exerciseContainer.innerHTML = '';
-            const newExercise = elements.exerciseTemplate.cloneNode(true);
-            newExercise.id = '';
-            newExercise.classList.remove('hidden');
-            exerciseContainer.appendChild(newExercise);
-
-            const problemEl = newExercise.querySelector('.exercise-problem');
-            const labelEl = newExercise.querySelector('.exercise-label');
-            const inputsEl = newExercise.querySelector('.exercise-inputs');
-            const checkBtn = newExercise.querySelector('.check-button');
-            const newBtn = newExercise.querySelector('.new-button');
-            const hintBtn = newExercise.querySelector('.hint-button');
-            const resultBox = newExercise.querySelector('.result-box');
-            const hintBox = newExercise.querySelector('.hint-box');
-
-            labelEl.textContent = translations[state.language][`${type}_exercise_label`];
-            problemEl.innerHTML = problemHTML;
-            inputsEl.innerHTML = inputsHTML;
-            state.currentExercise = { type, data: problemData };
-            MathJax.typeset();
-
-            checkBtn.onclick = () => {
-                let isCorrect = false;
-                if (type === 'sistemi') {
-                    const xInput = newExercise.querySelector('input[name="x"]');
-                    const yInput = newExercise.querySelector('input[name="y"]');
-                    const xVal = parseFloat(xInput.value.replace(',', '.'));
-                    const yVal = parseFloat(yInput.value.replace(',', '.'));
-                    if (isNaN(xVal) || isNaN(yVal)) {
-                         resultBox.textContent = translations[state.language].feedback_warning_empty;
-                         resultBox.className = 'result-box mt-5 p-4 rounded-lg text-center font-bold text-base transition-all duration-300 scale-100 opacity-100 feedback-warning';
-                         return;
-                    }
-                    if (Math.abs(xVal - problemData.answer.x) < 0.001 && Math.abs(yVal - problemData.answer.y) < 0.001) {
-                         isCorrect = true;
-                    }
-
-                } else {
-                    const answerInput = newExercise.querySelector('input');
-                    const userAnswer = parseFloat(answerInput.value.replace(',', '.'));
-                    if (isNaN(userAnswer)) {
-                         resultBox.textContent = translations[state.language].feedback_warning_empty;
-                         resultBox.className = 'result-box mt-5 p-4 rounded-lg text-center font-bold text-base transition-all duration-300 scale-100 opacity-100 feedback-warning';
-                         return;
-                    }
-                    isCorrect = Math.abs(userAnswer - problemData.answer) < 0.001;
-                }
-
-                if (isCorrect) {
-                    resultBox.textContent = translations[state.language].feedback_correct;
-                    resultBox.className = 'result-box mt-5 p-4 rounded-lg text-center font-bold text-base transition-all duration-300 scale-100 opacity-100 feedback-correct';
-                } else {
-                    resultBox.textContent = translations[state.language].feedback_incorrect;
-                    resultBox.className = 'result-box mt-5 p-4 rounded-lg text-center font-bold text-base transition-all duration-300 scale-100 opacity-100 feedback-incorrect';
-                }
-            };
-
-            newBtn.onclick = () => generateExercise(type);
-
-            hintBtn.onclick = () => {
-                hintBox.textContent = state.currentExercise.data.hint;
-                hintBox.classList.remove('hidden');
-            };
         };
 
-        // --- Inizializzazione e Listener ---
+        const renderExercise = (id, problemHtml, inputsHtml) => {
+            clearSection(id);
+            const clone = elements.exerciseTemplate.cloneNode(true);
+            clone.id = '';
+            clone.classList.remove('hidden');
+            clone.querySelector('.exercise-problem').innerHTML = problemHtml;
+            clone.querySelector('.exercise-inputs').innerHTML = inputsHtml;
+
+            const labelKey = `${id}_exercise_label`;
+            const labelEl = clone.querySelector('.exercise-label');
+            labelEl.textContent = translations[state.language][labelKey];
+
+            document.getElementById(`section-${id}`).appendChild(clone);
+            MathJax.typesetPromise([clone]);
+        };
+
+        const generateArithmetic = () => {
+            let num1, num2, operation, result;
+            const ops = ['+', '-', '×', '÷'];
+            if (state.difficulty === 'facile') {
+                num1 = randomInt(1, 20);
+                num2 = randomInt(1, 20);
+                operation = ops[randomInt(0, 1)];
+                result = operation === '+' ? num1 + num2 : num1 - num2;
+            } else if (state.difficulty === 'medio') {
+                num1 = randomInt(1, 50);
+                num2 = randomInt(1, 50);
+                operation = ops[randomInt(0, 2)];
+                result = operation === '+' ? num1 + num2 : operation === '-' ? num1 - num2 : num1 * num2;
+            } else {
+                num1 = randomInt(10, 100);
+                num2 = randomInt(10, 100);
+                operation = ops[randomInt(0, 3)];
+                if (operation === '÷') {
+                    const divisor = randomInt(2, 10);
+                    num1 = num2 * divisor;
+                    result = divisor;
+                } else {
+                    result = operation === '+' ? num1 + num2 : operation === '-' ? num1 - num2 : num1 * num2;
+                }
+            }
+            state.currentExercise = { answer: result, hint: translations[state.language].arithmetic_hint(operation === '+' ? 'addizione' : operation === '-' ? 'sottrazione' : operation === '×' ? 'moltiplicazione' : 'divisione') };
+            const problemHtml = `${num1} ${operation} ${num2} = ?`;
+            const inputsHtml = `<input type="number" class="custom-input flex-1 w-full px-4 py-2 rounded-lg" placeholder="${translations[state.language].arithmetic_answer_placeholder}">`;
+            renderExercise('esercizi', problemHtml, inputsHtml);
+        };
+
+        const generateExpression = () => {
+            let expr, result;
+            if (state.difficulty === 'facile') {
+                let a = randomInt(2, 10), b = randomInt(2, 10), c = randomInt(2, 10);
+                expr = `(${a} + ${b}) × ${c}`;
+                result = (a + b) * c;
+            } else if (state.difficulty === 'medio') {
+                let a = randomInt(5, 15), b = randomInt(5, 15), c = randomInt(2, 5), d = randomInt(1, 5);
+                expr = `${a} × ${b} + (${c} - ${d})`;
+                result = a * b + (c - d);
+            } else {
+                let a = randomInt(10, 20), b = randomInt(2, 10), c = randomInt(2, 5), d = randomInt(1, 5), e = randomInt(1, 5);
+                expr = `${a} ÷ ${b} + ${c} × (${d} + ${e})`;
+                result = a / b + c * (d + e);
+            }
+            state.currentExercise = { answer: result, hint: translations[state.language].expressions_hint };
+            const problemHtml = `${expr}`;
+            const inputsHtml = `<input type="number" class="custom-input flex-1 w-full px-4 py-2 rounded-lg" placeholder="${translations[state.language].expressions_answer_placeholder}">`;
+            renderExercise('espressioni', problemHtml, inputsHtml);
+        };
+
+        const generateProportion = () => {
+            let a, b, c, result;
+            if (state.difficulty === 'facile') {
+                a = randomInt(2, 10);
+                b = randomInt(2, 10);
+                c = randomInt(2, 10);
+                result = (b * c) / a;
+            } else if (state.difficulty === 'medio') {
+                a = randomInt(5, 20);
+                b = randomInt(5, 20);
+                c = randomInt(5, 20);
+                result = (b * c) / a;
+            } else {
+                a = randomInt(10, 50);
+                b = randomInt(10, 50);
+                c = randomInt(10, 50);
+                result = (b * c) / a;
+            }
+            state.currentExercise = { answer: result, hint: translations[state.language].proportions_hint };
+            const problemHtml = `$$${a} : ${b} = ${c} : x$$`;
+            const inputsHtml = `<input type="number" class="custom-input flex-1 w-full px-4 py-2 rounded-lg" placeholder="${translations[state.language].proportions_answer_placeholder}">`;
+            renderExercise('proporzioni', problemHtml, inputsHtml);
+        };
+
+
+        const generateSystems = () => {
+            let x, y, eq1, eq2;
+            if (state.difficulty === 'facile') {
+                x = randomInt(1, 5);
+                y = randomInt(1, 5);
+                eq1 = `x + y = ${x + y}`;
+                eq2 = `x - y = ${x - y}`;
+            } else if (state.difficulty === 'medio') {
+                x = randomInt(1, 10);
+                y = randomInt(1, 10);
+                eq1 = `2x + y = ${2 * x + y}`;
+                eq2 = `x + 3y = ${x + 3 * y}`;
+            } else {
+                x = randomInt(5, 15);
+                y = randomInt(5, 15);
+                eq1 = `3x - 2y = ${3 * x - 2 * y}`;
+                eq2 = `x + y = ${x + y}`;
+            }
+            state.currentExercise = { answer: [x, y], hint: translations[state.language].systems_hint, type: 'systems' };
+            const problemHtml = `
+                <div class="flex flex-col items-center">
+                    <p>$$ \\begin{cases} ${eq1} \\\\ ${eq2} \\end{cases} $$</p>
+                </div>
+            `;
+            const inputsHtml = `
+                <input type="number" class="custom-input flex-1 w-full px-4 py-2 rounded-lg" placeholder="${translations[state.language].systems_answer_x_placeholder}">
+                <input type="number" class="custom-input flex-1 w-full px-4 py-2 rounded-lg" placeholder="${translations[state.language].systems_answer_y_placeholder}">
+            `;
+            renderExercise('sistemi', problemHtml, inputsHtml);
+        };
+
+        const checkAnswer = (inputs) => {
+            const resultBox = document.querySelector('.result-box');
+            resultBox.classList.remove('feedback-correct', 'feedback-incorrect', 'feedback-warning');
+            resultBox.classList.add('scale-95', 'opacity-0');
+
+            if (state.currentExercise.type === 'systems') {
+                const answerX = parseFloat(inputs[0].value);
+                const answerY = parseFloat(inputs[1].value);
+                if (isNaN(answerX) || isNaN(answerY)) {
+                    showFeedback('warning', translations[state.language].feedback_warning_empty);
+                    return;
+                }
+                if (answerX === state.currentExercise.answer[0] && answerY === state.currentExercise.answer[1]) {
+                    showFeedback('correct', translations[state.language].feedback_correct);
+                } else {
+                    showFeedback('incorrect', translations[state.language].feedback_incorrect);
+                }
+            } else {
+                const answer = parseFloat(inputs[0].value);
+                if (isNaN(answer)) {
+                    showFeedback('warning', translations[state.language].feedback_warning_empty);
+                    return;
+                }
+                if (answer === state.currentExercise.answer) {
+                    showFeedback('correct', translations[state.language].feedback_correct);
+                } else {
+                    showFeedback('incorrect', translations[state.language].feedback_incorrect);
+                }
+            }
+        };
+
+        const showFeedback = (type, message) => {
+            const resultBox = document.querySelector('.result-box');
+            resultBox.textContent = message;
+            resultBox.classList.add(`feedback-${type}`);
+            resultBox.classList.remove('scale-95', 'opacity-0');
+        };
+
+        const showHint = () => {
+            const hintBox = document.querySelector('.hint-box');
+            hintBox.textContent = state.currentExercise.hint;
+            hintBox.classList.remove('hidden');
+            MathJax.typesetPromise([hintBox]);
+        };
+
+        const initializeSection = (id) => {
+            const generators = {
+                'esercizi': generateArithmetic,
+                'espressioni': generateExpression,
+                'proporzioni': generateProportion,
+                'sistemi': generateSystems,
+            };
+            if (generators[id]) {
+                generators[id]();
+                document.querySelector('.check-button').addEventListener('click', () => {
+                    const inputs = document.querySelectorAll('#section-' + id + ' .custom-input');
+                    checkAnswer(inputs);
+                });
+                document.querySelector('.new-button').addEventListener('click', () => {
+                    generators[id]();
+                    document.querySelector('.result-box').classList.add('scale-95', 'opacity-0');
+                    document.querySelector('.hint-box').classList.add('hidden');
+                });
+                document.querySelector('.hint-button').addEventListener('click', showHint);
+            }
+        };
+
+        // --- Event Listeners ---
         elements.navButtons.forEach(button => {
-            const sectionId = button.id.replace('nav-', '');
-            button.addEventListener('click', () => showSection(sectionId));
+            button.addEventListener('click', () => {
+                const id = button.id.replace('nav-', '');
+                showSection(id);
+                if (id !== 'home') {
+                    initializeSection(id);
+                }
+            });
         });
 
         elements.difficultyButtons.forEach(button => {
             button.addEventListener('click', () => {
-                const newDifficulty = button.getAttribute('data-difficulty');
-                updateDifficulty(newDifficulty);
+                elements.difficultyButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                state.difficulty = button.dataset.difficulty;
+                localStorage.setItem('difficulty', state.difficulty);
             });
         });
 
-        elements.languageSelector.addEventListener('change', (e) => {
-            state.language = e.target.value;
-            localStorage.setItem('language', state.language);
-            i18n(state.language);
-            if (elements.pageHeader.classList.contains('hidden')) {
-                // Se siamo sulla home, aggiorna solo la pagina
-                showSection('home');
-            } else {
-                // Altrimenti, rigenera l'esercizio per la lingua
-                const currentSection = elements.navButtons[1].closest('.nav-button.active').id.replace('nav-', '');
-                generateExercise(currentSection);
+        elements.languageSelector.addEventListener('change', (event) => {
+            const newLang = event.target.value;
+            state.language = newLang;
+            localStorage.setItem('language', newLang);
+            updateLanguage(newLang);
+            // Re-render current section with new language
+            const currentSection = document.querySelector('.section-container.active').id.replace('section-', '');
+            if (currentSection !== 'home') {
+                 initializeSection(currentSection);
             }
         });
 
-        // Imposta stato iniziale
+        // --- Init ---
+        updateLanguage(state.language);
         elements.languageSelector.value = state.language;
-        i18n(state.language);
-        updateDifficulty(state.difficulty);
-        showSection('home');
+        document.querySelector(`[data-difficulty="${state.difficulty}"]`).classList.add('active');
     });
     </script>
 </body>
