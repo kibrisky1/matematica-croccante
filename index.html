@@ -656,14 +656,14 @@
                     elements.authUI.classList.add('hidden');
                     elements.mainUI.classList.remove('hidden');
                     
+                    // Mostra sempre il pulsante Esci se l'utente è loggato (anche come ospite)
+                    elements.signOutBtn.classList.remove('hidden');
+                    elements.goToLoginBtn.classList.add('hidden'); // Nascondiamo questo, dato che Esci + Login è più chiaro
+
                     if (user.isAnonymous) {
                         elements.userStatusDisplay.textContent = translations[state.language].guest_mode;
-                        elements.signOutBtn.classList.add('hidden');
-                        elements.goToLoginBtn.classList.remove('hidden');
                     } else {
                         elements.userStatusDisplay.textContent = user.displayName || 'Utente';
-                        elements.signOutBtn.classList.remove('hidden');
-                        elements.goToLoginBtn.classList.add('hidden');
                     }
                     elements.userIdDisplay.textContent = `ID: ${user.uid}`;
                     elements.userIdDisplay.classList.remove('hidden');
@@ -985,4 +985,5 @@
     </script>
 </body>
 </html>
+
 
