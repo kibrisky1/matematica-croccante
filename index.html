@@ -22,18 +22,18 @@
 
     <style>
         :root {
-            --bg-start: #111827;
-            --bg-end: #1e293b;
-            --card-bg: rgba(30, 41, 59, 0.6);
-            --primary-start: #4f46e5;
-            --primary-end: #7c3aed;
-            --primary-hover-start: #6366f1;
-            --primary-hover-end: #8b5cf6;
-            --text-primary: #f8fafc;
-            --text-secondary: #cbd5e1;
-            --border-color: rgba(148, 163, 184, 0.2);
-            --correct-color: #10b981;
-            --incorrect-color: #ef4444;
+            --bg-start: #020617; /* Slate 950 */
+            --bg-end: #0f172a;   /* Slate 900 */
+            --card-bg: rgba(15, 23, 42, 0.6); /* Slate 900 with alpha */
+            --primary-start: #22d3ee; /* Cyan 400 (Aqua) */
+            --primary-end: #10b981;   /* Emerald 500 */
+            --primary-hover-start: #67e8f9; /* Cyan 300 */
+            --primary-hover-end: #34d399;   /* Emerald 400 */
+            --text-primary: #f8fafc; /* Slate 50 */
+            --text-secondary: #94a3b8; /* Slate 400 */
+            --border-color: rgba(34, 211, 238, 0.2);
+            --correct-color: #34d399;
+            --incorrect-color: #f87171;
             --warning-color: #f59e0b;
             --glass-border: rgba(255, 255, 255, 0.1);
             --accent-green: #22c55e;
@@ -47,14 +47,6 @@
             overflow: hidden;
         }
 
-        body.high-contrast {
-            filter: contrast(150%) hue-rotate(10deg);
-        }
-
-        body.large-font {
-            font-size: 1.125rem;
-        }
-
         #background-canvas {
             position: fixed;
             top: 0;
@@ -66,8 +58,8 @@
 
         .glass-card {
             background: var(--card-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             border: 1px solid var(--glass-border);
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
@@ -76,30 +68,18 @@
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             position: relative;
             overflow: hidden;
-        }
-        .nav-button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: left 0.4s;
-        }
-        .nav-button:hover::before {
-            left: 100%;
+            color: var(--text-secondary);
         }
 
         .nav-button.active {
             background: linear-gradient(90deg, var(--primary-start), var(--primary-end));
             color: white;
-            box-shadow: 0 6px 20px -5px rgba(79, 70, 229, 0.5);
-            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 6px 20px -5px rgba(20, 184, 166, 0.5);
+            transform: translateY(-2px) scale(1.02);
         }
         .nav-button:not(.active):hover {
             background-color: rgba(255, 255, 255, 0.05);
-            color: white;
+            color: var(--text-primary);
         }
 
         .section-container {
@@ -119,11 +99,11 @@
             transition: border-color 0.3s, box-shadow 0.3s;
             color: var(--text-primary);
         }
-        .custom-input::placeholder { color: var(--text-secondary); opacity: 0.6; }
+        .custom-input::placeholder { color: var(--text-secondary); opacity: 0.8; }
         .custom-input:focus {
             outline: none;
             border-color: var(--primary-start);
-            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.3);
+            box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.3);
         }
 
         .feedback-correct { background-color: rgba(16, 185, 129, 0.2); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.5); }
@@ -133,31 +113,34 @@
         .difficulty-button {
             background-color: rgba(255, 255, 255, 0.05);
             border: 1px solid var(--glass-border);
+            color: var(--text-secondary);
         }
         .difficulty-button.active {
             background: linear-gradient(90deg, var(--primary-start), var(--primary-end)) !important;
             color: white !important;
-            box-shadow: 0 4px 12px -3px rgba(79, 70, 229, 0.6);
+            box-shadow: 0 4px 12px -3px rgba(20, 184, 166, 0.6);
             transform: scale(1.05);
+            border-color: transparent;
         }
 
         .math-problem {
             font-size: 2rem;
         }
 
-        /* Stili per le icone di navigazione */
         .nav-icon {
             width: 24px;
             height: 24px;
             stroke-width: 2px;
             transition: all 0.3s ease;
-            color: #d1d5db;
+             color: var(--text-secondary);
         }
-        .nav-button:hover .nav-icon, .nav-button.active .nav-icon {
-            color: white;
+        .nav-button:hover .nav-icon {
+             color: var(--text-primary);
+        }
+        .nav-button.active .nav-icon {
+             color: white;
         }
 
-        /* Nuovi stili per animazioni feedback */
         @keyframes correct-pulse {
             0% { box-shadow: 0 0 0 0 var(--correct-color); }
             70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
@@ -184,9 +167,10 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(30, 41, 59, 0.9);
+            background: rgba(15, 23, 42, 0.9);
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(148, 163, 184, 0.2);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
             padding: 2rem;
             border-radius: 1rem;
             z-index: 1000;
@@ -212,32 +196,18 @@
 <body class="min-h-screen p-4">
     <canvas id="background-canvas"></canvas>
 
-    <!-- UI di Autenticazione (Login/Register) -->
+    <!-- UI di Autenticazione -->
     <div id="auth-ui" class="flex items-center justify-center min-h-screen">
         <div class="glass-card rounded-2xl p-6 sm:p-10 w-full max-w-lg text-center">
-            <h1 class="text-3xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400" data-i18n="auth_title">Benvenuto!</h1>
-            <p class="text-slate-400 mb-6" data-i18n="auth_subtitle">Accedi per salvare i tuoi progressi o continua come ospite.</p>
-            
-            <!-- Login Form -->
-            <div id="login-form" class="auth-section">
-                <form id="login-container" class="space-y-4">
-                    <input type="email" id="login-email" class="w-full custom-input p-3 rounded-lg" placeholder="Email" required>
-                    <input type="password" id="login-password" class="w-full custom-input p-3 rounded-lg" placeholder="Password" required>
-                    <button type="submit" class="w-full bg-gradient-to-r from-primary-start to-primary-end text-white font-bold py-3 px-6 rounded-xl shadow-lg hover:from-primary-hover-start hover:to-primary-hover-end transition-all duration-300 transform hover:scale-105" data-i18n="button_login">Accedi</button>
-                </form>
-                <button id="guest-btn" class="w-full mt-4 text-sm font-semibold text-slate-400 hover:text-white transition-colors duration-200" data-i18n="button_guest">Continua come Ospite</button>
-                <p class="text-slate-500 mt-4 text-sm" data-i18n="auth_no_account">Non hai un account? <a href="#" id="show-register-btn" class="text-indigo-400 font-semibold hover:underline" data-i18n="auth_register_link">Registrati</a></p>
-            </div>
+            <h1 class="text-3xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-emerald-500" data-i18n="auth_title">Benvenuto!</h1>
+            <p class="text-slate-400 mb-6" data-i18n="auth_subtitle">Accedi per iniziare.</p>
 
-            <!-- Register Form -->
-            <div id="register-form" class="auth-section hidden">
-                <form id="register-container" class="space-y-4">
-                    <input type="email" id="register-email" class="w-full custom-input p-3 rounded-lg" placeholder="Email" required>
-                    <input type="password" id="register-password" class="w-full custom-input p-3 rounded-lg" placeholder="Password" required>
-                    <button type="submit" class="w-full bg-gradient-to-r from-primary-start to-primary-end text-white font-bold py-3 px-6 rounded-xl shadow-lg hover:from-primary-hover-start hover:to-primary-hover-end transition-all duration-300 transform hover:scale-105" data-i18n="button_register">Registrati</button>
-                </form>
-                <p class="text-slate-500 mt-4 text-sm" data-i18n="auth_have_account">Hai già un account? <a href="#" id="show-login-btn" class="text-indigo-400 font-semibold hover:underline" data-i18n="auth_login_link">Accedi</a></p>
-            </div>
+            <button id="google-login-btn" class="w-full flex items-center justify-center gap-2 bg-slate-800 text-slate-200 font-bold py-3 px-6 rounded-xl shadow-md hover:bg-slate-700 transition-all duration-300 transform hover:scale-105 mb-4 border border-slate-700">
+                <svg class="w-6 h-6" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C12.955 4 4 12.955 4 24s8.955 20 20 20s20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"></path><path fill="#FF3D00" d="m6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C16.318 4 9.656 8.337 6.306 14.691z"></path><path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.222 0-9.618-3.226-11.283-7.581l-6.522 5.025C9.505 39.556 16.227 44 24 44z"></path><path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-.792 2.237-2.231 4.166-4.087 5.571l6.19 5.238C42.012 36.417 44 30.638 44 24c0-1.341-.138-2.65-.389-3.917z"></path></svg>
+                Accedi con Google
+            </button>
+
+            <button id="guest-btn" class="w-full bg-gradient-to-r from-primary-start to-primary-end text-white font-bold py-3 px-6 rounded-xl shadow-lg hover:from-primary-hover-start hover:to-primary-hover-end transition-all duration-300 transform hover:scale-105" data-i18n="button_guest">Continua come Ospite</button>
         </div>
     </div>
 
@@ -246,28 +216,25 @@
         <!-- Sidebar di Navigazione -->
         <aside class="w-full lg:w-72 glass-card rounded-2xl p-6 flex flex-col flex-shrink-0">
             <div class="text-center lg:text-left mb-8">
-                <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400" data-i18n="header_title">Tutor Matematico</h1>
+                <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-emerald-500" data-i18n="header_title">Tutor Matematico</h1>
                 <p class="text-sm text-slate-400" data-i18n="header_subtitle">Impara divertendoti!</p>
             </div>
 
             <nav class="flex flex-row lg:flex-col justify-around lg:justify-start gap-2 mb-8 overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0">
                 <button id="nav-home" class="nav-button active flex items-center justify-center lg:justify-start gap-3 p-3 rounded-lg font-semibold">
-                    <i data-lucide="home"></i> <span class="hidden lg:inline" data-i18n="nav_home">Home</span>
+                    <i data-lucide="home" class="nav-icon"></i> <span class="hidden lg:inline" data-i18n="nav_home">Home</span>
                 </button>
                 <button id="nav-esercizi" class="nav-button flex items-center justify-center lg:justify-start gap-3 p-3 rounded-lg font-semibold">
-                    <i data-lucide="calculator"></i> <span class="hidden lg:inline" data-i18n="nav_arithmetic">Aritmetica</span>
+                    <i data-lucide="calculator" class="nav-icon"></i> <span class="hidden lg:inline" data-i18n="nav_arithmetic">Aritmetica</span>
                 </button>
                 <button id="nav-espressioni" class="nav-button flex items-center justify-center lg:justify-start gap-3 p-3 rounded-lg font-semibold">
-                    <i data-lucide="parentheses"></i> <span class="hidden lg:inline" data-i18n="nav_expressions">Espressioni</span>
+                    <i data-lucide="parentheses" class="nav-icon"></i> <span class="hidden lg:inline" data-i18n="nav_expressions">Espressioni</span>
                 </button>
                 <button id="nav-proporzioni" class="nav-button flex items-center justify-center lg:justify-start gap-3 p-3 rounded-lg font-semibold">
-                    <i data-lucide="ratio"></i> <span class="hidden lg:inline" data-i18n="nav_proportions">Proporzioni</span>
+                    <i data-lucide="ratio" class="nav-icon"></i> <span class="hidden lg:inline" data-i18n="nav_proportions">Proporzioni</span>
                 </button>
                 <button id="nav-sistemi" class="nav-button flex items-center justify-center lg:justify-start gap-3 p-3 rounded-lg font-semibold">
-                    <i data-lucide="braces"></i> <span class="hidden lg:inline" data-i18n="nav_systems">Sistemi</span>
-                </button>
-                <button id="nav-geometria" class="nav-button flex items-center justify-center lg:justify-start gap-3 p-3 rounded-lg font-semibold">
-                    <i data-lucide="square"></i> <span class="hidden lg:inline" data-i18n="nav_geometry">Geometria</span>
+                    <i data-lucide="braces" class="nav-icon"></i> <span class="hidden lg:inline" data-i18n="nav_systems">Sistemi</span>
                 </button>
             </nav>
 
@@ -281,38 +248,30 @@
                     <p id="user-id-display" class="break-all text-xs text-slate-500 hidden"></p>
                     <p>
                         <span data-i18n="stats_total_score">Punteggio totale:</span>
-                        <span id="stats-score" class="font-bold text-white">0</span>
+                        <span id="stats-score" class="font-bold text-slate-100">0</span>
                     </p>
                     <p>
                         <span data-i18n="stats_exercises_done">Esercizi fatti:</span>
-                        <span id="stats-done" class="font-bold text-white">0</span>
+                        <span id="stats-done" class="font-bold text-slate-100">0</span>
                     </p>
                     <p>
                         <span data-i18n="stats_correct_percentage">Correttezza:</span>
-                        <span id="stats-percentage" class="font-bold text-white">0%</span>
+                        <span id="stats-percentage" class="font-bold text-slate-100">0%</span>
                     </p>
                 </div>
-                <button id="logout-btn" class="w-full mt-4 text-xs font-semibold text-red-400 hover:text-red-300 transition-colors duration-200" data-i18n="button_logout">
-                    Esci
-                </button>
             </div>
+            
+            <button id="go-to-login-btn" class="hidden w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-bold py-3 px-6 rounded-xl shadow-lg hover:from-blue-600 hover:to-indigo-600 transition-all duration-300 transform hover:scale-105 mb-4" data-i18n="button_go_to_login">Vai al Login</button>
+            <button id="sign-out-btn" class="hidden w-full bg-red-600 text-white font-bold py-3 px-6 rounded-xl shadow-lg hover:bg-red-700 transition-all duration-300 transform hover:scale-105" data-i18n="button_sign_out">Esci</button>
+
 
             <div class="mt-auto">
                 <div class="mb-4">
                     <label for="language-selector" class="block text-sm font-medium text-slate-400 mb-1" data-i18n="language_label">Lingua</label>
-                    <select id="language-selector" class="w-full rounded-lg px-3 py-2 bg-slate-800/50 border-2 border-slate-700/50 text-white focus:outline-none focus:border-indigo-500 transition">
+                    <select id="language-selector" class="w-full rounded-lg px-3 py-2 bg-slate-900/50 border-2 border-slate-700/50 text-slate-200 focus:outline-none focus:border-cyan-500 transition">
                         <option value="it">Italiano</option>
                         <option value="en">English</option>
-                        <option value="es">Español</option>
-                        <option value="zh">中文</option>
-                        <option value="ar">العربية</option>
                     </select>
-                </div>
-                <div class="flex items-center justify-between mb-4">
-                    <label class="text-sm font-medium text-slate-400" data-i18n="accessibility_label">Accessibilità</label>
-                    <button id="accessibility-toggle" class="p-2 rounded-full bg-slate-800/50 border border-slate-700/50 transition-colors duration-200 hover:bg-slate-700/50" aria-label="Toggle accessibility mode">
-                        <i data-lucide="eye" class="w-5 h-5 text-slate-400"></i>
-                    </button>
                 </div>
                 <p class="text-xs text-center text-slate-500" data-i18n="footer_credits">Creato da David Miron.</p>
             </div>
@@ -330,14 +289,14 @@
             <!-- Sezione Home -->
             <div id="section-home" class="section-container active h-full flex flex-col justify-center items-center text-center">
                 <div class="max-w-2xl">
-                    <i data-lucide="atom" class="mx-auto mb-6 text-indigo-400" size="80"></i>
+                    <i data-lucide="atom" class="mx-auto mb-6 text-cyan-400" size="80"></i>
                     <h2 class="text-4xl font-bold mb-4" data-i18n="home_welcome">Benvenuto!</h2>
-                    <p class="text-lg text-slate-300 mb-8" data-i18n="home_intro">
+                    <p class="text-lg text-slate-400 mb-8" data-i18n="home_intro">
                         Migliora le tue competenze matematiche in modo interattivo. Scegli un argomento dalla navigazione e imposta la difficoltà per iniziare.
                     </p>
-                    <div class="bg-slate-900/50 p-6 rounded-xl border border-slate-700/50 mb-4">
+                    <div class="bg-slate-800/50 p-6 rounded-xl border border-slate-700/50 mb-4">
                         <p class="text-md font-semibold text-slate-300 mb-3" data-i18n="home_difficulty_label">Seleziona il tuo livello:</p>
-                        <div id="difficulty-selector" class="flex justify-center gap-2 p-1 bg-slate-800/70 rounded-full">
+                        <div id="difficulty-selector" class="flex justify-center gap-2 p-1 bg-slate-900/70 rounded-full">
                             <button class="difficulty-button flex-1 px-4 py-2 rounded-full font-medium transition-all duration-300 active" data-difficulty="facile" data-i18n="difficulty_easy">Facile</button>
                             <button class="difficulty-button flex-1 px-4 py-2 rounded-full font-medium transition-all duration-300" data-difficulty="medio" data-i18n="difficulty_medium">Medio</button>
                             <button class="difficulty-button flex-1 px-4 py-2 rounded-full font-medium transition-all duration-300" data-difficulty="difficile" data-i18n="difficulty_hard">Difficile</button>
@@ -352,7 +311,7 @@
                     <div class="bg-slate-900/50 rounded-xl p-6 border border-slate-700/50">
                         <div class="text-center mb-5">
                             <p class="exercise-label text-lg font-medium text-slate-400 mb-2"></p>
-                            <div class="exercise-problem text-4xl font-bold text-indigo-300 p-4 bg-slate-800/50 rounded-lg shadow-sm flex flex-col justify-center items-center"></div>
+                            <div class="exercise-problem text-4xl font-bold text-slate-100 p-4 bg-slate-800/50 rounded-lg shadow-sm flex flex-col justify-center items-center"></div>
                         </div>
 
                         <div class="exercise-inputs flex flex-col sm:flex-row items-center gap-4 mb-4">
@@ -366,7 +325,7 @@
                         </div>
 
                         <div class="result-box mt-5 p-4 rounded-lg text-center font-bold text-base transition-all duration-300 scale-95 opacity-0"></div>
-                        <div class="explanation-box mt-4 p-4 rounded-lg bg-slate-800/50 border border-slate-700/50 text-slate-300 hidden"></div>
+                        <div class="explanation-box mt-4 p-4 rounded-lg bg-slate-800/50 border-slate-700/50 text-slate-300 hidden"></div>
                     </div>
                 </div>
             </div>
@@ -376,7 +335,6 @@
             <div id="section-espressioni" class="section-container"></div>
             <div id="section-proporzioni" class="section-container"></div>
             <div id="section-sistemi" class="section-container"></div>
-            <div id="section-geometria" class="section-container"></div>
 
         </main>
     </div>
@@ -384,14 +342,14 @@
     <!-- Modale per messaggi -->
     <div id="message-modal" class="message-box">
         <div id="message-text" class="mb-4"></div>
-        <button id="message-ok" class="bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors">OK</button>
+        <button id="message-ok" class="bg-cyan-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-cyan-600 transition-colors">OK</button>
     </div>
     <div id="modal-overlay" class="modal-overlay"></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Variabili globali per l'ambiente Canvas
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
@@ -401,7 +359,7 @@
         let app;
         let db;
         let auth;
-        let unsubscribe; // Per disconnettere il listener onSnapshot
+        let unsubscribe;
 
         // --- Funzioni di utilità ---
         const randomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
@@ -434,59 +392,76 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-            const shapes = [];
-            const shapeCount = 50;
-            const geometries = [
-                new THREE.IcosahedronGeometry(0.5, 0),
-                new THREE.TorusGeometry(0.3, 0.15, 16, 100),
-                new THREE.OctahedronGeometry(0.4, 0),
-            ];
-
-            const material = new THREE.MeshStandardMaterial({
-                color: 0x8b5cf6,
-                metalness: 0.6,
-                roughness: 0.2,
-            });
-
-            for (let i = 0; i < shapeCount; i++) {
-                const geometry = geometries[i % geometries.length];
-                const shape = new THREE.Mesh(geometry, material);
-                shape.position.set(
-                    (Math.random() - 0.5) * 20,
-                    (Math.random() - 0.5) * 20,
-                    (Math.random() - 0.5) * 20
-                );
-                shape.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
-                shape.scale.setScalar(Math.random() * 0.5 + 0.5);
-                shapes.push(shape);
-                scene.add(shape);
-            }
-
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
             scene.add(ambientLight);
-
-            const pointLight = new THREE.PointLight(0x4f46e5, 1.5, 100);
+            
+            const pointLight = new THREE.PointLight(0x22d3ee, 2, 50); // Aqua
             pointLight.position.set(5, 5, 5);
             scene.add(pointLight);
 
-            camera.position.z = 8;
+            const pointLight2 = new THREE.PointLight(0x10b981, 2, 50); // Emerald
+            pointLight2.position.set(-5, -5, -5);
+            scene.add(pointLight2);
+            
+            camera.position.z = 15;
+            
+            const groundGeometry = new THREE.PlaneGeometry(100, 100);
+            const groundMaterial = new THREE.MeshPhongMaterial({ color: 0x020617, specular: 0x111111, shininess: 30 });
+            const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+            ground.rotation.x = -Math.PI / 2;
+            ground.position.y = -5;
+            scene.add(ground);
+
+            const buildingGeometry = new THREE.BoxGeometry(1, 5, 1);
+            const buildingMaterial = new THREE.MeshPhongMaterial({ color: 0x0f172a, specular: 0x333333, shininess: 50 });
+
+            for (let i = 0; i < 50; i++) {
+                const building = new THREE.Mesh(buildingGeometry, buildingMaterial);
+                building.position.x = (Math.random() - 0.5) * 40;
+                building.position.z = (Math.random() - 0.5) * 40;
+                building.scale.y = Math.random() * 2 + 0.5;
+                building.position.y = (building.geometry.parameters.height * building.scale.y / 2) - 5;
+                scene.add(building);
+            }
+
+            const planeGeometry = new THREE.TorusGeometry(0.3, 0.1, 16, 100);
+            const planeMaterialAqua = new THREE.MeshStandardMaterial({
+                color: 0x22d3ee, metalness: 0.6, roughness: 0.4
+            });
+            const planeMaterialEmerald = new THREE.MeshStandardMaterial({
+                color: 0x10b981, metalness: 0.6, roughness: 0.4
+            });
+
+            const planes = [];
+            for(let i = 0; i < 15; i++) {
+                const material = Math.random() > 0.5 ? planeMaterialAqua : planeMaterialEmerald;
+                const plane = new THREE.Mesh(planeGeometry, material);
+                plane.position.x = (Math.random() - 0.5) * 10;
+                plane.position.y = randomInt(5, 10);
+                plane.position.z = (Math.random() - 0.5) * 10;
+                plane.rotation.z = Math.random() * Math.PI;
+                scene.add(plane);
+                planes.push(plane);
+            }
 
             const mouse = new THREE.Vector2();
             window.addEventListener('mousemove', (event) => {
                 mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
                 mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
             });
-
+            
             const clock = new THREE.Clock();
             function animate() {
                 const elapsedTime = clock.getElapsedTime();
-                shapes.forEach((shape, i) => {
-                    shape.rotation.x += 0.001 * (i % 5 + 1);
-                    shape.rotation.y += 0.002 * (i % 3 + 1);
-                });
 
-                pointLight.position.x = mouse.x * 10;
-                pointLight.position.y = mouse.y * 10;
+                planes.forEach((plane, i) => {
+                    plane.position.x += 0.05 * Math.cos(plane.rotation.z);
+                    plane.position.y += 0.05 * Math.sin(plane.rotation.z);
+                     if (Math.abs(plane.position.x) > 20 || Math.abs(plane.position.y) > 20) {
+                        plane.position.x = (Math.random() - 0.5) * 10;
+                        plane.position.y = randomInt(5, 10);
+                    }
+                });
 
                 camera.position.x += (mouse.x * 2 - camera.position.x) * 0.02;
                 camera.position.y += (-mouse.y * 2 - camera.position.y) * 0.02;
@@ -496,7 +471,7 @@
                 requestAnimationFrame(animate);
             }
             animate();
-
+            
             window.addEventListener('resize', () => {
                 camera.aspect = window.innerWidth / window.innerHeight;
                 camera.updateProjectionMatrix();
@@ -509,7 +484,7 @@
 
         lucide.createIcons();
 
-        const sections = ['home', 'esercizi', 'espressioni', 'proporzioni', 'sistemi', 'geometria'];
+        const sections = ['home', 'esercizi', 'espressioni', 'proporzioni', 'sistemi'];
         let state = {
             difficulty: localStorage.getItem('difficulty') || 'facile',
             language: localStorage.getItem('language') || 'it',
@@ -519,20 +494,16 @@
                 exercisesDone: 0,
                 correctAnswers: 0
             },
-            isAuthReady: false
+            username: 'Ospite'
         };
 
         const elements = {
             authUI: document.getElementById('auth-ui'),
             mainUI: document.getElementById('main-ui'),
-            loginForm: document.getElementById('login-form'),
-            registerForm: document.getElementById('register-form'),
-            showLoginBtn: document.getElementById('show-login-btn'),
-            showRegisterBtn: document.getElementById('show-register-btn'),
-            loginContainer: document.getElementById('login-container'),
-            registerContainer: document.getElementById('register-container'),
             guestBtn: document.getElementById('guest-btn'),
-            logoutBtn: document.getElementById('logout-btn'),
+            googleLoginBtn: document.getElementById('google-login-btn'),
+            goToLoginBtn: document.getElementById('go-to-login-btn'),
+            signOutBtn: document.getElementById('sign-out-btn'),
             userIdDisplay: document.getElementById('user-id-display'),
             userStatusDisplay: document.getElementById('user-status'),
             navButtons: document.querySelectorAll('.nav-button'),
@@ -546,148 +517,126 @@
             statsScore: document.getElementById('stats-score'),
             statsDone: document.getElementById('stats-done'),
             statsPercentage: document.getElementById('stats-percentage'),
-            accessibilityToggle: document.getElementById('accessibility-toggle'),
         };
 
         const translations = {
             'it': {
-                title: 'Tutor Matematico', auth_title: 'Benvenuto!', auth_subtitle: 'Accedi per salvare i tuoi progressi o continua come ospite.',
-                auth_no_account: 'Non hai un account? ', auth_register_link: 'Registrati',
-                auth_have_account: 'Hai già un account? ', auth_login_link: 'Accedi',
-                button_login: 'Accedi', button_register: 'Registrati', button_guest: 'Continua come Ospite', button_logout: 'Esci',
+                title: 'Tutor Matematico', auth_title: 'Benvenuto!', auth_subtitle: 'Accedi per iniziare.',
+                button_guest: 'Continua come Ospite', button_google_login: 'Accedi con Google', button_sign_out: 'Esci', button_go_to_login: 'Vai al Login',
                 header_title: 'Tutor Matematico', header_subtitle: 'Impara divertendoti!',
-                nav_home: 'Home', nav_arithmetic: 'Aritmetica', nav_expressions: 'Espressioni', nav_proportions: 'Proporzioni', nav_systems: 'Sistemi', nav_geometry: 'Geometria',
-                home_welcome: 'Benvenuto!', home_intro: 'Migliora le tue competenze matematiche in modo interattivo. Scegli un argomento e una difficoltà per iniziare.',
+                nav_home: 'Home', nav_arithmetic: 'Aritmetica', nav_expressions: 'Espressioni', nav_proportions: 'Proporzioni', nav_systems: 'Sistemi',
+                home_welcome: 'Benvenuto!', home_intro: 'Migliora le tue competenze matematiche in modo interattivo. Scegli un argomento dalla navigazione e imposta la difficoltà per iniziare.',
                 home_difficulty_label: 'Seleziona il tuo livello:', language_label: 'Lingua',
                 difficulty_easy: 'Facile', difficulty_medium: 'Medio', difficulty_hard: 'Difficile',
                 arithmetic_title: 'Aritmetica', arithmetic_subtitle: 'Metti alla prova le tue abilità di calcolo.',
                 expressions_title: 'Espressioni', expressions_subtitle: 'Risolvi calcoli con più operazioni.',
                 proportions_title: 'Proporzioni', proportions_subtitle: 'Trova il termine incognito.',
                 systems_title: 'Sistemi di Equazioni', systems_subtitle: 'Trova le soluzioni che soddisfano più equazioni.',
-                geometry_title: 'Geometria', geometry_subtitle: 'Calcola aree, perimetri e volumi.',
                 arithmetic_exercise_label: 'Calcola il risultato:', arithmetic_answer_placeholder: 'La tua risposta',
                 expressions_exercise_label: 'Risolvi l\'espressione:', expressions_answer_placeholder: 'La tua risposta',
                 proportions_exercise_label: 'Trova il valore di x:', proportions_answer_placeholder: 'Valore di x',
                 systems_answer_x_placeholder: 'Valore di x', systems_answer_y_placeholder: 'Valore di y',
                 systems_exercise_label: 'Risolvi il sistema:',
-                geometry_exercise_label: 'Calcola:', geometry_answer_placeholder: 'La tua risposta',
                 button_check: 'Verifica', button_new: 'Nuovo Esercizio', button_hint: 'Spiegazione', footer_credits: 'Creato da David Miron.',
-                feedback_correct: 'Corretto! Ottimo lavoro! 🎉', feedback_incorrect: 'Sbagliato. La risposta corretta è ', feedback_warning_empty: 'Per favore, inserisci una risposta.',
+                feedback_correct: 'Corretto! Ottimo lavoro! 🎉', feedback_incorrect: (solution) => `Sbagliato. La risposta corretta è ${solution}.`, feedback_warning_empty: 'Per favore, inserisci una risposta.',
                 guest_mode: 'Accesso come Ospite', stats_total_score: 'Punteggio totale:', stats_exercises_done: 'Esercizi fatti:', stats_correct_percentage: 'Correttezza:',
-                convert_account: 'Vuoi salvare i tuoi progressi? Registrati!',
-                accessibility_label: 'Accessibilità',
+                convert_account: 'Vuoi salvare i tuoi progressi? Accedi con Google!',
                 arithmetic_hint: (op) => `Per risolvere questo esercizio, devi eseguire l'operazione di ${op}.`,
-                expressions_hint: (problem, result) => `Segui l'ordine delle operazioni (PEMDAS/BODMAS): prima parentesi, poi esponenti, moltiplicazioni/divisioni, e infine addizioni/sottrazioni.
-Problema: ${problem}
-Passaggi:
-1. Risolvi le operazioni all'interno delle parentesi.
-2. Esegui moltiplicazioni e divisioni da sinistra a destra.
-3. Esegui addizioni e sottrazioni da sinistra a destra.
-La risposta corretta è ${result}.`,
-                proportions_hint: (problem, result) => `Usa la proprietà fondamentale: il prodotto dei medi è uguale al prodotto degli estremi.
-Problema: ${problem}
-Passaggi:
-1. Moltiplica i termini centrali (medi) e i termini esterni (estremi).
-2.  ${problem} -> $${problem.split(':')[1]} \\times ${problem.split(':')[2].split('=')[0]} = ${problem.split(':')[0]} \\times x$
-3. Risolvi l'equazione per $x$.
-La risposta corretta è ${result}.`,
-                systems_hint: (problem, result) => `Ci sono diversi metodi per risolvere un sistema. Prova il metodo di sostituzione.
-Problema:
-${problem}
-Passaggi:
-1. Isola una variabile (ad es., $x$) in una delle due equazioni.
-2. Sostituisci l'espressione trovata nell'altra equazione.
-3. Risolvi la nuova equazione per trovare il valore dell'altra variabile ($y$).
-4. Sostituisci il valore di $y$ in una delle equazioni originali per trovare $x$.
-La risposta corretta è $x = ${result.x}$ e $y = ${result.y}.`,
-                geometry_hint: (problem, result) => `La formula per calcolare il ${problem.type} di un ${problem.shape} è:
-${problem.formula}
-Sostituisci i valori dati nell'esercizio: ${problem.values} e calcola.
-La risposta corretta è ${result}.`,
-                user_id_label: 'ID Utente:',
-                authenticated_user: 'Benvenuto, ',
-                offline_mode: 'Modalità Offline'
+                expressions_hint: (problem, result) => `Segui l'ordine delle operazioni (PEMDAS/BODMAS): prima parentesi, poi esponenti, moltiplicazioni/divisioni, e infine addizioni/sottrazioni.\nProblema: ${problem}\nLa risposta corretta è ${result}.`,
+                proportions_hint: (problem, result) => `Usa la proprietà fondamentale: il prodotto dei medi è uguale al prodotto degli estremi.\nProblema: ${problem}\nPassaggi: ${problem.split(':')[1]} * ${problem.split(':')[2].split('=')[0]} = ${problem.split(':')[0]} * x\nRisolvi l'equazione per x.\nLa risposta corretta è ${result}.`,
+                systems_hint: (problem, result) => `Prova il metodo di sostituzione.\nProblema:\n${problem}\nPassaggi:\n1. Isola una variabile in una delle equazioni.\n2. Sostituisci l'espressione nell'altra equazione.\n3. Risolvi per trovare una variabile, poi l'altra.\nLa risposta corretta è x=${result.x}, y=${result.y}.`,
             },
             'en': {
-                title: 'Math Tutor', auth_title: 'Welcome!', auth_subtitle: 'Login to save your progress or continue as a guest.',
-                auth_no_account: 'Don\'t have an account? ', auth_register_link: 'Sign up',
-                auth_have_account: 'Already have an account? ', auth_login_link: 'Login',
-                button_login: 'Login', button_register: 'Sign Up', button_guest: 'Continue as Guest', button_logout: 'Logout',
+                title: 'Math Tutor', auth_title: 'Welcome!', auth_subtitle: 'Sign in to get started.',
+                button_guest: 'Continue as Guest', button_google_login: 'Sign in with Google', button_sign_out: 'Sign Out', button_go_to_login: 'Go to Login',
                 header_title: 'Math Tutor', header_subtitle: 'Learn while having fun!',
-                nav_home: 'Home', nav_arithmetic: 'Arithmetic', nav_expressions: 'Expressions', nav_proportions: 'Proportions', nav_systems: 'Systems', nav_geometry: 'Geometry',
-                home_welcome: 'Welcome!', home_intro: 'Improve your math skills interactively. Choose a topic and difficulty to start.',
+                nav_home: 'Home', nav_arithmetic: 'Arithmetic', nav_expressions: 'Expressions', nav_proportions: 'Proportions', nav_systems: 'Systems',
+                home_welcome: 'Welcome!', home_intro: 'Improve your math skills interactively. Choose a topic from the navigation and set the difficulty to start.',
                 home_difficulty_label: 'Select your level:', language_label: 'Language',
                 difficulty_easy: 'Easy', difficulty_medium: 'Medium', difficulty_hard: 'Hard',
                 arithmetic_title: 'Arithmetic', arithmetic_subtitle: 'Test your calculation skills.',
                 expressions_title: 'Expressions', expressions_subtitle: 'Solve calculations with multiple operations.',
                 proportions_title: 'Proportions', proportions_subtitle: 'Find the unknown term.',
                 systems_title: 'Systems of Equations', systems_subtitle: 'Find solutions that satisfy multiple equations.',
-                geometry_title: 'Geometry', geometry_subtitle: 'Calculate areas, perimeters, and volumes.',
                 arithmetic_exercise_label: 'Calculate the result:', arithmetic_answer_placeholder: 'Your answer',
                 expressions_exercise_label: 'Solve the expression:', expressions_answer_placeholder: 'Your answer',
                 proportions_exercise_label: 'Find the value of x:', proportions_answer_placeholder: 'Value of x',
                 systems_answer_x_placeholder: 'Value of x', systems_answer_y_placeholder: 'Value of y',
                 systems_exercise_label: 'Solve the system:',
-                geometry_exercise_label: 'Calculate:', geometry_answer_placeholder: 'Your answer',
                 button_check: 'Check', button_new: 'New Exercise', button_hint: 'Explanation', footer_credits: 'Created by David Miron.',
-                feedback_correct: 'Correct! Great job! 🎉', feedback_incorrect: 'Incorrect. The correct answer is ', feedback_warning_empty: 'Please enter an answer.',
-                guest_mode: 'Guest Access', stats_total_score: 'Total Score:', stats_exercises_done: 'Exercises Done:', stats_correct_percentage: 'Correctness:',
-                convert_account: 'Want to save your progress? Sign Up!',
-                accessibility_label: 'Accessibility',
+                feedback_correct: 'Correct! Great job! 🎉', feedback_incorrect: (solution) => `Incorrect. The correct answer is ${solution}.`, feedback_warning_empty: 'Please enter an answer.',
+                guest_mode: 'Guest Mode', stats_total_score: 'Total score:', stats_exercises_done: 'Exercises done:', stats_correct_percentage: 'Correctness:',
+                convert_account: 'Want to save your progress? Sign in with Google!',
                 arithmetic_hint: (op) => `To solve this exercise, you need to perform the ${op} operation.`,
-                expressions_hint: (problem, result) => `Follow the order of operations (PEMDAS/BODMAS): parentheses first, then exponents, multiplications/divisions, and finally additions/subtractions.
-Problem: ${problem}
-Steps:
-1. Solve operations inside parentheses.
-2. Perform multiplications and divisions from left to right.
-3. Perform additions and subtractions from left to right.
-The correct answer is ${result}.`,
-                proportions_hint: (problem, result) => `Use the fundamental property: the product of the means equals the product of the extremes.
-Problem: ${problem}
-Steps:
-1. Multiply the middle terms (means) and the outer terms (extremes).
-2. ${problem} -> $${problem.split(':')[1]} \\times ${problem.split(':')[2].split('=')[0]} = ${problem.split(':')[0]} \\times x$
-3. Solve the equation for $x$.
-The correct answer is ${result}.`,
-                systems_hint: (problem, result) => `There are several methods to solve a system. Try the substitution method.
-Problem:
-${problem}
-Steps:
-1. Isolate one variable (e.g., $x$) in one of the two equations.
-2. Substitute the found expression into the other equation.
-3. Solve the new equation to find the value of the other variable ($y$).
-4. Substitute the value of $y$ into one of the original equations to find $x$.
-The correct answer is $x = ${result.x}$ and $y = ${result.y}.`,
-                geometry_hint: (problem, result) => `The formula to calculate the ${problem.type} of a ${problem.shape} is:
-${problem.formula}
-Substitute the given values from the exercise: ${problem.values} and calculate.
-The correct answer is ${result}.`,
-                user_id_label: 'User ID:',
-                authenticated_user: 'Welcome, ',
-                offline_mode: 'Offline Mode'
-            },
+                expressions_hint: (problem, result) => `Follow the order of operations (PEMDAS/BODMAS): parentheses, exponents, multiplication/division, and finally addition/subtraction.\nProblem: ${problem}\nThe correct answer is ${result}.`,
+                proportions_hint: (problem, result) => `Use the fundamental property: the product of the means equals the product of the extremes.\nProblem: ${problem}\nSteps: ${problem.split(':')[1]} * ${problem.split(':')[2].split('=')[0]} = ${problem.split(':')[0]} * x\nSolve the equation for x.\nThe correct answer is ${result}.`,
+                systems_hint: (problem, result) => `Try the substitution method.\nProblem:\n${problem}\nSteps:\n1. Isolate one variable in one of the equations.\n2. Substitute the expression into the other equation.\n3. Solve to find one variable, then the other.\nThe correct answer is x=${result.x}, y=${result.y}.`,
+            }
         };
 
+        const setLanguage = (lang) => {
+            state.language = lang;
+            localStorage.setItem('language', lang);
+            document.documentElement.lang = lang;
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[lang] && translations[lang][key]) {
+                    if (typeof translations[lang][key] === 'function') {
+                        // Non aggiorniamo le funzioni qui, verranno chiamate al bisogno
+                    } else {
+                        el.textContent = translations[lang][key];
+                    }
+                }
+            });
+             // Aggiorna specificamente i placeholder
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                if (translations[lang] && translations[lang][key]) {
+                    el.placeholder = translations[lang][key];
+                }
+            });
+            // Re-render dell'esercizio corrente per aggiornare i testi
+            if (state.currentExercise && state.currentExercise.type) {
+                const sectionId = `section-${state.currentExercise.type}`;
+                const section = document.getElementById(sectionId);
+                generateExercise(section, state.currentExercise.type);
+            }
+        };
 
-        // --- Gestione Autenticazione e UI ---
-        const setupFirebase = async () => {
-            // Controlla se la configurazione è disponibile
+        const updateStatsUI = () => {
+            elements.statsScore.textContent = state.stats.totalScore;
+            elements.statsDone.textContent = state.stats.exercisesDone;
+            const percentage = state.stats.exercisesDone > 0 ?
+                Math.round((state.stats.correctAnswers / state.stats.exercisesDone) * 100) : 0;
+            elements.statsPercentage.textContent = `${percentage}%`;
+        };
+
+        const saveData = async (userId) => {
+            if (!db) return;
+            try {
+                const userDocRef = doc(db, `artifacts/${appId}/users/${userId}/mathTutorStats`);
+                await setDoc(userDocRef, state.stats);
+            } catch (error) {
+                console.error("Error saving data: ", error);
+            }
+        };
+
+        const signInWithGoogle = async () => {
+            if (!auth) return;
+            const provider = new GoogleAuthProvider();
+            try {
+                await signInWithPopup(auth, provider);
+            } catch (error) {
+                console.error("Google Sign-In Error: ", error);
+                showMessageBox("Errore durante l'accesso con Google.");
+            }
+        };
+
+        const setupAuth = () => {
             if (!firebaseConfig) {
-                console.error("Firebase config is not defined. Switching to offline mode.");
-                showMessageBox(translations[state.language].offline_mode + ". " + translations[state.language].convert_account);
-                
-                // Disabilita i form di autenticazione e i pulsanti
-                elements.loginForm.classList.add('hidden');
-                elements.registerForm.classList.add('hidden');
-                elements.guestBtn.classList.add('hidden');
-                elements.logoutBtn.classList.add('hidden');
-                
-                // Imposta l'UI per mostrare che siamo offline
-                elements.userStatusDisplay.innerText = translations[state.language].offline_mode;
-                elements.userIdDisplay.innerText = "ID: N/A";
-                elements.userIdDisplay.classList.remove('hidden');
-
-                updateUI(true); // Simula l'autenticazione per mostrare l'UI principale
+                console.warn("Firebase config not found. Running in offline mode.");
+                elements.authUI.classList.add('hidden');
+                elements.mainUI.classList.remove('hidden');
                 return;
             }
 
@@ -695,596 +644,345 @@ The correct answer is ${result}.`,
                 app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
-                
-                // Gestione dell'autenticazione iniziale
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(auth);
-                }
-
-                // Listener per lo stato di autenticazione
-                onAuthStateChanged(auth, async (user) => {
-                    if (user) {
-                        await loadUserData(user);
-                        updateUI(true, user);
-                    } else {
-                        updateUI(false);
-                        if (unsubscribe) {
-                            unsubscribe();
-                        }
-                    }
-                });
-            } catch (error) {
-                console.error("Firebase setup failed:", error);
-                showMessageBox("Si è verificato un errore durante l'autenticazione. Riprova più tardi.");
-            }
-        };
-
-        const loadUserData = async (user) => {
-            try {
-                const docPath = `artifacts/${appId}/users/${user.uid}/stats/user_stats`;
-                const userDocRef = doc(db, docPath);
-
-                // Listener in tempo reale
-                unsubscribe = onSnapshot(userDocRef, (docSnap) => {
-                    if (docSnap.exists()) {
-                        state.stats = docSnap.data();
-                    } else {
-                        // Se il documento non esiste, crealo con i dati iniziali
-                        state.stats = { totalScore: 0, exercisesDone: 0, correctAnswers: 0 };
-                        setDoc(userDocRef, state.stats);
-                    }
-                    updateStatsDisplay();
-                }, (error) => {
-                    console.error("Errore nel listener Firestore:", error);
-                });
-            } catch (error) {
-                console.error("Errore nel caricamento dei dati utente:", error);
-            }
-        };
-
-        const updateStatsInFirestore = async () => {
-            if (!auth.currentUser) return;
-            try {
-                const docPath = `artifacts/${appId}/users/${auth.currentUser.uid}/stats/user_stats`;
-                const userDocRef = doc(db, docPath);
-                await setDoc(userDocRef, state.stats, { merge: true });
-            } catch (error) {
-                console.error("Errore nel salvataggio dei dati su Firestore:", error);
-            }
-        };
-        
-        const updateUI = (isAuthenticated, user = null) => {
-            elements.authUI.classList.toggle('hidden', isAuthenticated);
-            elements.mainUI.classList.toggle('hidden', !isAuthenticated);
-
-            if (isAuthenticated) {
-                if (user && user.isAnonymous) {
-                    elements.userStatusDisplay.innerText = translations[state.language].guest_mode;
-                    elements.userIdDisplay.innerText = `${translations[state.language].user_id_label} ${user.uid}`;
-                    elements.userIdDisplay.classList.remove('hidden');
-                } else if (user && user.email) {
-                    elements.userStatusDisplay.innerText = translations[state.language].authenticated_user + user.email;
-                    elements.userIdDisplay.classList.add('hidden');
-                }
-            }
-        };
-
-        const updateStats = (isCorrect) => {
-            state.stats.exercisesDone += 1;
-            if (isCorrect) {
-                state.stats.correctAnswers += 1;
-                state.stats.totalScore += 10;
-            } else {
-                state.stats.totalScore -= 5;
-                if (state.stats.totalScore < 0) state.stats.totalScore = 0;
-            }
-            if (firebaseConfig) {
-                updateStatsInFirestore();
-            }
-        };
-
-        const updateStatsDisplay = () => {
-            elements.statsScore.innerText = state.stats.totalScore;
-            elements.statsDone.innerText = state.stats.exercisesDone;
-            const percentage = state.stats.exercisesDone > 0 ? Math.round((state.stats.correctAnswers / state.stats.exercisesDone) * 100) : 0;
-            elements.statsPercentage.innerText = `${percentage}%`;
-        };
-
-        const switchAuthForm = (isRegister) => {
-            elements.loginForm.classList.toggle('hidden', isRegister);
-            elements.registerForm.classList.toggle('hidden', !isRegister);
-        };
-
-        // Event Listeners per l'Autenticazione
-        elements.showRegisterBtn.addEventListener('click', (e) => { e.preventDefault(); switchAuthForm(true); });
-        elements.showLoginBtn.addEventListener('click', (e) => { e.preventDefault(); switchAuthForm(false); });
-
-        elements.loginContainer.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = e.target.querySelector('#login-email').value;
-            const password = e.target.querySelector('#login-password').value;
-            try {
-                await signInWithEmailAndPassword(auth, email, password);
-            } catch (error) {
-                console.error("Errore login:", error);
-                showMessageBox("Credenziali non valide. Riprova.");
-            }
-        });
-
-        elements.registerContainer.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = e.target.querySelector('#register-email').value;
-            const password = e.target.querySelector('#register-password').value;
-            try {
-                await createUserWithEmailAndPassword(auth, email, password);
-                showMessageBox("Registrazione avvenuta con successo! Puoi ora accedere.");
-            } catch (error) {
-                console.error("Errore registrazione:", error);
-                showMessageBox("Errore nella registrazione. L'email potrebbe essere già in uso o la password non è valida (min 6 caratteri).");
-            }
-        });
-
-        elements.guestBtn.addEventListener('click', async () => {
-            try {
-                await signInAnonymously(auth);
-            } catch (error) {
-                console.error("Errore accesso ospite:", error);
-                showMessageBox("Errore nell'accesso come ospite. Riprova più tardi.");
-            }
-        });
-
-        elements.logoutBtn.addEventListener('click', async () => {
-            try {
-                await signOut(auth);
-            } catch (error) {
-                console.error("Errore logout:", error);
-                showMessageBox("Errore durante il logout.");
-            }
-        });
-
-        // Esercizi di matematica
-        const exercises = {
-            'esercizi': {
-                title: 'Aritmetica',
-                subtitle: 'Metti alla prova le tue abilità di calcolo.',
-                label: 'Calcola il risultato:',
-                generate: (difficulty) => {
-                    let a, b, op, result;
-                    const ops = ['+', '-', '*', '/'];
-                    let opIdx = randomInt(0, ops.length - 1);
-                    if (difficulty === 'facile') {
-                        opIdx = randomInt(0, 1);
-                        a = randomInt(1, 10);
-                        b = randomInt(1, 10);
-                    } else if (difficulty === 'medio') {
-                        a = randomInt(10, 50);
-                        b = randomInt(1, 20);
-                    } else { // difficile
-                        a = randomInt(50, 200);
-                        b = randomInt(1, 50);
-                    }
-                    op = ops[opIdx];
-                    if (op === '/') {
-                        const temp = a * b;
-                        a = temp;
-                    }
-                    if (op === '+') result = a + b;
-                    else if (op === '-') result = a - b;
-                    else if (op === '*') result = a * b;
-                    else if (op === '/') result = a / b;
-
-                    return { problem: `${a} ${op} ${b}`, solution: result.toString(), hint: translations[state.language].arithmetic_hint(op) };
-                },
-                render: (problemContainer, inputsContainer, placeholder) => {
-                    problemContainer.innerHTML = `<span class="math-problem">${problem}</span>`;
-                    inputsContainer.innerHTML = '';
-                    const input = document.createElement('input');
-                    input.type = 'number';
-                    input.placeholder = placeholder;
-                    input.className = 'custom-input flex-1 p-3 rounded-lg text-center';
-                    inputsContainer.appendChild(input);
-                },
-                check: (answer, solution) => {
-                    return parseFloat(answer) === parseFloat(solution);
-                }
-            },
-            'espressioni': {
-                title: 'Espressioni',
-                subtitle: 'Risolvi calcoli con più operazioni.',
-                label: 'Risolvi l\'espressione:',
-                generate: (difficulty) => {
-                    let expression, solution;
-                    if (difficulty === 'facile') {
-                        const a = randomInt(1, 10), b = randomInt(1, 10), c = randomInt(1, 5);
-                        expression = `${a} + ${b} * ${c}`;
-                        solution = a + b * c;
-                    } else if (difficulty === 'medio') {
-                        const a = randomInt(5, 15), b = randomInt(1, 10), c = randomInt(2, 5), d = randomInt(1, 10);
-                        expression = `${a} * (${b} + ${c}) - ${d}`;
-                        solution = a * (b + c) - d;
-                    } else { // difficile
-                        const a = randomInt(10, 30), b = randomInt(5, 15), c = randomInt(2, 10), d = randomInt(1, 5), e = randomInt(1, 10);
-                        expression = `${a} / ${c} + (${b} - ${d}) * ${e}`;
-                        solution = a / c + (b - d) * e;
-                    }
-                    return { problem: expression, solution: solution.toString(), hint: translations[state.language].expressions_hint(expression, solution) };
-                },
-                render: (problemContainer, inputsContainer, placeholder) => {
-                    problemContainer.innerHTML = `<span class="math-problem">${problem}</span>`;
-                    inputsContainer.innerHTML = '';
-                    const input = document.createElement('input');
-                    input.type = 'text';
-                    input.placeholder = placeholder;
-                    input.className = 'custom-input flex-1 p-3 rounded-lg text-center';
-                    inputsContainer.appendChild(input);
-                },
-                check: (answer, solution) => {
-                    try {
-                        return eval(answer.replace(/[^-()\d/*+.]/g, '')) === parseFloat(solution);
-                    } catch (e) {
-                        return false;
-                    }
-                }
-            },
-            'proporzioni': {
-                title: 'Proporzioni',
-                subtitle: 'Trova il termine incognito.',
-                label: 'Trova il valore di x:',
-                generate: (difficulty) => {
-                    let a, b, c, problem, solution;
-                    if (difficulty === 'facile') {
-                        a = randomInt(1, 10); b = randomInt(1, 10);
-                        c = randomInt(1, 10);
-                        if (c % a !== 0) c = a * randomInt(1,5);
-                    } else if (difficulty === 'medio') {
-                        a = randomInt(1, 20); b = randomInt(1, 20);
-                        c = randomInt(1, 20);
-                        if (c % a !== 0) c = a * randomInt(1, 10);
-                    } else { // difficile
-                        a = randomInt(20, 50); b = randomInt(20, 50);
-                        c = randomInt(20, 50);
-                        if (c % a !== 0) c = a * randomInt(1, 10);
-                    }
-                    solution = (b * c) / a;
-                    problem = `${a} : ${b} = ${c} : x`;
-                    return { problem: problem, solution: solution.toString(), hint: translations[state.language].proportions_hint(problem, solution) };
-                },
-                render: (problemContainer, inputsContainer, placeholder) => {
-                    problemContainer.innerHTML = `<span class="math-problem">${formatLatex(problem.replace(/:/g, '\\div'))}</span>`;
-                    inputsContainer.innerHTML = '';
-                    const input = document.createElement('input');
-                    input.type = 'number';
-                    input.placeholder = placeholder;
-                    input.className = 'custom-input flex-1 p-3 rounded-lg text-center';
-                    inputsContainer.appendChild(input);
-                },
-                check: (answer, solution) => {
-                    return parseFloat(answer) === parseFloat(solution);
-                }
-            },
-            'sistemi': {
-                title: 'Sistemi di Equazioni',
-                subtitle: 'Trova le soluzioni che soddisfano più equazioni.',
-                label: 'Risolvi il sistema:',
-                generate: (difficulty) => {
-                    let x, y, a1, b1, c1, a2, b2, c2;
-                    if (difficulty === 'facile') {
-                        x = randomInt(1, 5); y = randomInt(1, 5);
-                        a1 = randomInt(1, 3); b1 = randomInt(1, 3);
-                        a2 = randomInt(1, 3); b2 = randomInt(1, 3);
-                    } else if (difficulty === 'medio') {
-                        x = randomInt(-5, 5); y = randomInt(-5, 5);
-                        a1 = randomInt(1, 5); b1 = randomInt(1, 5);
-                        a2 = randomInt(1, 5); b2 = randomInt(1, 5);
-                    } else { // difficile
-                        x = randomInt(-10, 10); y = randomInt(-10, 10);
-                        a1 = randomInt(1, 10); b1 = randomInt(1, 10);
-                        a2 = randomInt(1, 10); b2 = randomInt(1, 10);
-                    }
-
-                    c1 = a1 * x + b1 * y;
-                    c2 = a2 * x + b2 * y;
-                    
-                    const eq1 = `${a1}x + ${b1}y = ${c1}`;
-                    const eq2 = `${a2}x + ${b2}y = ${c2}`;
-                    const problem = `\\begin{cases} ${eq1} \\\\ ${eq2} \\end{cases}`;
-                    const solution = { x: x.toString(), y: y.toString() };
-                    return { problem: problem, solution: solution, hint: translations[state.language].systems_hint(problem, solution) };
-                },
-                render: (problemContainer, inputsContainer, placeholders) => {
-                    problemContainer.innerHTML = `<div class="text-2xl">${problem}</div>`;
-                    inputsContainer.innerHTML = '';
-                    const inputX = document.createElement('input');
-                    inputX.type = 'number';
-                    inputX.placeholder = placeholders.x;
-                    inputX.className = 'custom-input flex-1 p-3 rounded-lg text-center';
-                    inputsContainer.appendChild(inputX);
-                    const inputY = document.createElement('input');
-                    inputY.type = 'number';
-                    inputY.placeholder = placeholders.y;
-                    inputY.className = 'custom-input flex-1 p-3 rounded-lg text-center';
-                    inputsContainer.appendChild(inputY);
-                },
-                check: (answer, solution) => {
-                    const inputs = answer.split(',').map(s => parseFloat(s.trim()));
-                    if (inputs.length !== 2) return false;
-                    return inputs[0] === parseFloat(solution.x) && inputs[1] === parseFloat(solution.y);
-                }
-            },
-            'geometria': {
-                title: 'Geometria',
-                subtitle: 'Calcola aree, perimetri e volumi.',
-                label: 'Calcola:',
-                generate: (difficulty) => {
-                    const types = ['area', 'perimetro'];
-                    const shapes = ['rettangolo', 'quadrato', 'cerchio', 'triangolo'];
-                    const shape = shapes[randomInt(0, shapes.length - 1)];
-                    const type = types[randomInt(0, types.length - 1)];
-                    let problem, solution, formula, values;
-
-                    if (shape === 'rettangolo') {
-                        let base, altezza;
-                        if (difficulty === 'facile') { base = randomInt(2, 10); altezza = randomInt(2, 10); }
-                        else if (difficulty === 'medio') { base = randomInt(10, 20); altezza = randomInt(10, 20); }
-                        else { base = randomInt(20, 50); altezza = randomInt(20, 50); }
-                        if (type === 'area') {
-                            problem = `L'area di un rettangolo con base ${base} e altezza ${altezza}.`;
-                            solution = base * altezza;
-                            formula = `Area = base $\\times$ altezza`;
-                            values = `$${base} \\times ${altezza}$`;
-                        } else {
-                            problem = `Il perimetro di un rettangolo con base ${base} e altezza ${altezza}.`;
-                            solution = 2 * (base + altezza);
-                            formula = `Perimetro = $2 \\times$ (base + altezza)`;
-                            values = `$2 \\times (${base} + ${altezza})$`;
-                        }
-                    } else if (shape === 'quadrato') {
-                        let lato;
-                        if (difficulty === 'facile') { lato = randomInt(2, 10); }
-                        else if (difficulty === 'medio') { lato = randomInt(10, 20); }
-                        else { lato = randomInt(20, 50); }
-                        if (type === 'area') {
-                            problem = `L'area di un quadrato con lato ${lato}.`;
-                            solution = lato * lato;
-                            formula = `Area = $lato^2$`;
-                            values = `$${lato}^2$`;
-                        } else {
-                            problem = `Il perimetro di un quadrato con lato ${lato}.`;
-                            solution = 4 * lato;
-                            formula = `Perimetro = $4 \\times lato$`;
-                            values = `$4 \\times ${lato}$`;
-                        }
-                    } else if (shape === 'cerchio') {
-                        let raggio;
-                        if (difficulty === 'facile') { raggio = randomInt(1, 5); }
-                        else if (difficulty === 'medio') { raggio = randomInt(5, 15); }
-                        else { raggio = randomInt(10, 30); }
-                        if (type === 'area') {
-                            problem = `L'area di un cerchio con raggio ${raggio}. (Usa $\\pi \\approx 3.14$)`;
-                            solution = Math.round(Math.PI * raggio * raggio * 100) / 100;
-                            formula = `Area = $\\pi \\times raggio^2$`;
-                            values = `$\\pi \\times ${raggio}^2$`;
-                        } else {
-                            problem = `Il perimetro di un cerchio (circonferenza) con raggio ${raggio}. (Usa $\\pi \\approx 3.14$)`;
-                            solution = Math.round(2 * Math.PI * raggio * 100) / 100;
-                            formula = `Circonferenza = $2 \\times \\pi \\times raggio$`;
-                            values = `$2 \\times \\pi \\times ${raggio}$`;
-                        }
-                    } else if (shape === 'triangolo') {
-                        let base, altezza;
-                        if (difficulty === 'facile') { base = randomInt(2, 10); altezza = randomInt(2, 10); }
-                        else if (difficulty === 'medio') { base = randomInt(10, 20); altezza = randomInt(10, 20); }
-                        else { base = randomInt(20, 50); altezza = randomInt(20, 50); }
-                        if (type === 'area') {
-                            problem = `L'area di un triangolo con base ${base} e altezza ${altezza}.`;
-                            solution = (base * altezza) / 2;
-                            formula = `Area = (base $\\times$ altezza) / 2`;
-                            values = `$(${base} \\times ${altezza}) / 2$`;
-                        } else {
-                            // Perimetro di un triangolo rettangolo
-                            const ipotenusa = Math.round(Math.sqrt(base * base + altezza * altezza) * 100) / 100;
-                            problem = `Il perimetro di un triangolo rettangolo con cateti ${base} e ${altezza}.`;
-                            solution = base + altezza + ipotenusa;
-                            formula = `Perimetro = cateto1 + cateto2 + ipotenusa`;
-                            values = `${base} + ${altezza} + ${ipotenusa}`;
-                        }
-                    }
-
-                    return { problem: problem, solution: solution.toString(), hint: translations[state.language].geometry_hint({ type: type, shape: shape, formula: formula, values: values }, solution) };
-                },
-                render: (problemContainer, inputsContainer, placeholder) => {
-                    problemContainer.innerHTML = `<span class="math-problem">${formatLatex(problem)}</span>`;
-                    inputsContainer.innerHTML = '';
-                    const input = document.createElement('input');
-                    input.type = 'number';
-                    input.placeholder = placeholder;
-                    input.className = 'custom-input flex-1 p-3 rounded-lg text-center';
-                    inputsContainer.appendChild(input);
-                },
-                check: (answer, solution) => {
-                    const answerFloat = parseFloat(answer);
-                    const solutionFloat = parseFloat(solution);
-                    const tolerance = 0.01;
-                    return Math.abs(answerFloat - solutionFloat) < tolerance;
-                }
-            }
-        };
-
-        const generateExercise = (sectionId) => {
-            const exerciseInfo = exercises[sectionId];
-            if (!exerciseInfo) return;
-
-            state.currentExercise = exerciseInfo.generate(state.difficulty);
-            
-            const sectionContainer = document.getElementById(`section-${sectionId}`);
-            let currentContainer = sectionContainer.querySelector('.exercise-template-instance');
-
-            if (!currentContainer) {
-                const template = elements.exerciseTemplate.cloneNode(true);
-                template.id = '';
-                template.classList.remove('hidden');
-                template.classList.add('exercise-template-instance', 'h-full');
-                sectionContainer.appendChild(template);
-                currentContainer = template;
-            }
-
-            const problemContainer = currentContainer.querySelector('.exercise-problem');
-            const inputsContainer = currentContainer.querySelector('.exercise-inputs');
-            const resultBox = currentContainer.querySelector('.result-box');
-            const explanationBox = currentContainer.querySelector('.explanation-box');
-            const checkButton = currentContainer.querySelector('.check-button');
-            const newButton = currentContainer.querySelector('.new-button');
-            const hintButton = currentContainer.querySelector('.hint-button');
-            const label = currentContainer.querySelector('.exercise-label');
-
-            label.textContent = translations[state.language][`${sectionId}_exercise_label`];
-            resultBox.textContent = '';
-            resultBox.style.opacity = '0';
-            explanationBox.classList.add('hidden');
-            inputsContainer.innerHTML = '';
-            
-            let placeholder;
-            if (sectionId === 'sistemi') {
-                placeholder = {
-                    x: translations[state.language].systems_answer_x_placeholder,
-                    y: translations[state.language].systems_answer_y_placeholder
-                };
-            } else {
-                placeholder = translations[state.language][`${sectionId}_answer_placeholder`];
-            }
-            
-            exerciseInfo.render(problemContainer, inputsContainer, placeholder);
-
-            checkButton.onclick = () => checkAnswer(sectionId, currentContainer);
-            newButton.onclick = () => generateExercise(sectionId);
-            hintButton.onclick = () => showHint(currentContainer);
-        };
-
-        const checkAnswer = (sectionId, currentContainer) => {
-            const exerciseInfo = exercises[sectionId];
-            const inputsContainer = currentContainer.querySelector('.exercise-inputs');
-            const resultBox = currentContainer.querySelector('.result-box');
-
-            let answer;
-            if (sectionId === 'sistemi') {
-                const inputs = inputsContainer.querySelectorAll('input');
-                answer = `${inputs[0].value}, ${inputs[1].value}`;
-            } else {
-                answer = inputsContainer.querySelector('input').value;
-            }
-
-            if (!answer) {
-                showMessageBox(translations[state.language].feedback_warning_empty);
+            } catch (e) {
+                console.error("Error initializing Firebase:", e);
+                elements.authUI.classList.add('hidden');
+                elements.mainUI.classList.remove('hidden');
                 return;
             }
 
-            if (exerciseInfo.check(answer, state.currentExercise.solution)) {
-                resultBox.classList.remove('feedback-incorrect');
-                resultBox.classList.add('feedback-correct', 'correct-animation');
-                resultBox.textContent = translations[state.language].feedback_correct;
-                updateStats(true);
-            } else {
-                resultBox.classList.remove('feedback-correct');
-                resultBox.classList.add('feedback-incorrect', 'incorrect-animation');
-                resultBox.textContent = translations[state.language].feedback_incorrect + state.currentExercise.solution;
-                updateStats(false);
-            }
-            resultBox.style.opacity = '1';
-            resultBox.style.transform = 'scale(1)';
-        };
+            onAuthStateChanged(auth, user => {
+                if (user) {
+                    elements.authUI.classList.add('hidden');
+                    elements.mainUI.classList.remove('hidden');
+                    
+                    if (user.isAnonymous) {
+                        elements.userStatusDisplay.textContent = translations[state.language].guest_mode;
+                        elements.signOutBtn.classList.add('hidden');
+                        elements.goToLoginBtn.classList.remove('hidden');
+                    } else {
+                        elements.userStatusDisplay.textContent = user.displayName || 'Utente';
+                        elements.signOutBtn.classList.remove('hidden');
+                        elements.goToLoginBtn.classList.add('hidden');
+                    }
+                    elements.userIdDisplay.textContent = `ID: ${user.uid}`;
+                    elements.userIdDisplay.classList.remove('hidden');
+                    
+                    if (unsubscribe) unsubscribe();
+                    const userDocRef = doc(db, `artifacts/${appId}/users/${user.uid}/mathTutorStats`);
+                    unsubscribe = onSnapshot(userDocRef, (doc) => {
+                        if (doc.exists()) {
+                            state.stats = doc.data();
+                        } else {
+                            // Inizializza le statistiche se non esistono
+                             state.stats = { totalScore: 0, exercisesDone: 0, correctAnswers: 0 };
+                        }
+                        updateStatsUI();
+                    });
 
-        const showHint = (currentContainer) => {
-            const explanationBox = currentContainer.querySelector('.explanation-box');
-            explanationBox.innerHTML = formatLatex(state.currentExercise.hint);
-            explanationBox.classList.remove('hidden');
-        };
-
-        const updateLanguage = () => {
-            const elementsToTranslate = document.querySelectorAll('[data-i18n]');
-            elementsToTranslate.forEach(element => {
-                const key = element.getAttribute('data-i18n');
-                if (translations[state.language][key]) {
-                    element.textContent = translations[state.language][key];
+                } else {
+                    elements.authUI.classList.remove('hidden');
+                    elements.mainUI.classList.add('hidden');
+                    elements.userIdDisplay.classList.add('hidden');
+                     if (unsubscribe) unsubscribe();
                 }
             });
-
-            const placeholders = document.querySelectorAll('input[placeholder]');
-            placeholders.forEach(input => {
-                const key = input.getAttribute('placeholder').toLowerCase().replace(' ', '_');
-                if (translations[state.language][key]) {
-                    input.placeholder = translations[state.language][key];
-                }
-            });
-
-            // Aggiorna anche i testi dinamici
-            const pageTitles = document.getElementById('page-title');
-            if (pageTitles.textContent) {
-                const currentSectionId = document.querySelector('.section-container.active').id.replace('section-', '');
-                if (exercises[currentSectionId]) {
-                    pageTitles.textContent = translations[state.language][`${currentSectionId}_title`];
-                    document.getElementById('page-subtitle').textContent = translations[state.language][`${currentSectionId}_subtitle`];
-                    document.querySelector('.exercise-label').textContent = translations[state.language][`${currentSectionId}_exercise_label`];
-                }
-            }
         };
-        
-        // --- Inizializzazione ---
-        document.addEventListener('DOMContentLoaded', () => {
-            setupFirebase();
+
+        const setupEventListeners = () => {
+            elements.guestBtn.addEventListener('click', () => {
+                if(auth) signInAnonymously(auth).catch(err => console.error(err));
+            });
+            elements.googleLoginBtn.addEventListener('click', signInWithGoogle);
+            elements.goToLoginBtn.addEventListener('click', signInWithGoogle);
             
-            // Gestione dei pulsanti di navigazione
+            elements.signOutBtn.addEventListener('click', () => {
+                if(auth) signOut(auth);
+            });
+
             elements.navButtons.forEach(button => {
                 button.addEventListener('click', () => {
-                    elements.navButtons.forEach(btn => btn.classList.remove('active'));
-                    button.classList.add('active');
-
-                    const targetSectionId = button.id.replace('nav-', '');
-                    document.querySelectorAll('.section-container').forEach(section => {
-                        section.classList.remove('active');
-                    });
-                    document.getElementById(`section-${targetSectionId}`).classList.add('active');
-
-                    if (targetSectionId !== 'home') {
-                        elements.pageHeader.classList.remove('hidden');
-                        elements.pageTitle.textContent = translations[state.language][`${targetSectionId}_title`];
-                        elements.pageSubtitle.textContent = translations[state.language][`${targetSectionId}_subtitle`];
-                        generateExercise(targetSectionId);
-                    } else {
-                        elements.pageHeader.classList.add('hidden');
-                    }
+                    const targetId = button.id.replace('nav-', '');
+                    navigateTo(targetId);
                 });
             });
 
-            // Gestione dei pulsanti di difficoltà
             elements.difficultyButtons.forEach(button => {
                 button.addEventListener('click', () => {
-                    elements.difficultyButtons.forEach(btn => btn.classList.remove('active'));
-                    button.classList.add('active');
                     state.difficulty = button.dataset.difficulty;
                     localStorage.setItem('difficulty', state.difficulty);
+                    elements.difficultyButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                });
+            });
+            
+            elements.languageSelector.addEventListener('change', (e) => setLanguage(e.target.value));
+        };
+        
+        const navigateTo = (sectionId) => {
+            elements.navButtons.forEach(btn => btn.classList.remove('active', 'transform', 'translate-y-[-2px]', 'scale-102'));
+            document.getElementById(`nav-${sectionId}`).classList.add('active');
+
+            document.querySelectorAll('.section-container').forEach(sec => sec.classList.remove('active'));
+            document.getElementById(`section-${sectionId}`).classList.add('active');
+
+            if (sectionId !== 'home') {
+                elements.pageHeader.classList.remove('hidden');
+                elements.pageTitle.textContent = translations[state.language][`${sectionId}_title`] || sectionId;
+                elements.pageSubtitle.textContent = translations[state.language][`${sectionId}_subtitle`] || '';
+                
+                const sectionContainer = document.getElementById(`section-${sectionId}`);
+                if (!sectionContainer.hasChildNodes()) { // Genera esercizio solo se la sezione è vuota
+                     generateExercise(sectionContainer, sectionId);
+                }
+            } else {
+                 elements.pageHeader.classList.add('hidden');
+            }
+        };
+
+        const exerciseGenerators = {
+            esercizi: (diff) => {
+                let num1, num2, op, question, answer;
+                const ops = ['+', '-', '*', '/'];
+                const opSymbols = {'*': '\\times', '/': '\\div'};
+                
+                if (diff === 'facile') {
+                    op = ops[randomInt(0, 1)];
+                    num1 = randomInt(1, 20); num2 = randomInt(1, 20);
+                } else if (diff === 'medio') {
+                    op = ops[randomInt(0, 2)];
+                    num1 = randomInt(10, 100); num2 = randomInt(10, 100);
+                } else {
+                    op = ops[randomInt(2, 3)];
+                    if(op === '/') {
+                        num2 = randomInt(2, 10);
+                        num1 = num2 * randomInt(2, 20);
+                    } else {
+                        num1 = randomInt(10, 50); num2 = randomInt(10, 50);
+                    }
+                }
+
+                if (op === '-' && num1 < num2) [num1, num2] = [num2, num1];
+                
+                question = `${num1} ${opSymbols[op] || op} ${num2}`;
+                answer = eval(`${num1} ${op} ${num2}`);
+
+                const opName = { '+': 'addizione', '-': 'sottrazione', '*': 'moltiplicazione', '/': 'divisione' }[op];
+                return {
+                    type: 'esercizi',
+                    problem: formatLatex(question),
+                    solution: answer,
+                    hint: translations[state.language].arithmetic_hint(opName)
+                };
+            },
+            espressioni: (diff) => {
+                let num1, num2, num3, problem, result;
+                 if (diff === 'facile') { // a * b + c
+                    num1 = randomInt(2, 10); num2 = randomInt(2, 10); num3 = randomInt(5, 20);
+                    problem = `${num1} \\times ${num2} + ${num3}`;
+                    result = num1 * num2 + num3;
+                } else if (diff === 'medio') { // (a + b) * c
+                    num1 = randomInt(5, 15); num2 = randomInt(5, 15); num3 = randomInt(2, 8);
+                    problem = `(${num1} + ${num2}) \\times ${num3}`;
+                    result = (num1 + num2) * num3;
+                } else { // (a * b - c) / d
+                    let d = randomInt(2, 5);
+                    let c = randomInt(5, 15);
+                    let temp_result = randomInt(5, 10) * d + c;
+                    num1 = randomInt(3, 12);
+                    num2 = Math.round(temp_result / num1);
+                    if (num1 * num2 < c) num2 += Math.ceil(c/num1);
+                     problem = `(${num1} \\times ${num2} - ${c}) \\div ${d}`;
+                    result = (num1 * num2 - c) / d;
+                }
+                return {
+                    type: 'espressioni',
+                    problem: formatLatex(problem),
+                    solution: result,
+                    hint: translations[state.language].expressions_hint(problem, result)
+                };
+            },
+            proporzioni: (diff) => {
+                let a, b, c, x;
+                if (diff === 'facile') {
+                    c = randomInt(2, 5);
+                    a = randomInt(2, 5) * c;
+                    b = randomInt(6, 10) * c;
+                } else if (diff === 'medio') {
+                    c = randomInt(2, 10);
+                    a = randomInt(2, 10) * c;
+                    b = randomInt(11, 20) * c;
+                } else {
+                    c = randomInt(5, 15);
+                    a = randomInt(5, 15) * c;
+                    b = randomInt(15, 30) * c;
+                }
+                x = (b * c) / a;
+                const problem = `${a} : ${b} = ${c} : x`;
+                return {
+                    type: 'proporzioni',
+                    problem: formatLatex(problem),
+                    solution: x,
+                    hint: translations[state.language].proportions_hint(problem, x)
+                };
+            },
+            sistemi: (diff) => {
+                 let x, y, a1, b1, c1, a2, b2, c2;
+                if (diff === 'facile') {
+                    x = randomInt(1, 5); y = randomInt(1, 5);
+                    a1 = 1; b1 = 1; c1 = x + y;
+                    a2 = 1; b2 = -1; c2 = x - y;
+                } else if (diff === 'medio') {
+                    x = randomInt(-5, 5); y = randomInt(-5, 5);
+                    a1 = randomInt(1, 3); b1 = randomInt(1, 3);
+                    a2 = randomInt(1, 3); b2 = randomInt(-3, -1);
+                    c1 = a1 * x + b1 * y;
+                    c2 = a2 * x + b2 * y;
+                } else {
+                    x = randomInt(-10, 10); y = randomInt(-10, 10);
+                    a1 = randomInt(2, 5); b1 = randomInt(-5, 5); if (b1 === 0) b1 = 1;
+                    a2 = randomInt(-5, 5); if (a2 === 0) a2 = 2; b2 = randomInt(2, 5);
+                    if (a1 * b2 === a2 * b1) { a1++; }
+                    c1 = a1 * x + b1 * y;
+                    c2 = a2 * x + b2 * y;
+                }
+
+                const formatTerm = (coeff, variable) => {
+                    if (coeff === 0) return '';
+                    let sign = coeff > 0 ? '+' : '-';
+                    let absCoeff = Math.abs(coeff);
+                    let coeffStr = absCoeff === 1 ? '' : absCoeff;
+                    return ` ${sign} ${coeffStr}${variable}`;
+                };
+                const formatEq = (a, b, c) => {
+                     let eq = `${a === 1 ? '' : a}x`;
+                     eq += `${formatTerm(b,'y')} = ${c}`;
+                     return eq.trim().startsWith('+') ? eq.trim().substring(2) : eq.trim();
+                };
+
+                const problem = `\\begin{cases} ${formatEq(a1, b1, c1)} \\\\ ${formatEq(a2, b2, c2)} \\end{cases}`;
+                return {
+                    type: 'sistemi',
+                    problem: problem,
+                    solution: { x, y },
+                    hint: translations[state.language].systems_hint(problem, {x, y})
+                };
+            }
+        };
+
+        const createExerciseUI = (container, exercise) => {
+            container.innerHTML = '';
+            const exerciseUI = elements.exerciseTemplate.firstElementChild.cloneNode(true);
+            const problemDiv = exerciseUI.querySelector('.exercise-problem');
+            const inputsDiv = exerciseUI.querySelector('.exercise-inputs');
+            
+            problemDiv.innerHTML = exercise.type === 'sistemi' ? `$$${exercise.problem}$$` : exercise.problem;
+            exerciseUI.querySelector('.exercise-label').textContent = translations[state.language][`${exercise.type}_exercise_label`];
+            
+            if (exercise.type === 'sistemi') {
+                inputsDiv.innerHTML = `
+                    <input type="number" class="w-full p-3 rounded-lg custom-input" placeholder="${translations[state.language].systems_answer_x_placeholder}" data-answer-part="x">
+                    <input type="number" class="w-full p-3 rounded-lg custom-input" placeholder="${translations[state.language].systems_answer_y_placeholder}" data-answer-part="y">
+                `;
+            } else {
+                 inputsDiv.innerHTML = `<input type="number" class="w-full p-3 rounded-lg custom-input" placeholder="${translations[state.language][`${exercise.type}_answer_placeholder`]}">`;
+            }
+             MathJax.typesetPromise([problemDiv]);
+
+            container.appendChild(exerciseUI);
+            return exerciseUI;
+        };
+        
+        const generateExercise = (sectionContainer, exerciseType) => {
+            const exerciseData = exerciseGenerators[exerciseType](state.difficulty);
+            state.currentExercise = exerciseData;
+
+            const exerciseUI = createExerciseUI(sectionContainer, exerciseData);
+            
+            const checkButton = exerciseUI.querySelector('.check-button');
+            const newButton = exerciseUI.querySelector('.new-button');
+            const hintButton = exerciseUI.querySelector('.hint-button');
+            const resultBox = exerciseUI.querySelector('.result-box');
+            const explanationBox = exerciseUI.querySelector('.explanation-box');
+
+            const checkAnswer = () => {
+                let isCorrect = false;
+                const inputs = exerciseUI.querySelectorAll('.custom-input');
+                
+                if (exerciseData.type === 'sistemi') {
+                    const x_val = parseFloat(inputs[0].value);
+                    const y_val = parseFloat(inputs[1].value);
+                    if (isNaN(x_val) || isNaN(y_val)) {
+                        resultBox.textContent = translations[state.language].feedback_warning_empty;
+                        resultBox.className = 'result-box mt-5 p-4 rounded-lg text-center font-bold text-base scale-100 opacity-100 feedback-warning';
+                        return;
+                    }
+                    isCorrect = (x_val === exerciseData.solution.x && y_val === exerciseData.solution.y);
+                } else {
+                    const val = parseFloat(inputs[0].value);
+                    if (isNaN(val)) {
+                        resultBox.textContent = translations[state.language].feedback_warning_empty;
+                        resultBox.className = 'result-box mt-5 p-4 rounded-lg text-center font-bold text-base scale-100 opacity-100 feedback-warning';
+                        return;
+                    }
+                    isCorrect = Math.abs(val - exerciseData.solution) < 0.01;
+                }
+                
+                state.stats.exercisesDone++;
+                if (isCorrect) {
+                    state.stats.correctAnswers++;
+                    state.stats.totalScore += (['facile', 'medio', 'difficile'].indexOf(state.difficulty) + 1) * 10;
+                    resultBox.textContent = translations[state.language].feedback_correct;
+                    resultBox.className = 'result-box mt-5 p-4 rounded-lg text-center font-bold text-base scale-100 opacity-100 feedback-correct';
+                    checkButton.classList.add('correct-animation');
+                } else {
+                    const solutionText = typeof exerciseData.solution === 'object' ? `x=${exerciseData.solution.x}, y=${exerciseData.solution.y}` : exerciseData.solution;
+                    resultBox.textContent = translations[state.language].feedback_incorrect(solutionText);
+                    resultBox.className = 'result-box mt-5 p-4 rounded-lg text-center font-bold text-base scale-100 opacity-100 feedback-incorrect';
+                    checkButton.classList.add('incorrect-animation');
+                }
+                
+                updateStatsUI();
+                if (auth.currentUser) saveData(auth.currentUser.uid);
+                
+                setTimeout(() => {
+                    checkButton.classList.remove('correct-animation', 'incorrect-animation');
+                }, 1000);
+            };
+
+            checkButton.addEventListener('click', checkAnswer);
+            exerciseUI.querySelectorAll('.custom-input').forEach(input => {
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') checkAnswer();
                 });
             });
 
-            // Imposta la difficoltà iniziale e la lingua
-            const initialDifficultyButton = document.querySelector(`[data-difficulty="${state.difficulty}"]`);
-            if (initialDifficultyButton) initialDifficultyButton.classList.add('active');
+            newButton.addEventListener('click', () => generateExercise(sectionContainer, exerciseType));
+            hintButton.addEventListener('click', () => {
+                explanationBox.innerHTML = exerciseData.hint;
+                MathJax.typesetPromise([explanationBox]);
+                explanationBox.classList.toggle('hidden');
+            });
+        };
+
+        const initApp = () => {
+            setLanguage(state.language);
             elements.languageSelector.value = state.language;
-            updateLanguage();
+            
+            const storedDifficulty = localStorage.getItem('difficulty');
+            if (storedDifficulty) {
+                 elements.difficultyButtons.forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.difficulty === storedDifficulty);
+                });
+                state.difficulty = storedDifficulty;
+            }
 
-            elements.languageSelector.addEventListener('change', (e) => {
-                state.language = e.target.value;
-                localStorage.setItem('language', state.language);
-                updateLanguage();
-            });
+            setupEventListeners();
+            setupAuth();
+        };
 
-            // Toggle per l'accessibilità
-            elements.accessibilityToggle.addEventListener('click', () => {
-                document.body.classList.toggle('high-contrast');
-                document.body.classList.toggle('large-font');
-            });
-        });
+        initApp();
     </script>
 </body>
 </html>
+
