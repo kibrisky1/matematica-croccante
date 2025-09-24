@@ -190,19 +190,19 @@
         .modal-overlay.active { display: block; }
     </style>
 </head>
-<body class="h-screen p-4">
+<body class="h-screen p-2 sm:p-4">
     <canvas id="background-canvas"></canvas>
 
     <!-- UI principale del sito -->
-    <div id="main-ui" class="flex flex-col lg:flex-row h-full gap-4">
+    <div id="main-ui" class="flex flex-col lg:flex-row h-full gap-2 sm:gap-4">
         <!-- Sidebar di Navigazione -->
-        <aside class="w-full lg:w-72 glass-card rounded-2xl p-4 md:p-6 flex flex-col flex-shrink-0">
-            <div class="text-center lg:text-left mb-4 md:mb-8">
-                <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-emerald-500" data-i18n="header_title">Tutor Matematico</h1>
-                <p class="text-sm text-slate-400" data-i18n="header_subtitle">Impara divertendoti!</p>
+        <aside class="w-full lg:w-72 glass-card rounded-2xl p-3 sm:p-4 md:p-6 flex flex-col flex-shrink-0">
+            <div class="text-center lg:text-left mb-3 sm:mb-4 md:mb-8">
+                <h1 class="text-xl sm:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-emerald-500" data-i18n="header_title">Tutor Matematico</h1>
+                <p class="text-xs sm:text-sm text-slate-400" data-i18n="header_subtitle">Impara divertendoti!</p>
             </div>
 
-            <nav class="flex flex-row lg:flex-col justify-start lg:justify-start gap-2 mb-4 md:mb-8 overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0">
+            <nav class="flex flex-row lg:flex-col justify-start lg:justify-start gap-2 mb-3 sm:mb-4 md:mb-8 overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0">
                 <button id="nav-home" class="nav-button active flex items-center justify-center lg:justify-start gap-3 p-3 rounded-lg font-semibold flex-shrink-0">
                     <i data-lucide="home" class="nav-icon"></i> <span class="hidden lg:inline" data-i18n="nav_home">Home</span>
                 </button>
@@ -256,23 +256,23 @@
         </aside>
 
         <!-- Contenuto Principale -->
-        <main class="flex-grow glass-card rounded-2xl p-4 md:p-6 lg:p-8 relative overflow-y-auto flex flex-col">
+        <main class="flex-grow glass-card rounded-2xl p-3 sm:p-4 md:p-6 lg:p-8 relative overflow-y-auto flex flex-col">
 
             <!-- Intestazione Pagina (per sezioni di esercizi) -->
-            <div id="page-header" class="hidden mb-8">
-                <h2 id="page-title" class="text-3xl sm:text-4xl font-bold"></h2>
+            <div id="page-header" class="hidden mb-6 sm:mb-8">
+                <h2 id="page-title" class="text-2xl sm:text-3xl font-bold"></h2>
                 <p id="page-subtitle" class="text-slate-400 mt-1"></p>
             </div>
 
             <!-- Sezione Home -->
             <div id="section-home" class="section-container active h-full flex flex-col justify-center items-center text-center">
                 <div class="max-w-2xl">
-                    <i data-lucide="atom" class="mx-auto mb-6 text-cyan-400" size="80"></i>
-                    <h2 class="text-3xl sm:text-4xl font-bold mb-4" data-i18n="home_welcome">Benvenuto!</h2>
-                    <p class="text-lg text-slate-400 mb-8" data-i18n="home_intro">
+                    <i data-lucide="atom" class="mx-auto mb-6 text-cyan-400" size="60" sm:size="80"></i>
+                    <h2 class="text-2xl sm:text-3xl font-bold mb-4" data-i18n="home_welcome">Benvenuto!</h2>
+                    <p class="text-base sm:text-lg text-slate-400 mb-8" data-i18n="home_intro">
                         Migliora le tue competenze matematiche in modo interattivo. Scegli un argomento dalla navigazione e imposta la difficoltà per iniziare.
                     </p>
-                    <div class="bg-slate-800/50 p-6 rounded-xl border border-slate-700/50 mb-4">
+                    <div class="bg-slate-800/50 p-4 sm:p-6 rounded-xl border border-slate-700/50 mb-4">
                         <p class="text-md font-semibold text-slate-300 mb-3" data-i18n="home_difficulty_label">Seleziona il tuo livello:</p>
                         <div id="difficulty-selector" class="flex flex-col sm:flex-row justify-center gap-2 p-1 bg-slate-900/70 rounded-full">
                             <button class="difficulty-button flex-1 px-4 py-2 rounded-full font-medium transition-all duration-300 active" data-difficulty="facile" data-i18n="difficulty_easy">Facile</button>
@@ -289,7 +289,7 @@
                     <div class="bg-slate-900/50 rounded-xl p-4 sm:p-6 border border-slate-700/50">
                         <div class="text-center mb-5">
                             <p class="exercise-label text-lg font-medium text-slate-400 mb-2"></p>
-                            <div class="exercise-problem text-3xl sm:text-4xl font-bold text-slate-100 p-4 bg-slate-800/50 rounded-lg shadow-sm flex flex-col justify-center items-center"></div>
+                            <div class="exercise-problem text-2xl sm:text-3xl font-bold text-slate-100 p-4 bg-slate-800/50 rounded-lg shadow-sm flex flex-col justify-center items-center"></div>
                         </div>
 
                         <div class="exercise-inputs flex flex-col sm:flex-row items-center gap-4 mb-4">
@@ -840,7 +840,7 @@
                 const input = document.createElement('input');
                 input.type = 'number';
                 input.name = 'answer';
-                input.className = 'custom-input w-full p-4 text-center rounded-lg text-xl';
+                input.className = 'custom-input w-full p-4 text-center rounded-lg text-lg sm:text-xl';
                 input.placeholder = translations[state.language][generator.placeholderKey];
                 inputsContainer.appendChild(input);
                 input.addEventListener('keydown', (e) => {
@@ -975,6 +975,7 @@
     </script>
 </body>
 </html>
+
 
 
 
