@@ -196,26 +196,26 @@
     <!-- UI principale del sito -->
     <div id="main-ui" class="flex flex-col lg:flex-row h-full gap-4">
         <!-- Sidebar di Navigazione -->
-        <aside class="w-full lg:w-72 glass-card rounded-2xl p-6 flex flex-col flex-shrink-0">
-            <div class="text-center lg:text-left mb-8">
+        <aside class="w-full lg:w-72 glass-card rounded-2xl p-4 md:p-6 flex flex-col flex-shrink-0">
+            <div class="text-center lg:text-left mb-4 md:mb-8">
                 <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-emerald-500" data-i18n="header_title">Tutor Matematico</h1>
                 <p class="text-sm text-slate-400" data-i18n="header_subtitle">Impara divertendoti!</p>
             </div>
 
-            <nav class="flex flex-row lg:flex-col justify-around lg:justify-start gap-2 mb-8 overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0">
-                <button id="nav-home" class="nav-button active flex items-center justify-center lg:justify-start gap-3 p-3 rounded-lg font-semibold">
+            <nav class="flex flex-row lg:flex-col justify-start lg:justify-start gap-2 mb-4 md:mb-8 overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0">
+                <button id="nav-home" class="nav-button active flex items-center justify-center lg:justify-start gap-3 p-3 rounded-lg font-semibold flex-shrink-0">
                     <i data-lucide="home" class="nav-icon"></i> <span class="hidden lg:inline" data-i18n="nav_home">Home</span>
                 </button>
-                <button id="nav-esercizi" class="nav-button flex items-center justify-center lg:justify-start gap-3 p-3 rounded-lg font-semibold">
+                <button id="nav-esercizi" class="nav-button flex items-center justify-center lg:justify-start gap-3 p-3 rounded-lg font-semibold flex-shrink-0">
                     <i data-lucide="calculator" class="nav-icon"></i> <span class="hidden lg:inline" data-i18n="nav_arithmetic">Aritmetica</span>
                 </button>
-                <button id="nav-espressioni" class="nav-button flex items-center justify-center lg:justify-start gap-3 p-3 rounded-lg font-semibold">
+                <button id="nav-espressioni" class="nav-button flex items-center justify-center lg:justify-start gap-3 p-3 rounded-lg font-semibold flex-shrink-0">
                     <i data-lucide="parentheses" class="nav-icon"></i> <span class="hidden lg:inline" data-i18n="nav_expressions">Espressioni</span>
                 </button>
-                <button id="nav-proporzioni" class="nav-button flex items-center justify-center lg:justify-start gap-3 p-3 rounded-lg font-semibold">
+                <button id="nav-proporzioni" class="nav-button flex items-center justify-center lg:justify-start gap-3 p-3 rounded-lg font-semibold flex-shrink-0">
                     <i data-lucide="ratio" class="nav-icon"></i> <span class="hidden lg:inline" data-i18n="nav_proportions">Proporzioni</span>
                 </button>
-                <button id="nav-sistemi" class="nav-button flex items-center justify-center lg:justify-start gap-3 p-3 rounded-lg font-semibold">
+                <button id="nav-sistemi" class="nav-button flex items-center justify-center lg:justify-start gap-3 p-3 rounded-lg font-semibold flex-shrink-0">
                     <i data-lucide="braces" class="nav-icon"></i> <span class="hidden lg:inline" data-i18n="nav_systems">Sistemi</span>
                 </button>
             </nav>
@@ -256,7 +256,7 @@
         </aside>
 
         <!-- Contenuto Principale -->
-        <main class="flex-grow glass-card rounded-2xl p-6 sm:p-10 relative overflow-y-auto flex flex-col">
+        <main class="flex-grow glass-card rounded-2xl p-4 md:p-6 lg:p-8 relative overflow-y-auto flex flex-col">
 
             <!-- Intestazione Pagina (per sezioni di esercizi) -->
             <div id="page-header" class="hidden mb-8">
@@ -286,7 +286,7 @@
             <!-- Template per Sezioni di Esercizi (sarà clonato) -->
             <div id="exercise-template" class="hidden">
                 <div class="max-w-2xl mx-auto flex flex-col justify-center h-full">
-                    <div class="bg-slate-900/50 rounded-xl p-6 border border-slate-700/50">
+                    <div class="bg-slate-900/50 rounded-xl p-4 sm:p-6 border border-slate-700/50">
                         <div class="text-center mb-5">
                             <p class="exercise-label text-lg font-medium text-slate-400 mb-2"></p>
                             <div class="exercise-problem text-3xl sm:text-4xl font-bold text-slate-100 p-4 bg-slate-800/50 rounded-lg shadow-sm flex flex-col justify-center items-center"></div>
@@ -623,39 +623,73 @@
                         difficile: { range: [2, 20], terms: 5, parens: true }
                     };
                     const settings = difficultySettings[state.difficulty];
+                    let expression, solution;
 
-                    const generateExpression = (terms) => {
-                        if (terms === 1) return randomInt(settings.range[0], settings.range[1]).toString();
+                    // Loop until we get a valid expression with an integer solution.
+                    while (true) {
+                        const generateRecursive = (numTerms) => {
+                            // Base case: if there's only one term, return a number.
+                            if (numTerms === 1) {
+                                return randomInt(settings.range[0], settings.range[1]).toString();
+                            }
 
-                        const split = Math.ceil(terms / 2);
-                        const left = generateExpression(split);
-                        const right = generateExpression(terms - split);
+                            // Decide how to split the expression, e.g., 5 terms -> 3 on left, 2 on right.
+                            const leftTerms = Math.ceil(numTerms / 2);
+                            const rightTerms = numTerms - leftTerms;
+                            
+                            let left = generateRecursive(leftTerms);
+                            let right = generateRecursive(rightTerms);
+                            
+                            // Pick an operator based on difficulty
+                            const op = ops[randomInt(0, settings.parens ? 3 : 2)];
 
-                        let op = ops[randomInt(0, 3)];
-                        let leftNum = eval(left);
-                        let rightNum = eval(right);
+                            try {
+                                // This section tries to make "nice" expressions that result in integers.
+                                let leftVal = eval(left);
+                                let rightVal = eval(right);
 
-                        if (op === '/') {
-                            if (rightNum === 0) rightNum = 1;
-                            const newLeft = rightNum * randomInt(1, 5);
-                            return `${newLeft} / ${right}`;
-                        }
+                                if (op === '/') {
+                                    if (rightVal === 0) rightVal = 1; // Avoid division by zero
+                                    leftVal = rightVal * randomInt(2, 5); // Make the left a multiple of the right
+                                    left = leftVal.toString(); // Overwrite the left sub-expression
+                                } else if (op === '-') {
+                                    if (leftVal < rightVal && state.difficulty === 'facile') {
+                                        [left, right] = [right, left]; // Swap to keep results positive for easy mode
+                                    }
+                                }
+                            } catch (e) {
+                                // If eval fails on a sub-expression, just ignore and let the outer loop catch it.
+                            }
+                            
+                            // THE FIX: Add parentheses only around sub-expressions that are not single numbers.
+                            if (leftTerms > 1) { 
+                                left = `(${left})`;
+                            }
+                            if (rightTerms > 1) {
+                                right = `(${right})`;
+                            }
 
-                        if (op === '-') {
-                           if (leftNum < rightNum) return `${right} - ${left}`;
-                        }
+                            return `${left} ${op} ${right}`;
+                        };
                         
-                        const useParens = settings.parens && Math.random() > 0.5;
-                        return useParens ? `(${left}) ${op} ${right}` : `${left} ${op} ${right}`;
-                    };
+                        expression = generateRecursive(settings.terms);
 
-                    let problem = generateExpression(settings.terms);
-                    const result = Math.round(eval(problem));
-                    
+                        try {
+                            const tempSolution = eval(expression);
+                            // Check if the solution is a clean integer.
+                            if (Number.isInteger(tempSolution) && isFinite(tempSolution)) {
+                                solution = tempSolution;
+                                break; // Success, exit the while loop.
+                            }
+                        } catch(e) {
+                            // If the expression is invalid (e.g., "5 / (2 - 2)"), the loop continues.
+                        }
+                    }
+
                     return {
-                        problem: problem,
-                        solution: result,
-                        explanation: translations[state.language].expressions_hint(problem, result)
+                        problem: expression,
+                        solution: solution,
+                        explanation: translations[state.language].expressions_hint(expression, solution)
                     };
                 }
             },
@@ -941,4 +975,6 @@
     </script>
 </body>
 </html>
+
+
 
